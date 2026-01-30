@@ -11,7 +11,7 @@
         .hidden { display: none !important; }
         .screen { padding: 20px; text-align: center; height: 100vh; overflow-y: auto; box-sizing: border-box; }
 
-        /* LOADING OVERLAY */
+        /* LOADING OVERLAY (The Fix for "Nothing Happens") */
         #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
         
         /* GLITCH TEXT */
@@ -27,7 +27,7 @@
         .slider-row { display: flex; justify-content: space-between; margin: 10px 0; background: var(--glass); padding: 5px; }
         input[type=range] { width: 60%; accent-color: var(--neon); }
 
-        /* AVATAR/BOSS VISUALS */
+        /* AVATAR/BOSS VISUALS (The Fix for Missing Images) */
         .card { width: 100%; max-width: 350px; height: 450px; margin: 0 auto; border: 1px solid #333; position: relative; background: #000; }
         .card-body { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
         .card-face { position: absolute; top: 10%; left: 25%; width: 50%; height: 25%; object-fit: cover; border-radius: 50%; border: 2px solid var(--neon); z-index: 10; }
@@ -194,8 +194,7 @@
 
             const u = feed[0];
             
-            // GENERATE BODY ASSET (PLACEHOLDER LOGIC)
-            // Uses placehold.co so it works without real assets
+            // PLACEHOLDER GENERATOR (The Fix for Missing Images)
             const bodyUrl = `https://placehold.co/350x450/111/333?text=BODY_ARCHETYPE`;
             
             const html = `
@@ -247,7 +246,7 @@
             document.getElementById('boss-name').innerText = data.boss.name;
             currentBossHP = data.boss.hp;
             
-            // BOSS ASSET FALLBACK
+            // BOSS VISUAL FIX (Dynamic Placeholder)
             document.getElementById('boss-img').src = "https://placehold.co/200x200/500/FFF?text=" + data.boss.name.replace(" ", "+");
         }
 
