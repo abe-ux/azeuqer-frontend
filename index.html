@@ -13,6 +13,12 @@
 
         /* VISUAL JUICE */
         .scanlines { position: fixed; inset: 0; pointer-events: none; z-index: 10; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 2px, 3px 100%; }
+        
+        /* PIONEER GLITCH */
+        .pioneer-glitch { position: relative; color: var(--neon); animation: skew 1s infinite alternate; text-shadow: 2px 0 var(--pink); }
+        @keyframes skew { 0% { transform: skew(2deg); } 100% { transform: skew(-2deg); } }
+
+        /* GENERAL GLITCH */
         .glitch { font-size: 2rem; font-weight: bold; color: var(--neon); text-shadow: 2px 0 var(--pink); animation: shake 2s infinite; }
         @keyframes shake { 0% { transform: translate(0,0); } 2% { transform: translate(1px,0); } 4% { transform: translate(0,0); } }
 
@@ -31,6 +37,7 @@
         .btn:active { background: var(--neon); color: #000; transform: scale(0.98); }
         .btn-red { border-color: var(--pink); color: var(--pink); }
         .btn-red:active { background: var(--pink); color: #000; }
+        .btn-small { padding: 5px 10px; width: auto; font-size: 0.8rem; margin: 0; }
         
         /* SHEESH BUTTON STYLE */
         .btn-sheesh { border-color: #00ff00; color: #00ff00; box-shadow: 0 0 15px rgba(0,255,0,0.2); }
@@ -44,6 +51,10 @@
         /* INVENTORY GRID */
         .inv-item { border: 1px solid #333; padding: 10px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); }
         .inv-item button { padding: 5px; font-size: 0.8rem; width: auto; margin: 0; }
+
+        /* LEADERBOARD LIST */
+        .leader-row { display: flex; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #333; }
+        .leader-row img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 10px; }
 
         /* LOADER */
         #loader { position: fixed; inset: 0; background: #000; z-index: 99; display: flex; align-items: center; justify-content: center; }
@@ -64,14 +75,16 @@
                 <input type="file" id="cam" accept="image/*" class="hidden" onchange="uploadBio()">
             </label>
         </div>
-        
         <div id="status-log" style="margin-top:20px; color:#555; font-size: 0.8rem;">AWAITING BIOMETRICS</div>
     </div>
 
     <div id="screen-feed" class="screen hidden">
         <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
             <span style="color:var(--neon); font-weight:bold;">AP: <span id="hud-ap">0</span></span>
-            <button onclick="loadProfile()" style="background:none; border:1px solid #333; color:#fff; padding:5px 10px; cursor:pointer;">👤 ME</button>
+            <div style="display:flex; gap:10px;">
+                <button onclick="loadLeaderboard()" style="background:none; border:1px solid #333; color:#fff; padding:5px 10px; cursor:pointer;">🏆 TOP</button>
+                <button onclick="loadProfile()" style="background:none; border:1px solid #333; color:#fff; padding:5px 10px; cursor:pointer;">👤 ME</button>
+            </div>
         </div>
 
         <div id="feed-container">
@@ -95,11 +108,39 @@
         <h2 id="prof-name" style="margin:10px 0; color:#fff;">AGENT</h2>
         <div id="prof-faction" style="color:var(--pink); margin-bottom:20px;">NEUTRAL</div>
 
-        <h3 style="border-bottom:1px solid #333; padding-bottom:5px; text-align:left;">INVENTORY</h3>
-        <div id="inventory-list" style="text-align:left; max-height: 30vh; overflow-y:auto;">
+        <div id="stat-box" style="margin-top:20px; background:#111; padding:10px; border:1px solid #333; text-align:left;">
+            <div style="display:flex; justify-content:space-between;">
+                <span style="color:#888;">STATS</span>
+                <span style="color:gold;" id="avail-pts">PTS: 0</span>
+            </div>
+            <div style="margin-top:10px;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span>STR: <span id="stat-str">0</span></span>
+                    <button class="btn btn-small hidden" id="up-str" onclick="upgradeStat('STR')">[+]</button>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                    <span>AGI: <span id="stat-agi">0</span></span>
+                    <button class="btn btn-small hidden" id="up-agi" onclick="upgradeStat('AGI')">[+]</button>
+                </div>
+                <div style="display:flex; justify-content:space-between;">
+                    <span>INT: <span id="stat-int">0</span></span>
+                    <button class="btn btn-small hidden" id="up-int" onclick="upgradeStat('INT')">[+]</button>
+                </div>
+            </div>
+        </div>
+
+        <h3 style="border-bottom:1px solid #333; padding-bottom:5px; text-align:left; margin-top:20px;">INVENTORY</h3>
+        <div id="inventory-list" style="text-align:left; max-height: 25vh; overflow-y:auto;">
             </div>
 
         <button class="btn" onclick="showScreen('screen-feed')">BACK TO FEED</button>
+    </div>
+
+    <div id="screen-leaderboard" class="screen hidden">
+        <h2 style="color:gold; margin-bottom:20px;">THE ELITE</h2>
+        <div id="leader-list" style="text-align:left; height:70vh; overflow-y:auto; border:1px solid #333;">
+            </div>
+        <button class="btn" onclick="showScreen('screen-feed')">BACK</button>
     </div>
 
     <div id="screen-combat" class="screen hidden" style="background: #2a0000;">
@@ -116,7 +157,7 @@
 
     <script>
         // --- CONFIGURATION ---
-        const API_URL = "https://azeuqer-backend.onrender.com"; // UPDATE THIS !!!
+        const API_URL = "REPLACE_ME_WITH_RENDER_URL"; // UPDATE THIS !!!
         const tg = window.Telegram.WebApp;
         tg.expand();
         
@@ -135,12 +176,10 @@
                 gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
                 osc.start(now); osc.stop(now + 0.1);
             } else if (type === 'sheesh') {
-                // High pitch success sound
                 osc.type = 'sine'; osc.frequency.setValueAtTime(600, now); osc.frequency.linearRampToValueAtTime(1200, now + 0.2);
                 gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.3);
                 osc.start(now); osc.stop(now + 0.3);
             } else if (type === 'spite') {
-                // Low pitch thud
                 osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, now); osc.frequency.linearRampToValueAtTime(50, now + 0.2);
                 gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0, now + 0.3);
                 osc.start(now); osc.stop(now + 0.3);
@@ -209,7 +248,7 @@
             if (feed.length === 0) { container.innerHTML = "<div style='margin-top:100px'>NO TARGETS</div>"; return; }
             const u = feed[0];
             
-            // Render Card with Stamp support
+            const glitchClass = u.is_pioneer ? "pioneer-glitch" : "";
             const stampHtml = u.equipped_item ? `<div class="stamp-overlay">${u.equipped_item}</div>` : '';
             
             container.innerHTML = `
@@ -217,7 +256,7 @@
                     <img src="${u.bio_lock_url}">
                     ${stampHtml}
                     <div class="card-overlay">
-                        <h2 style="margin:0;">${u.username}</h2>
+                        <h2 style="margin:0;" class="${glitchClass}">${u.username}</h2>
                         <div style="color:var(--neon)">${u.faction || 'NEUTRAL'}</div>
                     </div>
                 </div>`;
@@ -247,7 +286,7 @@
             else { feed.shift(); setTimeout(() => renderCard(), 200); }
         }
 
-        // --- PROFILE & EQUIP LOGIC ---
+        // --- PROFILE & PROGRESSION ---
         async function loadProfile() {
             sfx('click');
             showLoader(true);
@@ -262,9 +301,22 @@
                 
                 document.getElementById('prof-img').src = u.bio_lock_url;
                 document.getElementById('prof-name').innerText = u.username;
+                if(u.is_pioneer) document.getElementById('prof-name').classList.add('pioneer-glitch');
                 document.getElementById('prof-faction').innerText = u.faction || "UNSORTED";
                 
-                // Show Stamp if equipped
+                // Stats
+                document.getElementById('stat-str').innerText = u.base_str || 1;
+                document.getElementById('stat-agi').innerText = u.base_agi || 1;
+                document.getElementById('stat-int').innerText = u.base_int || 1;
+                document.getElementById('avail-pts').innerText = "PTS: " + (u.stat_points_available || 0);
+
+                // Show [+] buttons if points > 0
+                const showUpgrades = (u.stat_points_available > 0);
+                ['str','agi','int'].forEach(s => {
+                    document.getElementById('up-'+s).classList.toggle('hidden', !showUpgrades);
+                });
+
+                // Stamp
                 const stampEl = document.getElementById('prof-stamp');
                 if(u.equipped_item) {
                     stampEl.innerText = u.equipped_item;
@@ -273,7 +325,7 @@
                     stampEl.classList.add('hidden');
                 }
 
-                // Fetch Inventory
+                // Inventory
                 const invRes = await fetch(`${API_URL}/game/inventory`, {
                      method: "POST", headers: {"Content-Type":"application/json"},
                      body: JSON.stringify({ initData: tg.initData || "debug_mode" })
@@ -285,7 +337,7 @@
                 if(invData.items.length === 0) list.innerHTML = "<div style='color:#888; padding:10px;'>NO LOOT YET</div>";
                 
                 invData.items.forEach(i => {
-                    const itemName = i.item_id; // Using item_id as name for MVP
+                    const itemName = i.item_id;
                     list.innerHTML += `
                         <div class="inv-item">
                             <span>${itemName}</span>
@@ -294,13 +346,29 @@
                 });
 
                 showScreen('screen-profile');
-            } catch(e) { alert("ERROR"); }
+            } catch(e) { console.error(e); alert("ERROR"); }
             showLoader(false);
+        }
+
+        async function upgradeStat(statName) {
+            sfx('click');
+            try {
+                const res = await fetch(`${API_URL}/game/stats/upgrade`, {
+                    method: "POST", headers: {"Content-Type":"application/json"},
+                    body: JSON.stringify({ initData: tg.initData || "debug_mode", stat: statName })
+                });
+                const data = await res.json();
+                if(data.status === "UPGRADED") {
+                    sfx('sheesh');
+                    loadProfile(); // Refresh
+                } else {
+                    alert("NO POINTS");
+                }
+            } catch(e) { alert("FAIL"); }
         }
 
         async function equipItem(itemId) {
             sfx('click');
-            // Call Backend to set equipped_item
             try {
                 const res = await fetch(`${API_URL}/game/equip`, {
                     method: "POST", headers: {"Content-Type":"application/json"},
@@ -310,9 +378,41 @@
                 if(data.status === "EQUIPPED") {
                     sfx('sheesh');
                     alert("STAMP APPLIED");
-                    loadProfile(); // Reload to show new stamp
+                    loadProfile();
                 }
-            } catch(e) { alert("FAILED TO EQUIP"); }
+            } catch(e) { alert("FAILED"); }
+        }
+
+        async function loadLeaderboard() {
+            sfx('click');
+            showLoader(true);
+            try {
+                // Using Feed logic to get top users for MVP
+                const res = await fetch(`${API_URL}/game/feed`, {
+                    method: "POST", headers: {"Content-Type":"application/json"},
+                    body: JSON.stringify({ initData: tg.initData || "debug_mode" })
+                });
+                const data = await res.json();
+                
+                const list = document.getElementById('leader-list');
+                list.innerHTML = "";
+                
+                // Mock ranking visualization based on feed data
+                data.feed.forEach((u, i) => {
+                    list.innerHTML += `
+                        <div class="leader-row">
+                            <div style="display:flex; align-items:center;">
+                                <span style="margin-right:10px; color:gold;">#${i+1}</span>
+                                <img src="${u.bio_lock_url}">
+                                <span class="${u.is_pioneer ? 'pioneer-glitch' : ''}">${u.username}</span>
+                            </div>
+                            <span>${u.ap || 0} AP</span>
+                        </div>
+                    `;
+                });
+                showScreen('screen-leaderboard');
+            } catch(e) { alert("ERROR"); }
+            showLoader(false);
         }
 
         // --- COMBAT ---
