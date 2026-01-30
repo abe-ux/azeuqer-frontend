@@ -11,10 +11,8 @@
         .hidden { display: none !important; }
         .screen { padding: 20px; text-align: center; height: 100vh; overflow-y: auto; box-sizing: border-box; position: relative; z-index: 2; }
 
-        /* CRT OVERLAY (VISUAL JUICE) */
-        .scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 2px, 3px 100%; }
-        
-        /* GLITCH TEXT */
+        /* VISUAL JUICE */
+        .scanlines { position: fixed; inset: 0; pointer-events: none; z-index: 10; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 2px, 3px 100%; }
         .glitch { font-size: 2rem; font-weight: bold; color: var(--neon); text-shadow: 2px 0 var(--pink); animation: shake 2s infinite; }
         @keyframes shake { 0% { transform: translate(0,0); } 2% { transform: translate(1px,0); } 4% { transform: translate(0,0); } }
 
@@ -24,11 +22,12 @@
         .btn-red { border-color: var(--pink); color: var(--pink); }
         .btn-red:active { background: var(--pink); color: #000; }
         
-        /* CARDS */
+        /* CARDS & ITEMS */
         .card { width: 100%; max-width: 350px; height: 450px; margin: 0 auto; border: 1px solid #333; position: relative; background: #000; transition: transform 0.2s; }
         .card img { width: 100%; height: 100%; object-fit: cover; }
         .card-overlay { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, #000, transparent); padding: 20px; box-sizing: border-box; text-align: left; }
-        
+        .item-slot { border: 1px solid #333; padding: 10px; font-size: 0.8rem; background: var(--glass); color: #ccc; }
+
         /* LOADER */
         #loader { position: fixed; inset: 0; background: #000; z-index: 99; display: flex; align-items: center; justify-content: center; }
     </style>
@@ -56,7 +55,7 @@
     <div id="screen-feed" class="screen hidden">
         <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
             <span style="color:var(--neon); font-weight:bold;">AP: <span id="hud-ap">0</span></span>
-            <span style="color:#888">ENG: 20</span>
+            <button onclick="loadProfile()" style="background:none; border:1px solid #333; color:#fff; padding:5px 10px; cursor:pointer;">👤 PROFILE</button>
         </div>
 
         <div id="feed-container">
@@ -67,6 +66,31 @@
             <button class="btn btn-red" onclick="swipe('SPITE')">❌ SPITE</button>
             <button class="btn" onclick="swipe('LIGHT')">⚡ LIGHT</button>
         </div>
+    </div>
+
+    <div id="screen-profile" class="screen hidden">
+        <h2 class="glitch" style="margin-bottom:20px;">IDENTITY</h2>
+        
+        <div style="display:flex; gap:20px; text-align:left; align-items:center;">
+            <img id="prof-img" src="" style="width:80px; height:80px; border:2px solid var(--neon); object-fit:cover;">
+            <div>
+                <h3 id="prof-name" style="margin:0; color:#fff;">AGENT</h3>
+                <div id="prof-faction" style="color:var(--pink);">NEUTRAL</div>
+            </div>
+        </div>
+
+        <div style="margin-top:20px; background:#111; padding:10px; border:1px solid #333; text-align:left;">
+            <div style="color:#888; font-size:0.8rem; margin-bottom:5px;">STATS</div>
+            <div>STR: <span id="stat-str">0</span></div>
+            <div>AGI: <span id="stat-agi">0</span></div>
+            <div>INT: <span id="stat-int">0</span></div>
+        </div>
+
+        <h3 style="margin-top:30px; border-bottom:1px solid #333; padding-bottom:5px;">INVENTORY</h3>
+        <div id="inventory-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-top:10px;">
+            </div>
+
+        <button class="btn" onclick="showScreen('screen-feed')">BACK TO FEED</button>
     </div>
 
     <div id="screen-combat" class="screen hidden" style="background: #2a0000;">
@@ -83,61 +107,37 @@
 
     <script>
         // --- CONFIGURATION ---
-        const API_URL = "https://azeuqer-backend.onrender.com"; // UPDATE THIS!
+        const API_URL = "REPLACE_ME_WITH_RENDER_URL"; // UPDATE THIS !!!
         const tg = window.Telegram.WebApp;
         tg.expand();
         
-        // --- SYNTH ENGINE (Generates Sound Code-ly) ---
+        // --- SYNTH AUDIO ENGINE ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
         function sfx(type) {
             if(audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-
             const now = audioCtx.currentTime;
             
             if (type === 'click') {
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(800, now);
-                osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
-                gain.gain.setValueAtTime(0.1, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                osc.start(now);
-                osc.stop(now + 0.1);
+                osc.type = 'square'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+                gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
             } else if (type === 'success') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(440, now);
-                osc.frequency.linearRampToValueAtTime(880, now + 0.1);
-                gain.gain.setValueAtTime(0.1, now);
-                gain.gain.linearRampToValueAtTime(0, now + 0.5);
-                osc.start(now);
-                osc.stop(now + 0.5);
-            } else if (type === 'error') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(100, now);
-                osc.frequency.linearRampToValueAtTime(50, now + 0.3);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.linearRampToValueAtTime(0, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
+                osc.type = 'sine'; osc.frequency.setValueAtTime(440, now); osc.frequency.linearRampToValueAtTime(880, now + 0.2);
+                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc.start(now); osc.stop(now + 0.5);
             } else if (type === 'alarm') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(600, now);
-                osc.frequency.linearRampToValueAtTime(800, now + 0.2);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.linearRampToValueAtTime(0, now + 0.5);
-                osc.start(now);
-                osc.stop(now + 0.5);
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, now); osc.frequency.linearRampToValueAtTime(50, now + 0.3);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
             }
-            
-            // Haptic Feedback
             if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
         }
 
-        // --- APP LOGIC ---
+        // --- LOGIC ---
         let feed = [];
         let currentBossHP = 0;
 
@@ -148,7 +148,6 @@
                     method: "POST", headers: {"Content-Type":"application/json"},
                     body: JSON.stringify({ initData: tg.initData || "debug_mode" })
                 });
-                
                 const data = await res.json();
                 if (data.user.bio_lock_url) {
                     document.getElementById('hud-ap').innerText = data.user.ap;
@@ -168,22 +167,17 @@
             if (!file) return;
             document.getElementById('status-log').innerText = "PROCESSING...";
             showLoader(true);
-            
             const fd = new FormData();
             fd.append("initData", tg.initData || "debug_mode");
             fd.append("file", file);
-
-            const res = await fetch(`${API_URL}/auth/biolock`, { method: "POST", body: fd });
-            const data = await res.json();
             
+            try {
+                const res = await fetch(`${API_URL}/auth/biolock`, { method: "POST", body: fd });
+                const data = await res.json();
+                if (data.status === "success") { sfx('success'); location.reload(); }
+                else { alert("ERROR: " + data.msg); }
+            } catch(e) { alert("UPLOAD FAILED"); }
             showLoader(false);
-            if (data.status === "success") {
-                sfx('success');
-                location.reload();
-            } else {
-                sfx('error');
-                alert("SCAN FAILED");
-            }
         }
 
         async function loadFeed() {
@@ -198,53 +192,63 @@
 
         function renderCard() {
             const container = document.getElementById('feed-container');
-            if (feed.length === 0) {
-                container.innerHTML = "<div style='margin-top:100px; color:var(--pink)'>NO TARGETS</div>";
-                return;
-            }
+            if (feed.length === 0) { container.innerHTML = "<div style='margin-top:100px'>NO TARGETS</div>"; return; }
             const u = feed[0];
-            // REAL FACE RENDERING
-            container.innerHTML = `
-                <div class="card">
-                    <img src="${u.bio_lock_url}">
-                    <div class="card-overlay">
-                        <h2 style="margin:0; text-transform:uppercase;">${u.username}</h2>
-                        <div style="color:var(--neon)">${u.faction || 'NEUTRAL'}</div>
-                    </div>
-                </div>
-            `;
+            container.innerHTML = `<div class="card"><img src="${u.bio_lock_url}"><div class="card-overlay"><h2 style="margin:0;">${u.username}</h2><div style="color:var(--neon)">${u.faction || 'NEUTRAL'}</div></div></div>`;
         }
 
         async function swipe(dir) {
             sfx('click');
             if (feed.length === 0) return;
             const target = feed[0];
+            document.querySelector('.card').style.transform = dir === 'LIGHT' ? 'translateX(200px) rotate(20deg)' : 'translateX(-200px) rotate(-20deg)';
             
-            // Visual Feedback
-            const card = document.querySelector('.card');
-            card.style.transform = dir === 'LIGHT' ? 'translateX(200px) rotate(20deg)' : 'translateX(-200px) rotate(-20deg)';
-            card.style.opacity = '0';
-
             const res = await fetch(`${API_URL}/game/swipe`, {
                 method: "POST", headers: {"Content-Type":"application/json"},
                 body: JSON.stringify({ initData: tg.initData || "debug_mode", target_id: target.user_id, direction: dir })
             });
             const data = await res.json();
-            
-            if (data.status === "AMBUSH") {
-                sfx('alarm');
-                triggerAmbush();
-            } else {
-                feed.shift();
-                setTimeout(() => { renderCard(); }, 200);
-            }
+            if (data.status === "AMBUSH") { sfx('alarm'); triggerAmbush(); }
+            else { feed.shift(); setTimeout(() => renderCard(), 200); }
         }
 
-        function triggerAmbush() {
-            showScreen('screen-combat');
-            loadCombatInfo();
+        // --- PROFILE & INVENTORY ---
+        async function loadProfile() {
+            sfx('click');
+            showLoader(true);
+            try {
+                const res = await fetch(`${API_URL}/auth/login`, {
+                    method: "POST", headers: {"Content-Type":"application/json"},
+                    body: JSON.stringify({ initData: tg.initData || "debug_mode" })
+                });
+                const data = await res.json();
+                const u = data.user;
+                
+                document.getElementById('prof-img').src = u.bio_lock_url;
+                document.getElementById('prof-name').innerText = u.username;
+                document.getElementById('prof-faction').innerText = u.faction || "UNSORTED";
+                document.getElementById('stat-str').innerText = u.trait_work || 0;
+
+                const invRes = await fetch(`${API_URL}/game/inventory`, {
+                     method: "POST", headers: {"Content-Type":"application/json"},
+                     body: JSON.stringify({ initData: tg.initData || "debug_mode" })
+                });
+                const invData = await invRes.json();
+                
+                const grid = document.getElementById('inventory-grid');
+                grid.innerHTML = "";
+                if(invData.items.length === 0) grid.innerHTML = "<div>EMPTY</div>";
+                invData.items.forEach(i => {
+                    grid.innerHTML += `<div class="item-slot">${i.item_id}</div>`;
+                });
+
+                showScreen('screen-profile');
+            } catch(e) { alert("ERROR"); }
+            showLoader(false);
         }
 
+        // --- COMBAT ---
+        function triggerAmbush() { showScreen('screen-combat'); loadCombatInfo(); }
         async function loadCombatInfo() {
             const res = await fetch(`${API_URL}/game/combat/info`, {
                 method: "POST", headers: {"Content-Type":"application/json"},
@@ -253,11 +257,9 @@
             const data = await res.json();
             document.getElementById('boss-hp').innerText = data.boss.hp;
             document.getElementById('boss-name').innerText = data.boss.name;
-            // BOSS PLACEHOLDER (Using Robohash for variety)
             document.getElementById('boss-img').src = `https://robohash.org/${data.boss.name}?set=set1`;
             currentBossHP = data.boss.hp;
         }
-
         async function combatTurn(action) {
             sfx('click');
             const res = await fetch(`${API_URL}/game/combat/turn`, {
@@ -266,19 +268,17 @@
             });
             const data = await res.json();
             const log = document.getElementById('combat-log');
-            data.log.forEach(l => {
-                log.innerHTML += `<div>> ${l}</div>`;
-            });
+            data.log.forEach(l => log.innerHTML += `<div>> ${l}</div>`);
             log.scrollTop = log.scrollHeight;
             
             if (data.status === "VICTORY") {
                 sfx('success');
-                alert("VICTORY");
+                alert(`VICTORY! LOOT: ${data.loot}`);
                 location.reload();
             } else {
                 currentBossHP = data.new_boss_hp;
                 document.getElementById('boss-hp').innerText = currentBossHP;
-                sfx('error'); // Hit sound
+                sfx('alarm');
             }
         }
 
