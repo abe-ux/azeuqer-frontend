@@ -9,59 +9,53 @@
         :root { --bg: #050505; --neon: #00ffcc; --pink: #ff00ff; --glass: rgba(255,255,255,0.05); }
         body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; padding: 0; overflow: hidden; }
         .hidden { display: none !important; }
-        .screen { padding: 20px; text-align: center; height: 100vh; overflow-y: auto; box-sizing: border-box; }
+        .screen { padding: 20px; text-align: center; height: 100vh; overflow-y: auto; box-sizing: border-box; position: relative; z-index: 2; }
 
-        /* LOADING OVERLAY (The Fix for "Nothing Happens") */
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        /* CRT OVERLAY (VISUAL JUICE) */
+        .scanlines { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 2px, 3px 100%; }
         
         /* GLITCH TEXT */
-        .glitch { font-size: 2rem; font-weight: bold; color: var(--neon); text-shadow: 2px 0 var(--pink); }
-        
+        .glitch { font-size: 2rem; font-weight: bold; color: var(--neon); text-shadow: 2px 0 var(--pink); animation: shake 2s infinite; }
+        @keyframes shake { 0% { transform: translate(0,0); } 2% { transform: translate(1px,0); } 4% { transform: translate(0,0); } }
+
         /* CONTROLS */
-        .btn { width: 100%; padding: 15px; background: #111; border: 1px solid var(--neon); color: var(--neon); margin-top: 15px; font-size: 1rem; font-weight: bold; text-transform: uppercase; cursor: pointer; }
-        .btn:active { background: var(--neon); color: #000; }
+        .btn { width: 100%; padding: 15px; background: #111; border: 1px solid var(--neon); color: var(--neon); margin-top: 15px; font-size: 1rem; font-weight: bold; text-transform: uppercase; cursor: pointer; transition: 0.1s; }
+        .btn:active { background: var(--neon); color: #000; transform: scale(0.98); }
         .btn-red { border-color: var(--pink); color: var(--pink); }
         .btn-red:active { background: var(--pink); color: #000; }
         
-        /* SLIDERS */
-        .slider-row { display: flex; justify-content: space-between; margin: 10px 0; background: var(--glass); padding: 5px; }
-        input[type=range] { width: 60%; accent-color: var(--neon); }
-
-        /* AVATAR/BOSS VISUALS (The Fix for Missing Images) */
-        .card { width: 100%; max-width: 350px; height: 450px; margin: 0 auto; border: 1px solid #333; position: relative; background: #000; }
-        .card-body { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
-        .card-face { position: absolute; top: 10%; left: 25%; width: 50%; height: 25%; object-fit: cover; border-radius: 50%; border: 2px solid var(--neon); z-index: 10; }
-        .card-info { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.8); padding: 10px; box-sizing: border-box; text-align: left; }
+        /* CARDS */
+        .card { width: 100%; max-width: 350px; height: 450px; margin: 0 auto; border: 1px solid #333; position: relative; background: #000; transition: transform 0.2s; }
+        .card img { width: 100%; height: 100%; object-fit: cover; }
+        .card-overlay { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, #000, transparent); padding: 20px; box-sizing: border-box; text-align: left; }
+        
+        /* LOADER */
+        #loader { position: fixed; inset: 0; background: #000; z-index: 99; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
+    <div class="scanlines"></div>
+
     <div id="loader" class="hidden">
-        <div class="glitch">PROCESSING...</div>
+        <div class="glitch">CONNECTING...</div>
     </div>
 
     <div id="screen-entry" class="screen">
-        <h1 class="glitch">AZEUQER</h1>
-        <p style="color:#888;">// IDENTITY CONSTRUCTION</p>
+        <h1 class="glitch" style="margin-top:50px;">AZEUQER</h1>
+        <p style="color:#888; margin-bottom:40px;">// REALITY EXTRACTION</p>
         
-        <div id="trait-box">
-            <div class="slider-row"><span>LAZY</span><input type="range" id="t-work"><span>WORK</span></div>
-            <div class="slider-row"><span>SLOW</span><input type="range" id="t-pace"><span>PACE</span></div>
-            <div class="slider-row"><span>DUMB</span><input type="range" id="t-mind"><span>MIND</span></div>
-            <div class="slider-row"><span>LAME</span><input type="range" id="t-vibe"><span>VIBE</span></div>
-        </div>
-
-        <label class="btn" style="display:block;">
-            📸 SCAN BIOMETRICS
+        <label class="btn">
+            📸 UPLOAD BIOMETRICS
             <input type="file" id="cam" accept="image/*" class="hidden" onchange="uploadBio()">
         </label>
         
-        <div id="status-log" style="margin-top:20px; color:#555; font-size: 0.8rem;">WAITING FOR INPUT...</div>
+        <div id="status-log" style="margin-top:20px; color:#555; font-size: 0.8rem;">SYSTEM READY</div>
     </div>
 
     <div id="screen-feed" class="screen hidden">
         <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-            <span style="color:var(--neon)">AP: <span id="hud-ap">0</span></span>
+            <span style="color:var(--neon); font-weight:bold;">AP: <span id="hud-ap">0</span></span>
             <span style="color:#888">ENG: 20</span>
         </div>
 
@@ -69,23 +63,19 @@
             <div style="margin-top:100px;">NO SIGNALS...</div>
         </div>
 
-        <div style="display:flex; gap:10px; margin-top:10px;">
+        <div style="display:flex; gap:10px; position:fixed; bottom:20px; width:90%; left:5%;">
             <button class="btn btn-red" onclick="swipe('SPITE')">❌ SPITE</button>
             <button class="btn" onclick="swipe('LIGHT')">⚡ LIGHT</button>
         </div>
     </div>
 
-    <div id="screen-combat" class="screen hidden" style="background: #1a0000;">
+    <div id="screen-combat" class="screen hidden" style="background: #2a0000;">
         <h1 class="glitch" style="color:var(--pink)">AMBUSH</h1>
-        
-        <img id="boss-img" src="https://placehold.co/200x200/500/FFF?text=BOSS" style="width:200px; height:200px; border:2px solid red; margin: 20px auto;">
-        
-        <h2 id="boss-name" style="color:red">THE GATEKEEPER</h2>
+        <img id="boss-img" src="" style="width:200px; height:200px; border:2px solid red; margin: 20px auto; display:block;">
+        <h2 id="boss-name" style="color:red">TARGET</h2>
         <div style="font-size:1.5rem; font-weight:bold;">HP: <span id="boss-hp">???</span></div>
-        
-        <div id="combat-log" style="height:150px; overflow-y:scroll; background:#000; border:1px solid #333; text-align:left; padding:10px; font-family:monospace; margin-top:10px;"></div>
-        
-        <div style="display:flex; gap:10px;">
+        <div id="combat-log" style="height:100px; overflow-y:scroll; background:#000; border:1px solid #333; text-align:left; padding:10px; font-family:monospace; margin-top:10px; font-size:0.8rem;"></div>
+        <div style="display:flex; gap:10px; margin-top:10px;">
             <button class="btn btn-red" onclick="combatTurn('ATTACK')">⚔ ATTACK</button>
             <button class="btn" style="border-color:#fff; color:#fff;" onclick="combatTurn('POTION_HP')">💉 HEAL</button>
         </div>
@@ -93,199 +83,124 @@
 
     <script>
         // --- CONFIGURATION ---
-        // UPDATE THIS WITH YOUR RENDER URL!
-        const API_URL = "https://azeuqer-backend.onrender.com"; 
-        
+        const API_URL = "https://azeuqer-backend.onrender.com"; // UPDATE THIS!
         const tg = window.Telegram.WebApp;
         tg.expand();
         
+        // --- SYNTH ENGINE (Generates Sound Code-ly) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function sfx(type) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+            
+            if (type === 'click') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (type === 'success') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.linearRampToValueAtTime(880, now + 0.1);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.5);
+            } else if (type === 'error') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(100, now);
+                osc.frequency.linearRampToValueAtTime(50, now + 0.3);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'alarm') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.linearRampToValueAtTime(800, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.5);
+            }
+            
+            // Haptic Feedback
+            if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        }
+
+        // --- APP LOGIC ---
         let feed = [];
         let currentBossHP = 0;
 
-        // --- INIT ---
         async function init() {
             showLoader(true);
             try {
-                // Auto-Login
                 const res = await fetch(`${API_URL}/auth/login`, {
                     method: "POST", headers: {"Content-Type":"application/json"},
                     body: JSON.stringify({ initData: tg.initData || "debug_mode" })
                 });
                 
-                if (!res.ok) throw new Error("Server Offline");
-                
                 const data = await res.json();
-                
                 if (data.user.bio_lock_url) {
-                    // USER EXISTS -> GO TO FEED
                     document.getElementById('hud-ap').innerText = data.user.ap;
                     showScreen('screen-feed');
                     loadFeed();
-                    
-                    if (data.user.combat_state === "LOCKED") {
-                        triggerAmbush();
-                    }
+                    if (data.user.combat_state === "LOCKED") triggerAmbush();
                 } else {
-                    // NEW USER -> STAY ON GENESIS
                     showScreen('screen-entry');
                 }
-            } catch(e) {
-                alert("CONNECTION ERROR: " + e.message);
-                document.getElementById('status-log').innerText = "SERVER DISCONNECTED";
-            }
+            } catch(e) { alert("SERVER ERROR"); }
             showLoader(false);
         }
 
-        // --- CORE FUNCTIONS ---
-
         async function uploadBio() {
-            const fileInput = document.getElementById('cam');
-            const file = fileInput.files[0];
-            
-            if (!file) {
-                alert("NO IMAGE SELECTED");
-                return;
-            }
-
-            document.getElementById('status-log').innerText = "UPLOADING TO NEURAL NET...";
+            sfx('click');
+            const file = document.getElementById('cam').files[0];
+            if (!file) return;
+            document.getElementById('status-log').innerText = "PROCESSING...";
             showLoader(true);
-
+            
             const fd = new FormData();
             fd.append("initData", tg.initData || "debug_mode");
             fd.append("file", file);
 
-            try {
-                const res = await fetch(`${API_URL}/auth/biolock`, { method: "POST", body: fd });
-                const data = await res.json();
-
-                if (data.status === "success") {
-                    alert("IDENTITY CONFIRMED.");
-                    location.reload(); // Reload to enter feed
-                } else {
-                    alert("ERROR: " + data.msg);
-                    document.getElementById('status-log').innerText = "SCAN FAILED: " + data.msg;
-                }
-            } catch (e) {
-                alert("UPLOAD FAILED: " + e.message);
-            }
+            const res = await fetch(`${API_URL}/auth/biolock`, { method: "POST", body: fd });
+            const data = await res.json();
+            
             showLoader(false);
+            if (data.status === "success") {
+                sfx('success');
+                location.reload();
+            } else {
+                sfx('error');
+                alert("SCAN FAILED");
+            }
         }
 
         async function loadFeed() {
-            try {
-                const res = await fetch(`${API_URL}/game/feed`, {
-                    method: "POST", headers: {"Content-Type":"application/json"},
-                    body: JSON.stringify({ initData: tg.initData || "debug_mode" })
-                });
-                const data = await res.json();
-                feed = data.feed;
-                renderCard();
-            } catch(e) { console.error(e); }
-        }
-
-        function renderCard() {
-            const container = document.getElementById('feed-container');
-            container.innerHTML = "";
-            
-            if (feed.length === 0) {
-                container.innerHTML = "<div style='margin-top:100px'>NO TARGETS FOUND.<br>RELOADING...</div>";
-                return;
-            }
-
-            const u = feed[0];
-            
-            // PLACEHOLDER GENERATOR (The Fix for Missing Images)
-            const bodyUrl = `https://placehold.co/350x450/111/333?text=BODY_ARCHETYPE`;
-            
-            const html = `
-                <div class="card">
-                    <img class="card-body" src="${bodyUrl}">
-                    <img class="card-face" src="${u.bio_lock_url}">
-                    <div class="card-info">
-                        <h2 style="margin:0; color:${u.is_pioneer ? 'var(--neon)' : '#fff'}">${u.username}</h2>
-                        <div style="font-size:0.8rem; color:#888">FACTION: ${u.faction || 'NEUTRAL'}</div>
-                        ${u.sponsor_id ? `<div style="background:#fff; color:#000; display:inline-block; padding:2px 5px; font-weight:bold; margin-top:5px;">SPONSORED BY ${u.sponsor_id}</div>` : ''}
-                    </div>
-                </div>
-            `;
-            container.innerHTML = html;
-        }
-
-        async function swipe(dir) {
-            if (feed.length === 0) return;
-            const target = feed[0];
-            
-            // OPTIMISTIC UPDATE (Instant UI feedback)
-            feed.shift();
-            renderCard(); 
-
-            const res = await fetch(`${API_URL}/game/swipe`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode", target_id: target.user_id, direction: dir })
-            });
-            const data = await res.json();
-            
-            if (data.status === "AMBUSH") {
-                triggerAmbush();
-            }
-        }
-
-        // --- COMBAT ---
-        function triggerAmbush() {
-            showScreen('screen-combat');
-            loadCombatInfo();
-        }
-
-        async function loadCombatInfo() {
-            const res = await fetch(`${API_URL}/game/combat/info`, {
+            const res = await fetch(`${API_URL}/game/feed`, {
                 method: "POST", headers: {"Content-Type":"application/json"},
                 body: JSON.stringify({ initData: tg.initData || "debug_mode" })
             });
             const data = await res.json();
-            document.getElementById('boss-hp').innerText = data.boss.hp;
-            document.getElementById('boss-name').innerText = data.boss.name;
-            currentBossHP = data.boss.hp;
-            
-            // BOSS VISUAL FIX (Dynamic Placeholder)
-            document.getElementById('boss-img').src = "https://placehold.co/200x200/500/FFF?text=" + data.boss.name.replace(" ", "+");
+            feed = data.feed;
+            renderCard();
         }
 
-        async function combatTurn(action) {
-            const res = await fetch(`${API_URL}/game/combat/turn`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode", action: action, boss_hp_current: currentBossHP })
-            });
-            const data = await res.json();
-            const log = document.getElementById('combat-log');
-            
-            data.log.forEach(l => {
-                const line = document.createElement('div');
-                line.innerText = "> " + l;
-                log.appendChild(line);
-            });
-            log.scrollTop = log.scrollHeight; // Auto scroll
-            
-            if (data.status === "VICTORY") {
-                alert("TARGET DESTROYED. LOOT ACQUIRED.");
-                location.reload();
-            } else {
-                currentBossHP = data.new_boss_hp;
-                document.getElementById('boss-hp').innerText = currentBossHP;
+        function renderCard() {
+            const container = document.getElementById('feed-container');
+            if (feed.length === 0) {
+                container.innerHTML = "<div style='margin-top:100px; color:var(--pink)'>NO TARGETS</div>";
+                return;
             }
-        }
-
-        // --- UI UTILS ---
-        function showScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-        }
-        function showLoader(visible) {
-            if(visible) document.getElementById('loader').classList.remove('hidden');
-            else document.getElementById('loader').classList.add('hidden');
-        }
-
-        // START
-        init();
-    </script>
-</body>
-</html>
+            const u = feed[0];
+            // REAL FACE REND
