@@ -7,164 +7,236 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root { --bg: #050505; --neon: #00ffcc; --pink: #ff00ff; --glass: rgba(255,255,255,0.05); }
-        body { background: var(--bg); color: #fff; font-family: monospace; margin: 0; padding: 0; overflow: hidden; }
+        body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; padding: 0; overflow: hidden; }
         .hidden { display: none !important; }
-        .screen { padding: 20px; text-align: center; height: 100vh; overflow-y: auto; }
-        .btn { width: 100%; padding: 15px; background: transparent; border: 1px solid var(--neon); color: var(--neon); margin-top: 10px; font-size: 1rem; cursor: pointer; }
+        .screen { padding: 20px; text-align: center; height: 100vh; overflow-y: auto; box-sizing: border-box; }
+
+        /* LOADING OVERLAY */
+        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 999; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        
+        /* GLITCH TEXT */
+        .glitch { font-size: 2rem; font-weight: bold; color: var(--neon); text-shadow: 2px 0 var(--pink); }
+        
+        /* CONTROLS */
+        .btn { width: 100%; padding: 15px; background: #111; border: 1px solid var(--neon); color: var(--neon); margin-top: 15px; font-size: 1rem; font-weight: bold; text-transform: uppercase; cursor: pointer; }
+        .btn:active { background: var(--neon); color: #000; }
         .btn-red { border-color: var(--pink); color: var(--pink); }
-        input[type=range] { width: 100%; accent-color: var(--neon); }
-        /* GLITCH */
-        .glitch { position: relative; color: var(--neon); animation: skew 1s infinite alternate; }
-        .glitch::before { content: attr(data-text); position: absolute; left: -2px; text-shadow: 2px 0 var(--pink); clip: rect(0,900px,0,0); animation: gl 2s infinite linear alternate-reverse; }
-        @keyframes gl { 0% { clip: rect(20px,999px,10px,0); } 100% { clip: rect(5px,999px,40px,0); } }
-        /* CARDS */
-        #card-container { position: relative; width: 300px; height: 450px; margin: 20px auto; }
-        .card { width: 100%; height: 100%; background: #111; border: 1px solid #333; position: absolute; display: flex; flex-direction: column; }
-        .card img { width: 100%; height: 80%; object-fit: cover; }
-        .info { padding: 10px; text-align: left; }
+        .btn-red:active { background: var(--pink); color: #000; }
+        
+        /* SLIDERS */
+        .slider-row { display: flex; justify-content: space-between; margin: 10px 0; background: var(--glass); padding: 5px; }
+        input[type=range] { width: 60%; accent-color: var(--neon); }
+
+        /* AVATAR/BOSS VISUALS */
+        .card { width: 100%; max-width: 350px; height: 450px; margin: 0 auto; border: 1px solid #333; position: relative; background: #000; }
+        .card-body { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
+        .card-face { position: absolute; top: 10%; left: 25%; width: 50%; height: 25%; object-fit: cover; border-radius: 50%; border: 2px solid var(--neon); z-index: 10; }
+        .card-info { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.8); padding: 10px; box-sizing: border-box; text-align: left; }
     </style>
 </head>
 <body>
 
+    <div id="loader" class="hidden">
+        <div class="glitch">PROCESSING...</div>
+    </div>
+
     <div id="screen-entry" class="screen">
-        <h1 class="glitch" data-text="AZEUQER">AZEUQER</h1>
-        <p>INITIALIZE VESSEL</p>
-        <div style="text-align:left; background:var(--glass); padding:10px; margin:10px 0;">
-            <label>WORK <input type="range" id="t-work"></label><br>
-            <label>PACE <input type="range" id="t-pace"></label>
+        <h1 class="glitch">AZEUQER</h1>
+        <p style="color:#888;">// IDENTITY CONSTRUCTION</p>
+        
+        <div id="trait-box">
+            <div class="slider-row"><span>LAZY</span><input type="range" id="t-work"><span>WORK</span></div>
+            <div class="slider-row"><span>SLOW</span><input type="range" id="t-pace"><span>PACE</span></div>
+            <div class="slider-row"><span>DUMB</span><input type="range" id="t-mind"><span>MIND</span></div>
+            <div class="slider-row"><span>LAME</span><input type="range" id="t-vibe"><span>VIBE</span></div>
         </div>
-        <label class="btn">
-            📸  BIO-LOCK SCAN
-            <input type="file" id="cam" accept="image/*" capture="user" class="hidden" onchange="doBiolock()">
+
+        <label class="btn" style="display:block;">
+            📸 SCAN BIOMETRICS
+            <input type="file" id="cam" accept="image/*" class="hidden" onchange="uploadBio()">
         </label>
-        <p id="log" style="color:#555">WAITING...</p>
+        
+        <div id="status-log" style="margin-top:20px; color:#555; font-size: 0.8rem;">WAITING FOR INPUT...</div>
     </div>
 
     <div id="screen-feed" class="screen hidden">
-        <div style="display:flex; justify-content:space-between; border-bottom:1px solid #333; padding-bottom:10px;">
-            <span>AP: <span id="hud-ap">0</span></span>
-            <div style="display:flex; gap:10px;">
-                <button onclick="showScreen('screen-leaderboard')" style="background:none; border:none; color:#fff;">🏆</button>
-                <button onclick="openTribunal()" style="background:none; border:none; color:#fff;">⚖️</button>
-            </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+            <span style="color:var(--neon)">AP: <span id="hud-ap">0</span></span>
+            <span style="color:#888">ENG: 20</span>
         </div>
-        <div id="card-container">
-            <div id="empty-msg" style="margin-top:50px;">NO SIGNALS.<br>REFRESHING...</div>
+
+        <div id="feed-container">
+            <div style="margin-top:100px;">NO SIGNALS...</div>
         </div>
-        <div style="display:flex; gap:10px; justify-content:center;">
-            <button class="btn btn-red" style="width:auto;" onclick="swipe('SPITE')"> ❌  SPITE</button>
-            <button class="btn" style="width:auto;" onclick="swipe('LIGHT')"> ⚡  LIGHT</button>
+
+        <div style="display:flex; gap:10px; margin-top:10px;">
+            <button class="btn btn-red" onclick="swipe('SPITE')">❌ SPITE</button>
+            <button class="btn" onclick="swipe('LIGHT')">⚡ LIGHT</button>
         </div>
     </div>
 
-    <div id="screen-combat" class="screen hidden" style="background:rgba(20,0,0,0.95); z-index:99; position:absolute; top:0; width:100%;">
-        <h1 style="color:red">AMBUSH</h1>
-        <div id="boss-stats">
-            <h2>THE GATEKEEPER</h2>
-            <p>HP: <span id="boss-hp">???</span></p>
-        </div>
-        <div id="combat-log" style="height:150px; overflow-y:scroll; border:1px solid #333; text-align:left; padding:5px; font-size:0.8rem;"></div>
-        <button class="btn btn-red" onclick="combatTurn('ATTACK')">ATTACK</button>
-        <button class="btn" onclick="combatTurn('POTION')">POTION</button>
-    </div>
-
-    <div id="screen-leaderboard" class="screen hidden">
-        <h2>HIERARCHY</h2>
-        <div id="board-list" style="text-align:left; height:40vh; overflow-y:scroll; border:1px solid #333; padding:5px;"></div>
+    <div id="screen-combat" class="screen hidden" style="background: #1a0000;">
+        <h1 class="glitch" style="color:var(--pink)">AMBUSH</h1>
         
-        <div id="foundation-widget" style="background:#111; padding:10px; margin-top:20px; border:1px solid #333;">
-            <div style="font-size:0.8rem; color:#888;">THE FOUNDATION</div>
-            <div style="width:100%; background:#333; height:10px; margin:5px 0;">
-                <div id="found-bar" style="width:0%; background:var(--neon); height:100%;"></div>
-            </div>
-            <button class="btn" style="font-size:0.8rem; padding:5px;" onclick="donate()">DONATE AP</button>
+        <img id="boss-img" src="https://placehold.co/200x200/500/FFF?text=BOSS" style="width:200px; height:200px; border:2px solid red; margin: 20px auto;">
+        
+        <h2 id="boss-name" style="color:red">THE GATEKEEPER</h2>
+        <div style="font-size:1.5rem; font-weight:bold;">HP: <span id="boss-hp">???</span></div>
+        
+        <div id="combat-log" style="height:150px; overflow-y:scroll; background:#000; border:1px solid #333; text-align:left; padding:10px; font-family:monospace; margin-top:10px;"></div>
+        
+        <div style="display:flex; gap:10px;">
+            <button class="btn btn-red" onclick="combatTurn('ATTACK')">⚔ ATTACK</button>
+            <button class="btn" style="border-color:#fff; color:#fff;" onclick="combatTurn('POTION_HP')">💉 HEAL</button>
         </div>
-        <button class="btn" onclick="showScreen('screen-feed')">BACK</button>
-    </div>
-
-    <div id="screen-tribunal" class="screen hidden" style="background: #1a0505;">
-        <h2 style="color:var(--pink)">THE TRIBUNAL</h2>
-        <div id="case-file" style="margin:20px 0; border:1px solid #444; padding:10px;">
-            <div id="case-status">SEARCHING...</div>
-            <img id="case-img" src="" class="hidden" style="width:150px; height:150px; object-fit:cover; margin:10px auto; display:block;">
-            <h3 id="case-name"></h3>
-        </div>
-        <div id="verdict-controls" class="hidden">
-            <button class="btn" onclick="castVerdict('APPROVE')">VERIFY (+10 AP)</button>
-            <button class="btn btn-red" onclick="castVerdict('REJECT')">PURGE</button>
-        </div>
-        <button class="btn" onclick="showScreen('screen-feed')">EXIT COURT</button>
     </div>
 
     <script>
-        const API_URL = "REPLACE_ME_WITH_RENDER_URL"; // PASTE YOUR URL HERE
+        // --- CONFIGURATION ---
+        // UPDATE THIS WITH YOUR RENDER URL!
+        const API_URL = "https://azeuqer-backend.onrender.com"; 
+        
         const tg = window.Telegram.WebApp;
         tg.expand();
+        
         let feed = [];
         let currentBossHP = 0;
-        let currentCaseId = null;
 
+        // --- INIT ---
         async function init() {
+            showLoader(true);
             try {
+                // Auto-Login
                 const res = await fetch(`${API_URL}/auth/login`, {
                     method: "POST", headers: {"Content-Type":"application/json"},
                     body: JSON.stringify({ initData: tg.initData || "debug_mode" })
                 });
+                
+                if (!res.ok) throw new Error("Server Offline");
+                
                 const data = await res.json();
+                
                 if (data.user.bio_lock_url) {
+                    // USER EXISTS -> GO TO FEED
+                    document.getElementById('hud-ap').innerText = data.user.ap;
                     showScreen('screen-feed');
                     loadFeed();
-                    document.getElementById('hud-ap').innerText = data.user.ap;
-                    if (data.user.combat_state === "LOCKED") triggerAmbush();
+                    
+                    if (data.user.combat_state === "LOCKED") {
+                        triggerAmbush();
+                    }
+                } else {
+                    // NEW USER -> STAY ON GENESIS
+                    showScreen('screen-entry');
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) {
+                alert("CONNECTION ERROR: " + e.message);
+                document.getElementById('status-log').innerText = "SERVER DISCONNECTED";
+            }
+            showLoader(false);
         }
 
-        async function doBiolock() {
-            const file = document.getElementById('cam').files[0];
-            if (!file) return;
-            document.getElementById('log').innerText = "SCANNING...";
+        // --- CORE FUNCTIONS ---
+
+        async function uploadBio() {
+            const fileInput = document.getElementById('cam');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert("NO IMAGE SELECTED");
+                return;
+            }
+
+            document.getElementById('status-log').innerText = "UPLOADING TO NEURAL NET...";
+            showLoader(true);
+
             const fd = new FormData();
             fd.append("initData", tg.initData || "debug_mode");
             fd.append("file", file);
-            const res = await fetch(`${API_URL}/auth/biolock`, { method: "POST", body: fd });
-            const data = await res.json();
-            if(data.status === "success") { alert("CONFIRMED"); location.reload(); }
-            else { alert("FAIL: " + data.msg); }
+
+            try {
+                const res = await fetch(`${API_URL}/auth/biolock`, { method: "POST", body: fd });
+                const data = await res.json();
+
+                if (data.status === "success") {
+                    alert("IDENTITY CONFIRMED.");
+                    location.reload(); // Reload to enter feed
+                } else {
+                    alert("ERROR: " + data.msg);
+                    document.getElementById('status-log').innerText = "SCAN FAILED: " + data.msg;
+                }
+            } catch (e) {
+                alert("UPLOAD FAILED: " + e.message);
+            }
+            showLoader(false);
         }
 
         async function loadFeed() {
-            const res = await fetch(`${API_URL}/game/feed`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode" })
-            });
-            const data = await res.json();
-            feed = data.feed;
-            renderCard();
+            try {
+                const res = await fetch(`${API_URL}/game/feed`, {
+                    method: "POST", headers: {"Content-Type":"application/json"},
+                    body: JSON.stringify({ initData: tg.initData || "debug_mode" })
+                });
+                const data = await res.json();
+                feed = data.feed;
+                renderCard();
+            } catch(e) { console.error(e); }
         }
 
         function renderCard() {
-            const container = document.getElementById('card-container');
+            const container = document.getElementById('feed-container');
             container.innerHTML = "";
-            if(feed.length === 0) { container.innerHTML = "<div style='margin-top:50px'>NO TARGETS</div>"; return; }
+            
+            if (feed.length === 0) {
+                container.innerHTML = "<div style='margin-top:100px'>NO TARGETS FOUND.<br>RELOADING...</div>";
+                return;
+            }
+
             const u = feed[0];
-            container.innerHTML = `<div class="card"><img src="${u.bio_lock_url}"><div class="info"><h3>${u.username}</h3><p>${u.faction || 'NEUTRAL'}</p></div></div>`;
+            
+            // GENERATE BODY ASSET (PLACEHOLDER LOGIC)
+            // Uses placehold.co so it works without real assets
+            const bodyUrl = `https://placehold.co/350x450/111/333?text=BODY_ARCHETYPE`;
+            
+            const html = `
+                <div class="card">
+                    <img class="card-body" src="${bodyUrl}">
+                    <img class="card-face" src="${u.bio_lock_url}">
+                    <div class="card-info">
+                        <h2 style="margin:0; color:${u.is_pioneer ? 'var(--neon)' : '#fff'}">${u.username}</h2>
+                        <div style="font-size:0.8rem; color:#888">FACTION: ${u.faction || 'NEUTRAL'}</div>
+                        ${u.sponsor_id ? `<div style="background:#fff; color:#000; display:inline-block; padding:2px 5px; font-weight:bold; margin-top:5px;">SPONSORED BY ${u.sponsor_id}</div>` : ''}
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
         }
 
         async function swipe(dir) {
-            if(feed.length === 0) return;
+            if (feed.length === 0) return;
             const target = feed[0];
-            document.querySelector('.card').style.transform = dir === 'LIGHT' ? 'translateX(100px)' : 'translateX(-100px)';
+            
+            // OPTIMISTIC UPDATE (Instant UI feedback)
+            feed.shift();
+            renderCard(); 
+
             const res = await fetch(`${API_URL}/game/swipe`, {
                 method: "POST", headers: {"Content-Type":"application/json"},
                 body: JSON.stringify({ initData: tg.initData || "debug_mode", target_id: target.user_id, direction: dir })
             });
             const data = await res.json();
-            if(data.status === "AMBUSH") triggerAmbush();
-            else { feed.shift(); setTimeout(renderCard, 200); }
+            
+            if (data.status === "AMBUSH") {
+                triggerAmbush();
+            }
         }
 
-        function triggerAmbush() { showScreen('screen-combat'); loadCombatInfo(); }
+        // --- COMBAT ---
+        function triggerAmbush() {
+            showScreen('screen-combat');
+            loadCombatInfo();
+        }
+
         async function loadCombatInfo() {
             const res = await fetch(`${API_URL}/game/combat/info`, {
                 method: "POST", headers: {"Content-Type":"application/json"},
@@ -172,60 +244,48 @@
             });
             const data = await res.json();
             document.getElementById('boss-hp').innerText = data.boss.hp;
+            document.getElementById('boss-name').innerText = data.boss.name;
             currentBossHP = data.boss.hp;
+            
+            // BOSS ASSET FALLBACK
+            document.getElementById('boss-img').src = "https://placehold.co/200x200/500/FFF?text=" + data.boss.name.replace(" ", "+");
         }
-        async function combatTurn(act) {
+
+        async function combatTurn(action) {
             const res = await fetch(`${API_URL}/game/combat/turn`, {
                 method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode", action: act, boss_hp_current: currentBossHP })
+                body: JSON.stringify({ initData: tg.initData || "debug_mode", action: action, boss_hp_current: currentBossHP })
             });
             const data = await res.json();
             const log = document.getElementById('combat-log');
-            data.log.forEach(l => log.innerHTML += `<div>> ${l}</div>`);
-            if(data.status === "VICTORY") { alert("VICTORY"); location.reload(); }
-            else { currentBossHP = data.new_boss_hp; document.getElementById('boss-hp').innerText = currentBossHP; }
-        }
-
-        async function openTribunal() {
-            showScreen('screen-tribunal');
-            const res = await fetch(`${API_URL}/game/tribunal/case`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode" })
+            
+            data.log.forEach(l => {
+                const line = document.createElement('div');
+                line.innerText = "> " + l;
+                log.appendChild(line);
             });
-            const data = await res.json();
-            if(data.status === "CASE_FOUND") {
-                currentCaseId = data.case.user_id;
-                document.getElementById('case-img').src = data.case.bio_lock_url;
-                document.getElementById('case-img').classList.remove('hidden');
-                document.getElementById('case-name').innerText = data.case.username;
-                document.getElementById('verdict-controls').classList.remove('hidden');
-                document.getElementById('case-status').innerText = "PENDING";
-            } else { document.getElementById('case-status').innerText = "NO CASES"; }
+            log.scrollTop = log.scrollHeight; // Auto scroll
+            
+            if (data.status === "VICTORY") {
+                alert("TARGET DESTROYED. LOOT ACQUIRED.");
+                location.reload();
+            } else {
+                currentBossHP = data.new_boss_hp;
+                document.getElementById('boss-hp').innerText = currentBossHP;
+            }
         }
 
-        async function castVerdict(vote) {
-            await fetch(`${API_URL}/game/tribunal/vote`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode", target_id: currentCaseId, vote: vote })
-            });
-            alert("VOTED"); openTribunal();
-        }
-
-        async function donate() {
-            const amt = prompt("AMOUNT:");
-            if(!amt) return;
-            await fetch(`${API_URL}/game/foundation/donate`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode", amount: parseInt(amt) })
-            });
-            alert("DONATED");
-        }
-
+        // --- UI UTILS ---
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
         }
+        function showLoader(visible) {
+            if(visible) document.getElementById('loader').classList.remove('hidden');
+            else document.getElementById('loader').classList.add('hidden');
+        }
 
+        // START
         init();
     </script>
 </body>
