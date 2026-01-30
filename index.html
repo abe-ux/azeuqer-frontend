@@ -10,18 +10,14 @@
         body { background: var(--bg); color: #fff; font-family: monospace; margin: 0; padding: 0; overflow: hidden; }
         .hidden { display: none !important; }
         .screen { padding: 20px; text-align: center; height: 100vh; overflow-y: auto; }
-        
-        /* GLITCH TEXT */
-        .glitch { position: relative; color: var(--neon); animation: skew 1s infinite alternate; }
-        .glitch::before { content: attr(data-text); position: absolute; left: -2px; text-shadow: 2px 0 var(--pink); clip: rect(0,900px,0,0); animation: gl 2s infinite linear alternate-reverse; }
-        @keyframes gl { 0% { clip: rect(20px,999px,10px,0); } 100% { clip: rect(5px,999px,40px,0); } }
-        
-        /* CONTROLS */
         .btn { width: 100%; padding: 15px; background: transparent; border: 1px solid var(--neon); color: var(--neon); margin-top: 10px; font-size: 1rem; cursor: pointer; }
         .btn-red { border-color: var(--pink); color: var(--pink); }
         input[type=range] { width: 100%; accent-color: var(--neon); }
-        
-        /* CARD STACK */
+        /* GLITCH */
+        .glitch { position: relative; color: var(--neon); animation: skew 1s infinite alternate; }
+        .glitch::before { content: attr(data-text); position: absolute; left: -2px; text-shadow: 2px 0 var(--pink); clip: rect(0,900px,0,0); animation: gl 2s infinite linear alternate-reverse; }
+        @keyframes gl { 0% { clip: rect(20px,999px,10px,0); } 100% { clip: rect(5px,999px,40px,0); } }
+        /* CARDS */
         #card-container { position: relative; width: 300px; height: 450px; margin: 20px auto; }
         .card { width: 100%; height: 100%; background: #111; border: 1px solid #333; position: absolute; display: flex; flex-direction: column; }
         .card img { width: 100%; height: 80%; object-fit: cover; }
@@ -38,7 +34,7 @@
             <label>PACE <input type="range" id="t-pace"></label>
         </div>
         <label class="btn">
-            📸 BIO-LOCK SCAN
+            📸  BIO-LOCK SCAN
             <input type="file" id="cam" accept="image/*" capture="user" class="hidden" onchange="doBiolock()">
         </label>
         <p id="log" style="color:#555">WAITING...</p>
@@ -47,16 +43,17 @@
     <div id="screen-feed" class="screen hidden">
         <div style="display:flex; justify-content:space-between; border-bottom:1px solid #333; padding-bottom:10px;">
             <span>AP: <span id="hud-ap">0</span></span>
-            <button onclick="openMenu()" style="background:none; border:none; color:#fff;">☰</button>
+            <div style="display:flex; gap:10px;">
+                <button onclick="showScreen('screen-leaderboard')" style="background:none; border:none; color:#fff;">🏆</button>
+                <button onclick="openTribunal()" style="background:none; border:none; color:#fff;">⚖️</button>
+            </div>
         </div>
-        
         <div id="card-container">
             <div id="empty-msg" style="margin-top:50px;">NO SIGNALS.<br>REFRESHING...</div>
         </div>
-        
         <div style="display:flex; gap:10px; justify-content:center;">
-            <button class="btn btn-red" style="width:auto;" onclick="swipe('SPITE')">❌ SPITE</button>
-            <button class="btn" style="width:auto;" onclick="swipe('LIGHT')">⚡ LIGHT</button>
+            <button class="btn btn-red" style="width:auto;" onclick="swipe('SPITE')"> ❌  SPITE</button>
+            <button class="btn" style="width:auto;" onclick="swipe('LIGHT')"> ⚡  LIGHT</button>
         </div>
     </div>
 
@@ -71,33 +68,54 @@
         <button class="btn" onclick="combatTurn('POTION')">POTION</button>
     </div>
 
-    <script>
-        // --- CONFIGURATION ---
-        const API_URL = "https://azeuqer-backend.onrender.com"; 
+    <div id="screen-leaderboard" class="screen hidden">
+        <h2>HIERARCHY</h2>
+        <div id="board-list" style="text-align:left; height:40vh; overflow-y:scroll; border:1px solid #333; padding:5px;"></div>
         
+        <div id="foundation-widget" style="background:#111; padding:10px; margin-top:20px; border:1px solid #333;">
+            <div style="font-size:0.8rem; color:#888;">THE FOUNDATION</div>
+            <div style="width:100%; background:#333; height:10px; margin:5px 0;">
+                <div id="found-bar" style="width:0%; background:var(--neon); height:100%;"></div>
+            </div>
+            <button class="btn" style="font-size:0.8rem; padding:5px;" onclick="donate()">DONATE AP</button>
+        </div>
+        <button class="btn" onclick="showScreen('screen-feed')">BACK</button>
+    </div>
+
+    <div id="screen-tribunal" class="screen hidden" style="background: #1a0505;">
+        <h2 style="color:var(--pink)">THE TRIBUNAL</h2>
+        <div id="case-file" style="margin:20px 0; border:1px solid #444; padding:10px;">
+            <div id="case-status">SEARCHING...</div>
+            <img id="case-img" src="" class="hidden" style="width:150px; height:150px; object-fit:cover; margin:10px auto; display:block;">
+            <h3 id="case-name"></h3>
+        </div>
+        <div id="verdict-controls" class="hidden">
+            <button class="btn" onclick="castVerdict('APPROVE')">VERIFY (+10 AP)</button>
+            <button class="btn btn-red" onclick="castVerdict('REJECT')">PURGE</button>
+        </div>
+        <button class="btn" onclick="showScreen('screen-feed')">EXIT COURT</button>
+    </div>
+
+    <script>
+        const API_URL = "REPLACE_ME_WITH_RENDER_URL"; // PASTE YOUR URL HERE
         const tg = window.Telegram.WebApp;
         tg.expand();
         let feed = [];
         let currentBossHP = 0;
+        let currentCaseId = null;
 
         async function init() {
-            // Auto Login
             try {
                 const res = await fetch(`${API_URL}/auth/login`, {
                     method: "POST", headers: {"Content-Type":"application/json"},
                     body: JSON.stringify({ initData: tg.initData || "debug_mode" })
                 });
                 const data = await res.json();
-                
                 if (data.user.bio_lock_url) {
                     showScreen('screen-feed');
                     loadFeed();
                     document.getElementById('hud-ap').innerText = data.user.ap;
-                    
-                    // Check if stuck in combat
-                    if (data.user.combat_state === "LOCKED") {
-                        triggerAmbush();
-                    }
+                    if (data.user.combat_state === "LOCKED") triggerAmbush();
                 }
             } catch(e) { console.error(e); }
         }
@@ -106,20 +124,13 @@
             const file = document.getElementById('cam').files[0];
             if (!file) return;
             document.getElementById('log').innerText = "SCANNING...";
-            
             const fd = new FormData();
             fd.append("initData", tg.initData || "debug_mode");
             fd.append("file", file);
-            
             const res = await fetch(`${API_URL}/auth/biolock`, { method: "POST", body: fd });
             const data = await res.json();
-            
-            if(data.status === "success") {
-                alert("IDENTITY CONFIRMED");
-                location.reload();
-            } else {
-                alert("SCAN FAILED: " + data.msg);
-            }
+            if(data.status === "success") { alert("CONFIRMED"); location.reload(); }
+            else { alert("FAIL: " + data.msg); }
         }
 
         async function loadFeed() {
@@ -135,51 +146,27 @@
         function renderCard() {
             const container = document.getElementById('card-container');
             container.innerHTML = "";
-            if(feed.length === 0) {
-                container.innerHTML = "<div style='margin-top:50px'>NO TARGETS</div>";
-                return;
-            }
+            if(feed.length === 0) { container.innerHTML = "<div style='margin-top:50px'>NO TARGETS</div>"; return; }
             const u = feed[0];
-            const html = `
-                <div class="card">
-                    <img src="${u.bio_lock_url}">
-                    <div class="info">
-                        <h3>${u.username} ${u.is_pioneer ? '<span style="color:var(--neon)">// PIONEER</span>' : ''}</h3>
-                        <p>FACTION: ${u.faction || 'NEUTRAL'}</p>
-                        ${u.sponsor_id ? `<div style="background:#fff; color:#000; padding:2px;">SPONSOR: ${u.sponsor_id}</div>` : ''}
-                    </div>
-                </div>`;
-            container.innerHTML = html;
+            container.innerHTML = `<div class="card"><img src="${u.bio_lock_url}"><div class="info"><h3>${u.username}</h3><p>${u.faction || 'NEUTRAL'}</p></div></div>`;
         }
 
         async function swipe(dir) {
             if(feed.length === 0) return;
             const target = feed[0];
-            
-            // UI Animation Mock
             document.querySelector('.card').style.transform = dir === 'LIGHT' ? 'translateX(100px)' : 'translateX(-100px)';
-            
             const res = await fetch(`${API_URL}/game/swipe`, {
                 method: "POST", headers: {"Content-Type":"application/json"},
                 body: JSON.stringify({ initData: tg.initData || "debug_mode", target_id: target.user_id, direction: dir })
             });
             const data = await res.json();
-            
-            if(data.status === "AMBUSH") {
-                triggerAmbush();
-            } else {
-                feed.shift();
-                setTimeout(renderCard, 200);
-            }
+            if(data.status === "AMBUSH") triggerAmbush();
+            else { feed.shift(); setTimeout(renderCard, 200); }
         }
 
-        function triggerAmbush() {
-            showScreen('screen-combat');
-            loadCombatInfo();
-        }
-        
+        function triggerAmbush() { showScreen('screen-combat'); loadCombatInfo(); }
         async function loadCombatInfo() {
-             const res = await fetch(`${API_URL}/game/combat/info`, {
+            const res = await fetch(`${API_URL}/game/combat/info`, {
                 method: "POST", headers: {"Content-Type":"application/json"},
                 body: JSON.stringify({ initData: tg.initData || "debug_mode" })
             });
@@ -187,24 +174,51 @@
             document.getElementById('boss-hp').innerText = data.boss.hp;
             currentBossHP = data.boss.hp;
         }
-        
-        async function combatTurn(action) {
+        async function combatTurn(act) {
             const res = await fetch(`${API_URL}/game/combat/turn`, {
                 method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode", action: action, boss_hp_current: currentBossHP })
+                body: JSON.stringify({ initData: tg.initData || "debug_mode", action: act, boss_hp_current: currentBossHP })
             });
             const data = await res.json();
             const log = document.getElementById('combat-log');
-            
             data.log.forEach(l => log.innerHTML += `<div>> ${l}</div>`);
-            
-            if(data.status === "VICTORY") {
-                alert("VICTORY");
-                location.reload();
-            } else {
-                currentBossHP = data.new_boss_hp;
-                document.getElementById('boss-hp').innerText = currentBossHP;
-            }
+            if(data.status === "VICTORY") { alert("VICTORY"); location.reload(); }
+            else { currentBossHP = data.new_boss_hp; document.getElementById('boss-hp').innerText = currentBossHP; }
+        }
+
+        async function openTribunal() {
+            showScreen('screen-tribunal');
+            const res = await fetch(`${API_URL}/game/tribunal/case`, {
+                method: "POST", headers: {"Content-Type":"application/json"},
+                body: JSON.stringify({ initData: tg.initData || "debug_mode" })
+            });
+            const data = await res.json();
+            if(data.status === "CASE_FOUND") {
+                currentCaseId = data.case.user_id;
+                document.getElementById('case-img').src = data.case.bio_lock_url;
+                document.getElementById('case-img').classList.remove('hidden');
+                document.getElementById('case-name').innerText = data.case.username;
+                document.getElementById('verdict-controls').classList.remove('hidden');
+                document.getElementById('case-status').innerText = "PENDING";
+            } else { document.getElementById('case-status').innerText = "NO CASES"; }
+        }
+
+        async function castVerdict(vote) {
+            await fetch(`${API_URL}/game/tribunal/vote`, {
+                method: "POST", headers: {"Content-Type":"application/json"},
+                body: JSON.stringify({ initData: tg.initData || "debug_mode", target_id: currentCaseId, vote: vote })
+            });
+            alert("VOTED"); openTribunal();
+        }
+
+        async function donate() {
+            const amt = prompt("AMOUNT:");
+            if(!amt) return;
+            await fetch(`${API_URL}/game/foundation/donate`, {
+                method: "POST", headers: {"Content-Type":"application/json"},
+                body: JSON.stringify({ initData: tg.initData || "debug_mode", amount: parseInt(amt) })
+            });
+            alert("DONATED");
         }
 
         function showScreen(id) {
