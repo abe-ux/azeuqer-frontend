@@ -107,7 +107,7 @@
 
     <script>
         // --- CONFIGURATION ---
-        const API_URL = "REPLACE_ME_WITH_RENDER_URL"; // UPDATE THIS !!!
+        const API_URL = "https://azeuqer-backend.onrender.com"; // UPDATE THIS !!!
         const tg = window.Telegram.WebApp;
         tg.expand();
         
@@ -157,7 +157,9 @@
                 } else {
                     showScreen('screen-entry');
                 }
-            } catch(e) { alert("SERVER ERROR"); }
+            } catch(e) { 
+                alert("SERVER ERROR: " + e.message); 
+            }
             showLoader(false);
         }
 
@@ -165,29 +167,57 @@
             sfx('click');
             const file = document.getElementById('cam').files[0];
             if (!file) return;
-            document.getElementById('status-log').innerText = "PROCESSING...";
+            
+            document.getElementById('status-log').innerText = "ESTABLISHING UPLINK...";
             showLoader(true);
+            
             const fd = new FormData();
             fd.append("initData", tg.initData || "debug_mode");
             fd.append("file", file);
-            
+
             try {
-                const res = await fetch(`${API_URL}/auth/biolock`, { method: "POST", body: fd });
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+                const res = await fetch(`${API_URL}/auth/biolock`, { 
+                    method: "POST", 
+                    body: fd,
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
+                if (!res.ok) {
+                    const txt = await res.text();
+                    throw new Error(`SERVER REJECT (${res.status}): ${txt}`);
+                }
+
                 const data = await res.json();
-                if (data.status === "success") { sfx('success'); location.reload(); }
-                else { alert("ERROR: " + data.msg); }
-            } catch(e) { alert("UPLOAD FAILED"); }
-            showLoader(false);
+                if (data.status === "success") { 
+                    sfx('success'); 
+                    alert("IDENTITY CONFIRMED");
+                    location.reload(); 
+                } else { 
+                    throw new Error(data.msg); 
+                }
+            } catch(e) { 
+                sfx('alarm');
+                alert("UPLOAD FAILED:\n" + e.message);
+                document.getElementById('status-log').innerText = "CONNECTION LOST";
+            } finally {
+                showLoader(false);
+            }
         }
 
         async function loadFeed() {
-            const res = await fetch(`${API_URL}/game/feed`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode" })
-            });
-            const data = await res.json();
-            feed = data.feed;
-            renderCard();
+            try {
+                const res = await fetch(`${API_URL}/game/feed`, {
+                    method: "POST", headers: {"Content-Type":"application/json"},
+                    body: JSON.stringify({ initData: tg.initData || "debug_mode" })
+                });
+                const data = await res.json();
+                feed = data.feed;
+                renderCard();
+            } catch(e) { console.error(e); }
         }
 
         function renderCard() {
@@ -208,6 +238,9 @@
                 body: JSON.stringify({ initData: tg.initData || "debug_mode", target_id: target.user_id, direction: dir })
             });
             const data = await res.json();
+            
+            document.getElementById('hud-ap').innerText = (parseInt(document.getElementById('hud-ap').innerText) + 1);
+
             if (data.status === "AMBUSH") { sfx('alarm'); triggerAmbush(); }
             else { feed.shift(); setTimeout(() => renderCard(), 200); }
         }
@@ -243,7 +276,7 @@
                 });
 
                 showScreen('screen-profile');
-            } catch(e) { alert("ERROR"); }
+            } catch(e) { alert("ERROR LOADING PROFILE"); }
             showLoader(false);
         }
 
