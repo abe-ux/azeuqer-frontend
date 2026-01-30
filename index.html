@@ -162,29 +162,46 @@
             showLoader(false);
         }
 
-        async function uploadBio() {
-            sfx('click');
-            const file = document.getElementById('cam').files[0];
-            if (!file) return;
-            document.getElementById('status-log').innerText = "PROCESSING...";
-            showLoader(true);
-            
-            const fd = new FormData();
-            fd.append("initData", tg.initData || "debug_mode");
-            fd.append("file", file);
+async function uploadBio() {
+    sfx('click');
+    const file = document.getElementById('cam').files[0];
+    if (!file) return;
+    
+    document.getElementById('status-log').innerText = "UPLOADING...";
+    showLoader(true);
+    
+    const fd = new FormData();
+    fd.append("initData", tg.initData || "debug_mode");
+    fd.append("file", file);
 
-            const res = await fetch(`${API_URL}/auth/biolock`, { method: "POST", body: fd });
-            const data = await res.json();
-            
-            showLoader(false);
-            if (data.status === "success") {
-                sfx('success');
-                location.reload();
-            } else {
-                sfx('error');
-                alert("SCAN FAILED");
-            }
+    try {
+        const res = await fetch(`${API_URL}/auth/biolock`, { method: "POST", body: fd });
+        
+        // Check for Server Error (500)
+        if (!res.ok) {
+            throw new Error(`SERVER CRASH (${res.status})`);
         }
+
+        const data = await res.json();
+        
+        if (data.status === "success") {
+            sfx('success');
+            alert("IDENTITY CONFIRMED.");
+            location.reload();
+        } else {
+            sfx('error');
+            alert("SERVER REJECT: " + data.msg);
+            document.getElementById('status-log').innerText = "FAILED: " + data.msg;
+        }
+    } catch (e) {
+        sfx('error');
+        alert("CRITICAL ERROR: " + e.message + "\n\nCHECK RENDER LOGS.");
+        document.getElementById('status-log').innerText = "SYSTEM FAILURE";
+    } finally {
+        // FORCE LOADER TO CLOSE
+        showLoader(false);
+    }
+}
 
         async function loadFeed() {
             const res = await fetch(`${API_URL}/game/feed`, {
