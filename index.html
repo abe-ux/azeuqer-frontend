@@ -3,279 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AZEUQER</title>
+    <title>AZEUQER: MODULE 01</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --bg: #050505; --neon: #00ffcc; --pink: #ff00ff; --glass: rgba(255,255,255,0.05); --gold: #FFD700; }
-        body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; padding: 0; overflow: hidden; }
-        .hidden { display: none !important; }
-        .screen { padding: 20px; text-align: center; height: 100vh; overflow-y: auto; box-sizing: border-box; position: relative; z-index: 2; padding-bottom: 80px; }
-
-        /* VISUAL JUICE */
-        .scanlines { position: fixed; inset: 0; pointer-events: none; z-index: 10; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 2px, 3px 100%; }
-        .glitch { font-size: 2rem; font-weight: bold; color: var(--neon); text-shadow: 2px 0 var(--pink); animation: shake 2s infinite; }
-        @keyframes shake { 0% { transform: translate(0,0); } 2% { transform: translate(1px,0); } 4% { transform: translate(0,0); } }
-
-        /* TICKER (NEW) */
-        .ticker-wrap { position: fixed; bottom: 0; width: 100%; background: #000; border-top: 1px solid #333; height: 30px; overflow: hidden; z-index: 20; white-space: nowrap; }
-        .ticker { display: inline-block; padding-top: 5px; color: var(--gold); font-size: 0.8rem; animation: marquee 20s linear infinite; }
-        @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-
+        :root { --bg: #000; --neon: #00ffcc; --err: #ff0055; }
+        body { background: var(--bg); color: #fff; font-family: monospace; text-align: center; padding: 20px; }
+        
+        /* THE SCANNER */
+        .scanner-box {
+            border: 2px dashed #333; padding: 30px; margin: 20px 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 200px; transition: 0.3s;
+        }
+        .scanner-box.active { border-color: var(--neon); background: rgba(0, 255, 204, 0.05); }
+        
+        /* PREVIEW IMAGE */
+        #preview { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon); display: none; margin-bottom: 20px; }
+        
         /* CONTROLS */
-        .btn { width: 100%; padding: 15px; background: #111; border: 1px solid var(--neon); color: var(--neon); margin-top: 15px; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; cursor: pointer; transition: 0.1s; }
-        .btn:active { background: var(--neon); color: #000; transform: scale(0.98); }
-        .btn-red { border-color: var(--pink); color: var(--pink); }
-        
-        /* CARD SYSTEM */
-        .card { width: 100%; max-width: 350px; height: 450px; margin: 0 auto; border: 1px solid #333; position: relative; background: #000; transition: transform 0.2s; }
-        .card img { width: 100%; height: 100%; object-fit: cover; }
-        .card-overlay { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, #000, transparent); padding: 20px; box-sizing: border-box; text-align: left; }
-        
-        /* SPONSOR BADGE (NEW) */
-        .sponsor-badge {
-            position: absolute; top: 10px; right: 10px;
-            background: #fff; color: #000; padding: 5px 10px;
-            font-weight: 900; font-size: 0.8rem; border: 2px solid var(--gold);
-            box-shadow: 0 0 15px var(--gold); transform: rotate(5deg);
-            z-index: 30;
+        .btn {
+            background: #111; border: 1px solid var(--neon); color: var(--neon);
+            padding: 15px 30px; font-size: 1.2rem; font-weight: bold;
+            cursor: pointer; text-transform: uppercase; width: 100%;
         }
-
-        /* EQUIPPED ITEM STAMP */
-        .stamp-overlay {
-            position: absolute; bottom: 80px; right: 10px;
-            background: rgba(0,0,0,0.8); border: 1px solid var(--neon);
-            color: var(--neon); padding: 5px; font-size: 0.7rem;
-            transform: rotate(-10deg); box-shadow: 0 0 10px var(--neon);
-            z-index: 20;
-        }
-
-        /* LOADER */
-        #loader { position: fixed; inset: 0; background: #000; z-index: 99; display: flex; align-items: center; justify-content: center; }
+        .btn:active { background: var(--neon); color: #000; }
+        
+        /* DEBUG LOG */
+        #log { margin-top: 30px; font-size: 0.8rem; color: #555; text-align: left; border-top: 1px solid #333; padding-top: 10px; }
+        .log-line { margin-bottom: 5px; }
+        .err { color: var(--err); }
+        .suc { color: var(--neon); }
     </style>
 </head>
 <body>
 
-    <div class="scanlines"></div>
-    <div id="loader" class="hidden"><div class="glitch">CONNECTING...</div></div>
+    <h1 style="color:var(--neon); letter-spacing:5px;">BIO-LOCK</h1>
+    <p style="color:#888">MODULE 01: IDENTITY</p>
 
-    <div class="ticker-wrap">
-        <div class="ticker">
-            /// SPONSOR SLOTS OPEN /// TOP PLAYER: AGENT_ZERO /// CURRENT BOUNTY: 5000 AP /// JOIN THE VOID /// SPONSOR SLOTS OPEN ///
-        </div>
+    <div class="scanner-box" id="scan-zone">
+        <img id="preview" src="">
+        <div id="placeholder">NO SIGNAL</div>
     </div>
 
-    <div id="screen-entry" class="screen">
-        <h1 class="glitch" style="margin-top:50px;">AZEUQER</h1>
-        <p style="color:#888;">// REALITY EXTRACTION</p>
-        
-        <div style="border: 1px dashed #333; padding: 40px; margin: 20px;">
-            <p>STEP 1: SCAN FACE</p>
-            <input type="file" id="cam" accept="image/*" capture="user" style="display:none;" onchange="uploadBio()">
-            <button class="btn" onclick="document.getElementById('cam').click()">📸 ACTIVATE CAMERA</button>
-        </div>
-        
-        <div id="status-log" style="margin-top:20px; color:#555; font-size: 0.8rem;">SYSTEM READY</div>
-    </div>
+    <input type="file" id="cam" accept="image/*" capture="user" style="display:none" onchange="handleFile()">
+    
+    <button class="btn" onclick="triggerCamera()">📸 INITIATE SCAN</button>
 
-    <div id="screen-feed" class="screen hidden">
-        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-            <span style="color:var(--neon); font-weight:bold;">AP: <span id="hud-ap">0</span></span>
-            <button onclick="loadProfile()" style="background:none; border:1px solid #333; color:#fff; padding:5px 10px;">👤 ME</button>
-        </div>
-
-        <div id="feed-container">
-            <div style="margin-top:100px;">NO SIGNALS...</div>
-        </div>
-
-        <div style="display:flex; gap:15px; position:fixed; bottom:50px; width:90%; left:5%;">
-            <button class="btn btn-red" onclick="swipe('SPITE')"> 💀 SPITE</button>
-            <button class="btn btn-sheesh" style="border-color:#00ff00; color:#00ff00;" onclick="swipe('LIGHT')"> 🔥 SHEESH</button>
-        </div>
-    </div>
-
-    <div id="screen-profile" class="screen hidden">
-        <h2 class="glitch">PASSPORT</h2>
-        <div style="position:relative; width:150px; height:150px; margin: 0 auto;">
-            <img id="prof-img" src="" style="width:100%; height:100%; border:2px solid var(--neon); object-fit:cover;">
-            <div id="prof-stamp" class="stamp-overlay hidden">ITEM</div>
-        </div>
-        <h2 id="prof-name" style="margin:10px 0;">AGENT</h2>
-        <div id="prof-sponsor" class="hidden" style="color:gold; font-weight:bold; margin-bottom:10px;">SPONSORED BY NIKE</div>
-        
-        <button class="btn" onclick="showScreen('screen-feed')">BACK</button>
-    </div>
+    <div id="log">SYSTEM LOG:</div>
 
     <script>
-        // --- CONFIG ---
+        // --- CONFIGURATION ---
         const API_URL = "https://azeuqer-backend.onrender.com"; // UPDATE THIS !!!
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // --- AUDIO ---
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function sfx(type) {
-            if(audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            
-            const now = audioCtx.currentTime;
-            if (type === 'click') {
-                osc.frequency.setValueAtTime(800, now);
-                gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                osc.start(now); osc.stop(now + 0.1);
-            }
+        function log(msg, type="") {
+            const line = document.createElement('div');
+            line.className = "log-line " + type;
+            line.innerText = "> " + msg;
+            document.getElementById('log').prepend(line);
         }
 
-        // --- LOGIC ---
-        let feed = [];
-
+        // 1. AUTO LOGIN (To get User ID)
         async function init() {
-            showLoader(true);
+            log("Connecting to Core...");
             try {
                 const res = await fetch(`${API_URL}/auth/login`, {
                     method: "POST", headers: {"Content-Type":"application/json"},
                     body: JSON.stringify({ initData: tg.initData || "debug_mode" })
                 });
                 const data = await res.json();
-                if (data.user.bio_lock_url) {
-                    document.getElementById('hud-ap').innerText = data.user.ap;
-                    showScreen('screen-feed');
-                    loadFeed();
+                if(data.status === "ok" || data.status === "created") {
+                    log(`User ID: ${data.user.user_id}`, "suc");
+                    if(data.user.bio_lock_url) {
+                        showPreview(data.user.bio_lock_url);
+                        log("Bio-Lock already active.", "suc");
+                    }
                 } else {
-                    showScreen('screen-entry');
+                    log("Login Failed: " + JSON.stringify(data), "err");
                 }
-            } catch(e) { alert("SERVER ERROR"); }
-            showLoader(false);
+            } catch(e) {
+                log("Server Connection Error. Check URL.", "err");
+            }
         }
 
-        async function uploadBio() {
-            sfx('click');
-            const fileInput = document.getElementById('cam');
-            const file = fileInput.files[0];
+        // 2. TRIGGER CAMERA
+        function triggerCamera() {
+            document.getElementById('cam').click();
+        }
+
+        // 3. HANDLE FILE SELECTION
+        async function handleFile() {
+            const file = document.getElementById('cam').files[0];
             if (!file) {
-                // If cancelled, reset text
-                document.getElementById('status-log').innerText = "SELECTION CANCELLED";
+                log("Scan Cancelled.", "err");
                 return;
             }
+            log(`File Selected: ${Math.round(file.size/1024)}KB`);
             
-            document.getElementById('status-log').innerText = "UPLOADING...";
-            showLoader(true);
-            
+            // 4. UPLOAD
             const fd = new FormData();
             fd.append("initData", tg.initData || "debug_mode");
             fd.append("file", file);
-            
+
+            log("Uploading to Cloud...");
+            document.querySelector('.scanner-box').classList.add('active');
+
             try {
-                // 15s Timeout to prevent hanging
-                const controller = new AbortController();
-                const id = setTimeout(() => controller.abort(), 15000);
+                const res = await fetch(`${API_URL}/auth/upload`, { method: "POST", body: fd });
                 
-                const res = await fetch(`${API_URL}/auth/biolock`, { 
-                    method: "POST", body: fd, signal: controller.signal 
-                });
-                clearTimeout(id);
+                if (!res.ok) throw new Error("Server Reject " + res.status);
                 
-                if(!res.ok) throw new Error("Server Reject");
                 const data = await res.json();
                 
-                if (data.status === "success") { 
-                    location.reload(); 
-                } else { 
-                    alert("ERROR: " + data.msg); 
+                if (data.status === "success") {
+                    log("UPLOAD COMPLETE.", "suc");
+                    showPreview(data.url);
+                    alert("IDENTITY CONFIRMED");
+                } else {
+                    log("Server Error: " + data.msg, "err");
                 }
-            } catch(e) { 
-                alert("UPLOAD FAILED. Check Connection."); 
-                document.getElementById('status-log').innerText = "RETRY SCAN";
+            } catch(e) {
+                log("Upload Failed: " + e.message, "err");
             }
-            showLoader(false);
         }
 
-        async function loadFeed() {
-            const res = await fetch(`${API_URL}/game/feed`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode" })
-            });
-            const data = await res.json();
-            feed = data.feed;
-            renderCard();
-        }
-
-        function renderCard() {
-            const container = document.getElementById('feed-container');
-            if (feed.length === 0) { container.innerHTML = "<div style='margin-top:100px'>NO TARGETS</div>"; return; }
-            const u = feed[0];
-            
-            // --- SPONSOR LOGIC ---
-            // If user has a sponsor_id, show the badge
-            const sponsorHtml = u.sponsor_id ? `<div class="sponsor-badge">SPONSORED BY ${u.sponsor_id}</div>` : '';
-            
-            // --- ITEM LOGIC ---
-            const itemHtml = u.equipped_item ? `<div class="stamp-overlay">${u.equipped_item}</div>` : '';
-
-            container.innerHTML = `
-                <div class="card">
-                    <img src="${u.bio_lock_url}">
-                    ${sponsorHtml}
-                    ${itemHtml}
-                    <div class="card-overlay">
-                        <h2 style="margin:0;">${u.username}</h2>
-                        <div style="color:var(--neon)">${u.faction || 'NEUTRAL'}</div>
-                    </div>
-                </div>`;
-        }
-
-        async function swipe(dir) {
-            sfx('click');
-            if (feed.length === 0) return;
-            const target = feed[0];
-            
-            // Anim
-            const x = dir === 'LIGHT' ? 200 : -200;
-            document.querySelector('.card').style.transform = `translateX(${x}px) rotate(${x/10}deg)`;
-            
-            await fetch(`${API_URL}/game/swipe`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode", target_id: target.user_id, direction: dir })
-            });
-            
-            // Update AP
-            const apEl = document.getElementById('hud-ap');
-            apEl.innerText = parseInt(apEl.innerText) + 1;
-
-            feed.shift();
-            setTimeout(renderCard, 200);
-        }
-
-        async function loadProfile() {
-            showLoader(true);
-            const res = await fetch(`${API_URL}/auth/login`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode" })
-            });
-            const data = await res.json();
-            const u = data.user;
-            
-            document.getElementById('prof-img').src = u.bio_lock_url;
-            document.getElementById('prof-name').innerText = u.username;
-            
-            if(u.sponsor_id) {
-                const s = document.getElementById('prof-sponsor');
-                s.innerText = "SPONSORED BY " + u.sponsor_id;
-                s.classList.remove('hidden');
-            }
-            
-            showScreen('screen-profile');
-            showLoader(false);
-        }
-
-        function showScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-        }
-        function showLoader(v) {
-            v ? document.getElementById('loader').classList.remove('hidden') : document.getElementById('loader').classList.add('hidden');
+        function showPreview(url) {
+            document.getElementById('placeholder').style.display = 'none';
+            const img = document.getElementById('preview');
+            img.src = url;
+            img.style.display = 'block';
         }
 
         init();
