@@ -13,59 +13,51 @@
         .scanner-box {
             border: 2px dashed #333; padding: 30px; margin: 20px 0;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 200px; transition: 0.3s; position: relative;
+            min-height: 250px; transition: 0.3s; position: relative;
+            background: #111;
         }
         .scanner-box.active { border-color: var(--neon); background: rgba(0, 255, 204, 0.05); }
         
-        #preview { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon); display: none; margin-bottom: 20px; }
-        
-        /* THE CAMERA HACK */
-        /* We wrap the input in the button via a label. This forces the browser to respect the touch. */
-        .camera-btn {
+        #preview { width: 100%; height: 250px; object-fit: cover; border: 2px solid var(--neon); display: none; }
+        #placeholder { color: #444; font-size: 0.8rem; }
+
+        /* THE HYBRID TRIGGER */
+        .camera-label {
             background: #111; border: 1px solid var(--neon); color: var(--neon);
             padding: 20px; font-size: 1.2rem; font-weight: bold;
             cursor: pointer; text-transform: uppercase; width: 100%;
             display: block; box-sizing: border-box; text-align: center;
-            position: relative;
+            margin-top: 20px;
         }
-        .camera-btn:active { background: var(--neon); color: #000; }
-        
-        /* HIDDEN BUT INTERACTIVE INPUT */
-        /* display:none breaks iOS. We use opacity:0 instead. */
-        #cam {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            opacity: 0; cursor: pointer;
-        }
+        .camera-label:active { background: var(--neon); color: #000; }
 
-        /* DEBUG LOG */
-        #log { margin-top: 30px; font-size: 0.8rem; color: #555; text-align: left; border-top: 1px solid #333; padding-top: 10px; font-family: 'Courier New', monospace; }
-        .log-line { margin-bottom: 5px; border-bottom: 1px solid #111; padding-bottom: 2px; }
+        /* LOG */
+        #log { margin-top: 30px; font-size: 0.7rem; color: #555; text-align: left; border-top: 1px solid #333; padding-top: 10px; font-family: monospace; }
+        .log-line { margin-bottom: 5px; border-bottom: 1px solid #111; }
         .err { color: var(--err); }
         .suc { color: var(--neon); }
     </style>
 </head>
 <body>
 
-    <h1 style="color:var(--neon); letter-spacing:5px; margin-bottom: 5px;">BIO-LOCK</h1>
+    <h1 style="color:var(--neon); letter-spacing:5px;">BIO-LOCK</h1>
     <p style="color:#888; font-size: 0.8rem;">SECURE IDENTITY PROTOCOL</p>
 
     <div class="scanner-box" id="scan-zone">
         <img id="preview" src="">
-        <div id="placeholder" style="color:#444;">NO SIGNAL</div>
+        <div id="placeholder">NO SIGNAL</div>
     </div>
 
-    <div class="camera-btn">
-        📸 INITIATE SCAN
-        <input type="file" id="cam" accept="image/*" capture="user" onchange="handleFile()">
-    </div>
+    <label class="camera-label">
+        📸 ACTIVATE CAMERA
+        <input type="file" id="cam" accept="image/*" capture="user" style="display:none" onchange="handleFile()">
+    </label>
 
     <div id="log">SYSTEM LOG:</div>
 
     <script>
-        // --- CRITICAL CONFIGURATION ---
-        // 1. COPY YOUR RENDER URL (NO SLASH AT END)
-        const API_URL = "https://azeuqer-backend.onrender.com"; 
-        
+        // --- CONFIGURATION ---
+        const API_URL = "https://azeuqer-backend.onrender.com"; // UPDATE THIS
         const tg = window.Telegram.WebApp;
         tg.expand();
 
@@ -76,79 +68,61 @@
             document.getElementById('log').prepend(line);
         }
 
-        // 1. AUTO LOGIN (Establish Connection)
+        // 1. AUTO LOGIN
         async function init() {
             log("Initializing Uplink...");
             try {
-                // 5 Second Timeout Check
-                const controller = new AbortController();
-                setTimeout(() => controller.abort(), 5000);
-
                 const res = await fetch(`${API_URL}/auth/login`, {
                     method: "POST", headers: {"Content-Type":"application/json"},
-                    body: JSON.stringify({ initData: tg.initData || "debug_mode" }),
-                    signal: controller.signal
+                    body: JSON.stringify({ initData: tg.initData || "debug_mode" })
                 });
                 
-                if(!res.ok) throw new Error("HTTP " + res.status);
-                
                 const data = await res.json();
-                log("Connection Established.", "suc");
-                
-                if(data.user && data.user.bio_lock_url) {
-                    showPreview(data.user.bio_lock_url);
-                    log("Existing Bio-Lock Found.", "suc");
+                if(data.status === "ok" || data.status === "created") {
+                    log(`User ID: ${data.user.user_id}`, "suc");
+                    if(data.user.bio_lock_url) {
+                        showPreview(data.user.bio_lock_url);
+                        log("Bio-Lock Active.", "suc");
+                    }
+                } else {
+                    log("Login Error: " + JSON.stringify(data), "err");
                 }
             } catch(e) {
-                log("Connection Failed: " + e.message, "err");
-                log("CHECK: Render is running? URL is correct?", "err");
+                log("Server Offline or URL Wrong.", "err");
             }
         }
 
-        // 2. HANDLE FILE (The Upload Logic)
+        // 2. HANDLE FILE
         async function handleFile() {
-            const fileInput = document.getElementById('cam');
-            const file = fileInput.files[0];
-            
+            const file = document.getElementById('cam').files[0];
             if (!file) {
-                log("Camera Closed / No Image.", "err");
+                log("Camera Closed.", "err");
                 return;
             }
             
-            // Size Check (Limit to 5MB to save server)
-            if (file.size > 5 * 1024 * 1024) {
-                log("Image Too Large (Max 5MB).", "err");
-                return;
-            }
+            // Preview Immediately (Juice)
+            const reader = new FileReader();
+            reader.onload = (e) => showPreview(e.target.result);
+            reader.readAsDataURL(file);
 
-            log(`Captured: ${Math.round(file.size/1024)}KB`, "suc");
-            document.querySelector('.scanner-box').classList.add('active');
+            log(`Uploading ${Math.round(file.size/1024)}KB...`);
             
             const fd = new FormData();
             fd.append("initData", tg.initData || "debug_mode");
             fd.append("file", file);
 
-            log("Encrypting & Uploading...");
-
             try {
                 const res = await fetch(`${API_URL}/auth/upload`, { method: "POST", body: fd });
-                
-                if (!res.ok) {
-                    const txt = await res.text();
-                    throw new Error(`Server ${res.status}: ${txt}`);
-                }
-                
                 const data = await res.json();
                 
                 if (data.status === "success") {
                     log("UPLOAD COMPLETE.", "suc");
-                    showPreview(data.url);
-                    alert("IDENTITY CONFIRMED");
+                    alert("IDENTITY CONFIRMED.");
                 } else {
                     log("Server Reject: " + data.msg, "err");
                 }
             } catch(e) {
-                log("Upload Error: " + e.message, "err");
+                log("Upload Failed: " + e.message, "err");
             }
         }
 
@@ -157,9 +131,9 @@
             const img = document.getElementById('preview');
             img.src = url;
             img.style.display = 'block';
+            document.querySelector('.scanner-box').classList.add('active');
         }
 
-        // Start
         init();
     </script>
 </body>
