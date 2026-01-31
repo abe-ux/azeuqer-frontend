@@ -3,361 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AZEUQER</title>
+    <title>AZEUQER: BIO-LOCK</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --bg: #050505; --neon: #00ffcc; --pink: #ff00ff; --glass: rgba(255,255,255,0.05); }
-        body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; padding: 0; overflow: hidden; }
-        .hidden { display: none !important; }
-        .screen { padding: 20px; text-align: center; height: 100vh; overflow-y: auto; box-sizing: border-box; position: relative; z-index: 2; }
-
-        /* VISUAL JUICE */
-        .scanlines { position: fixed; inset: 0; pointer-events: none; z-index: 10; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 2px, 3px 100%; }
-        .glitch { font-size: 2rem; font-weight: bold; color: var(--neon); text-shadow: 2px 0 var(--pink); animation: shake 2s infinite; }
-        @keyframes shake { 0% { transform: translate(0,0); } 2% { transform: translate(1px,0); } 4% { transform: translate(0,0); } }
-
-        /* THE STAMP (GLOWING OVERLAY) */
-        .stamp-overlay {
-            position: absolute; bottom: 10px; right: 10px;
-            background: rgba(0,0,0,0.8); border: 1px solid var(--neon);
-            color: var(--neon); padding: 5px 10px; font-size: 0.7rem; font-weight: bold;
-            transform: rotate(-10deg); box-shadow: 0 0 10px var(--neon);
-            z-index: 20; animation: pulse 2s infinite;
+        :root { --bg: #000; --neon: #00ffcc; --err: #ff0055; }
+        body { background: var(--bg); color: #fff; font-family: monospace; text-align: center; padding: 20px; overflow-x: hidden; }
+        
+        /* SCANNER UI */
+        .scanner-box {
+            border: 2px dashed #333; padding: 30px; margin: 20px 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 200px; transition: 0.3s; position: relative;
         }
-        @keyframes pulse { 0% { opacity: 0.8; } 50% { opacity: 1; text-shadow: 0 0 5px var(--neon); } 100% { opacity: 0.8; } }
-
-        /* CONTROLS */
-        .btn { width: 100%; padding: 15px; background: #111; border: 1px solid var(--neon); color: var(--neon); margin-top: 15px; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; cursor: pointer; transition: 0.1s; }
-        .btn:active { background: var(--neon); color: #000; transform: scale(0.98); }
-        .btn-red { border-color: var(--pink); color: var(--pink); }
-        .btn-red:active { background: var(--pink); color: #000; }
+        .scanner-box.active { border-color: var(--neon); background: rgba(0, 255, 204, 0.05); }
         
-        /* SHEESH BUTTON STYLE */
-        .btn-sheesh { border-color: #00ff00; color: #00ff00; box-shadow: 0 0 15px rgba(0,255,0,0.2); }
-        .btn-sheesh:active { background: #00ff00; color: #000; }
-
-        /* CARDS */
-        .card { width: 100%; max-width: 350px; height: 450px; margin: 0 auto; border: 1px solid #333; position: relative; background: #000; transition: transform 0.2s; }
-        .card img { width: 100%; height: 100%; object-fit: cover; }
-        .card-overlay { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, #000, transparent); padding: 20px; box-sizing: border-box; text-align: left; }
+        #preview { width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon); display: none; margin-bottom: 20px; }
         
-        /* INVENTORY GRID */
-        .inv-item { border: 1px solid #333; padding: 10px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); }
-        .inv-item button { padding: 5px; font-size: 0.8rem; width: auto; margin: 0; }
+        /* THE CAMERA HACK */
+        /* We wrap the input in the button via a label. This forces the browser to respect the touch. */
+        .camera-btn {
+            background: #111; border: 1px solid var(--neon); color: var(--neon);
+            padding: 20px; font-size: 1.2rem; font-weight: bold;
+            cursor: pointer; text-transform: uppercase; width: 100%;
+            display: block; box-sizing: border-box; text-align: center;
+            position: relative;
+        }
+        .camera-btn:active { background: var(--neon); color: #000; }
+        
+        /* HIDDEN BUT INTERACTIVE INPUT */
+        /* display:none breaks iOS. We use opacity:0 instead. */
+        #cam {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0; cursor: pointer;
+        }
 
-        /* LOADER */
-        #loader { position: fixed; inset: 0; background: #000; z-index: 99; display: flex; align-items: center; justify-content: center; }
+        /* DEBUG LOG */
+        #log { margin-top: 30px; font-size: 0.8rem; color: #555; text-align: left; border-top: 1px solid #333; padding-top: 10px; font-family: 'Courier New', monospace; }
+        .log-line { margin-bottom: 5px; border-bottom: 1px solid #111; padding-bottom: 2px; }
+        .err { color: var(--err); }
+        .suc { color: var(--neon); }
     </style>
 </head>
 <body>
 
-    <div class="scanlines"></div>
-    <div id="loader" class="hidden"><div class="glitch">CONNECTING...</div></div>
+    <h1 style="color:var(--neon); letter-spacing:5px; margin-bottom: 5px;">BIO-LOCK</h1>
+    <p style="color:#888; font-size: 0.8rem;">SECURE IDENTITY PROTOCOL</p>
 
-    <div id="screen-entry" class="screen">
-        <h1 class="glitch" style="margin-top:50px;">AZEUQER</h1>
-        <p style="color:#888; margin-bottom:40px;">// REALITY EXTRACTION</p>
-        
-        <div style="border: 1px dashed #333; padding: 40px; margin: 20px;">
-            <label class="btn">
-                📸 SCAN FACE
-                <input type="file" id="cam" accept="image/*" class="hidden" onchange="uploadBio()">
-            </label>
-        </div>
-        
-        <div id="status-log" style="margin-top:20px; color:#555; font-size: 0.8rem;">AWAITING BIOMETRICS</div>
+    <div class="scanner-box" id="scan-zone">
+        <img id="preview" src="">
+        <div id="placeholder" style="color:#444;">NO SIGNAL</div>
     </div>
 
-    <div id="screen-feed" class="screen hidden">
-        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-            <span style="color:var(--neon); font-weight:bold;">AP: <span id="hud-ap">0</span></span>
-            <button onclick="loadProfile()" style="background:none; border:1px solid #333; color:#fff; padding:5px 10px; cursor:pointer;">👤 ME</button>
-        </div>
-
-        <div id="feed-container">
-            <div style="margin-top:100px;">NO SIGNALS...</div>
-        </div>
-
-        <div style="display:flex; gap:15px; position:fixed; bottom:30px; width:90%; left:5%;">
-            <button class="btn btn-red" onclick="swipe('SPITE')"> 💀 SPITE</button>
-            <button class="btn btn-sheesh" onclick="swipe('LIGHT')"> 🔥 SHEESH</button>
-        </div>
+    <div class="camera-btn">
+        📸 INITIATE SCAN
+        <input type="file" id="cam" accept="image/*" capture="user" onchange="handleFile()">
     </div>
 
-    <div id="screen-profile" class="screen hidden">
-        <h2 class="glitch" style="margin-bottom:20px;">PASSPORT</h2>
-        
-        <div style="position:relative; width:150px; height:150px; margin: 0 auto;">
-            <img id="prof-img" src="" style="width:100%; height:100%; border:2px solid var(--neon); object-fit:cover;">
-            <div id="prof-stamp" class="stamp-overlay hidden">VOID TOKEN</div>
-        </div>
-        
-        <h2 id="prof-name" style="margin:10px 0; color:#fff;">AGENT</h2>
-        <div id="prof-faction" style="color:var(--pink); margin-bottom:20px;">NEUTRAL</div>
-
-        <h3 style="border-bottom:1px solid #333; padding-bottom:5px; text-align:left;">INVENTORY</h3>
-        <div id="inventory-list" style="text-align:left; max-height: 30vh; overflow-y:auto;">
-            </div>
-
-        <button class="btn" onclick="showScreen('screen-feed')">BACK TO FEED</button>
-    </div>
-
-    <div id="screen-combat" class="screen hidden" style="background: #2a0000;">
-        <h1 class="glitch" style="color:var(--pink)">AMBUSH</h1>
-        <img id="boss-img" src="" style="width:200px; height:200px; border:2px solid red; margin: 20px auto; display:block;">
-        <h2 id="boss-name" style="color:red">TARGET</h2>
-        <div style="font-size:1.5rem; font-weight:bold;">HP: <span id="boss-hp">???</span></div>
-        <div id="combat-log" style="height:100px; overflow-y:scroll; background:#000; border:1px solid #333; text-align:left; padding:10px; font-family:monospace; margin-top:10px; font-size:0.8rem;"></div>
-        <div style="display:flex; gap:10px; margin-top:10px;">
-            <button class="btn btn-red" onclick="combatTurn('ATTACK')">⚔ ATTACK</button>
-            <button class="btn" style="border-color:#fff; color:#fff;" onclick="combatTurn('POTION_HP')">💉 HEAL</button>
-        </div>
-    </div>
+    <div id="log">SYSTEM LOG:</div>
 
     <script>
-        // --- CONFIGURATION ---
-        const API_URL = "https://azeuqer-backend.onrender.com"; // UPDATE THIS !!!
+        // --- CRITICAL CONFIGURATION ---
+        // 1. COPY YOUR RENDER URL (NO SLASH AT END)
+        const API_URL = "https://azeuqer-backend.onrender.com"; 
+        
         const tg = window.Telegram.WebApp;
         tg.expand();
-        
-        // --- SYNTH ENGINE ---
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function sfx(type) {
-            if(audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            const now = audioCtx.currentTime;
-            
-            if (type === 'click') {
-                osc.type = 'square'; osc.frequency.setValueAtTime(800, now); osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
-                gain.gain.setValueAtTime(0.1, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                osc.start(now); osc.stop(now + 0.1);
-            } else if (type === 'sheesh') {
-                // High pitch success sound
-                osc.type = 'sine'; osc.frequency.setValueAtTime(600, now); osc.frequency.linearRampToValueAtTime(1200, now + 0.2);
-                gain.gain.setValueAtTime(0.1, now); gain.gain.linearRampToValueAtTime(0, now + 0.3);
-                osc.start(now); osc.stop(now + 0.3);
-            } else if (type === 'spite') {
-                // Low pitch thud
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, now); osc.frequency.linearRampToValueAtTime(50, now + 0.2);
-                gain.gain.setValueAtTime(0.2, now); gain.gain.linearRampToValueAtTime(0, now + 0.3);
-                osc.start(now); osc.stop(now + 0.3);
-            }
-            if(tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+
+        function log(msg, type="") {
+            const line = document.createElement('div');
+            line.className = "log-line " + type;
+            line.innerText = "> " + msg;
+            document.getElementById('log').prepend(line);
         }
 
-        // --- APP STATE ---
-        let feed = [];
-        let currentBossHP = 0;
-
+        // 1. AUTO LOGIN (Establish Connection)
         async function init() {
-            showLoader(true);
+            log("Initializing Uplink...");
             try {
+                // 5 Second Timeout Check
+                const controller = new AbortController();
+                setTimeout(() => controller.abort(), 5000);
+
                 const res = await fetch(`${API_URL}/auth/login`, {
                     method: "POST", headers: {"Content-Type":"application/json"},
-                    body: JSON.stringify({ initData: tg.initData || "debug_mode" })
+                    body: JSON.stringify({ initData: tg.initData || "debug_mode" }),
+                    signal: controller.signal
                 });
+                
+                if(!res.ok) throw new Error("HTTP " + res.status);
+                
                 const data = await res.json();
-                if (data.user.bio_lock_url) {
-                    document.getElementById('hud-ap').innerText = data.user.ap;
-                    showScreen('screen-feed');
-                    loadFeed();
-                    if (data.user.combat_state === "LOCKED") triggerAmbush();
-                } else {
-                    showScreen('screen-entry');
+                log("Connection Established.", "suc");
+                
+                if(data.user && data.user.bio_lock_url) {
+                    showPreview(data.user.bio_lock_url);
+                    log("Existing Bio-Lock Found.", "suc");
                 }
-            } catch(e) { alert("SERVER ERROR: " + e.message); }
-            showLoader(false);
+            } catch(e) {
+                log("Connection Failed: " + e.message, "err");
+                log("CHECK: Render is running? URL is correct?", "err");
+            }
         }
 
-        async function uploadBio() {
-            sfx('click');
-            const file = document.getElementById('cam').files[0];
-            if (!file) return;
-            document.getElementById('status-log').innerText = "UPLOADING...";
-            showLoader(true);
+        // 2. HANDLE FILE (The Upload Logic)
+        async function handleFile() {
+            const fileInput = document.getElementById('cam');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                log("Camera Closed / No Image.", "err");
+                return;
+            }
+            
+            // Size Check (Limit to 5MB to save server)
+            if (file.size > 5 * 1024 * 1024) {
+                log("Image Too Large (Max 5MB).", "err");
+                return;
+            }
+
+            log(`Captured: ${Math.round(file.size/1024)}KB`, "suc");
+            document.querySelector('.scanner-box').classList.add('active');
+            
             const fd = new FormData();
             fd.append("initData", tg.initData || "debug_mode");
             fd.append("file", file);
-            
+
+            log("Encrypting & Uploading...");
+
             try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 15000);
-                const res = await fetch(`${API_URL}/auth/biolock`, { method: "POST", body: fd, signal: controller.signal });
-                clearTimeout(timeoutId);
-                const data = await res.json();
-                if (data.status === "success") { sfx('sheesh'); location.reload(); }
-                else { alert("ERROR: " + data.msg); }
-            } catch(e) { alert("UPLOAD FAILED"); }
-            showLoader(false);
-        }
-
-        async function loadFeed() {
-            const res = await fetch(`${API_URL}/game/feed`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode" })
-            });
-            const data = await res.json();
-            feed = data.feed;
-            renderCard();
-        }
-
-        function renderCard() {
-            const container = document.getElementById('feed-container');
-            if (feed.length === 0) { container.innerHTML = "<div style='margin-top:100px'>NO TARGETS</div>"; return; }
-            const u = feed[0];
-            
-            // Render Card with Stamp support
-            const stampHtml = u.equipped_item ? `<div class="stamp-overlay">${u.equipped_item}</div>` : '';
-            
-            container.innerHTML = `
-                <div class="card">
-                    <img src="${u.bio_lock_url}">
-                    ${stampHtml}
-                    <div class="card-overlay">
-                        <h2 style="margin:0;">${u.username}</h2>
-                        <div style="color:var(--neon)">${u.faction || 'NEUTRAL'}</div>
-                    </div>
-                </div>`;
-        }
-
-        async function swipe(dir) {
-            if (feed.length === 0) return;
-            
-            // Audio Feedback based on choice
-            if (dir === 'LIGHT') sfx('sheesh');
-            else sfx('spite');
-
-            const target = feed[0];
-            const rot = dir === 'LIGHT' ? 20 : -20;
-            const x = dir === 'LIGHT' ? 200 : -200;
-            
-            document.querySelector('.card').style.transform = `translateX(${x}px) rotate(${rot}deg)`;
-            
-            const res = await fetch(`${API_URL}/game/swipe`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode", target_id: target.user_id, direction: dir })
-            });
-            const data = await res.json();
-            document.getElementById('hud-ap').innerText = (parseInt(document.getElementById('hud-ap').innerText) + 1);
-
-            if (data.status === "AMBUSH") { sfx('spite'); triggerAmbush(); }
-            else { feed.shift(); setTimeout(() => renderCard(), 200); }
-        }
-
-        // --- PROFILE & EQUIP LOGIC ---
-        async function loadProfile() {
-            sfx('click');
-            showLoader(true);
-            try {
-                // Fetch fresh user data
-                const res = await fetch(`${API_URL}/auth/login`, {
-                    method: "POST", headers: {"Content-Type":"application/json"},
-                    body: JSON.stringify({ initData: tg.initData || "debug_mode" })
-                });
-                const data = await res.json();
-                const u = data.user;
+                const res = await fetch(`${API_URL}/auth/upload`, { method: "POST", body: fd });
                 
-                document.getElementById('prof-img').src = u.bio_lock_url;
-                document.getElementById('prof-name').innerText = u.username;
-                document.getElementById('prof-faction').innerText = u.faction || "UNSORTED";
+                if (!res.ok) {
+                    const txt = await res.text();
+                    throw new Error(`Server ${res.status}: ${txt}`);
+                }
                 
-                // Show Stamp if equipped
-                const stampEl = document.getElementById('prof-stamp');
-                if(u.equipped_item) {
-                    stampEl.innerText = u.equipped_item;
-                    stampEl.classList.remove('hidden');
+                const data = await res.json();
+                
+                if (data.status === "success") {
+                    log("UPLOAD COMPLETE.", "suc");
+                    showPreview(data.url);
+                    alert("IDENTITY CONFIRMED");
                 } else {
-                    stampEl.classList.add('hidden');
+                    log("Server Reject: " + data.msg, "err");
                 }
-
-                // Fetch Inventory
-                const invRes = await fetch(`${API_URL}/game/inventory`, {
-                     method: "POST", headers: {"Content-Type":"application/json"},
-                     body: JSON.stringify({ initData: tg.initData || "debug_mode" })
-                });
-                const invData = await invRes.json();
-                
-                const list = document.getElementById('inventory-list');
-                list.innerHTML = "";
-                if(invData.items.length === 0) list.innerHTML = "<div style='color:#888; padding:10px;'>NO LOOT YET</div>";
-                
-                invData.items.forEach(i => {
-                    const itemName = i.item_id; // Using item_id as name for MVP
-                    list.innerHTML += `
-                        <div class="inv-item">
-                            <span>${itemName}</span>
-                            <button class="btn" style="width:auto; margin:0; font-size:0.7rem; padding:5px;" onclick="equipItem('${itemName}')">EQUIP</button>
-                        </div>`;
-                });
-
-                showScreen('screen-profile');
-            } catch(e) { alert("ERROR"); }
-            showLoader(false);
-        }
-
-        async function equipItem(itemId) {
-            sfx('click');
-            // Call Backend to set equipped_item
-            try {
-                const res = await fetch(`${API_URL}/game/equip`, {
-                    method: "POST", headers: {"Content-Type":"application/json"},
-                    body: JSON.stringify({ initData: tg.initData || "debug_mode", item_id: itemId })
-                });
-                const data = await res.json();
-                if(data.status === "EQUIPPED") {
-                    sfx('sheesh');
-                    alert("STAMP APPLIED");
-                    loadProfile(); // Reload to show new stamp
-                }
-            } catch(e) { alert("FAILED TO EQUIP"); }
-        }
-
-        // --- COMBAT ---
-        function triggerAmbush() { showScreen('screen-combat'); loadCombatInfo(); }
-        async function loadCombatInfo() {
-            const res = await fetch(`${API_URL}/game/combat/info`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode" })
-            });
-            const data = await res.json();
-            document.getElementById('boss-hp').innerText = data.boss.hp;
-            document.getElementById('boss-name').innerText = data.boss.name;
-            document.getElementById('boss-img').src = `https://robohash.org/${data.boss.name}?set=set1`;
-            currentBossHP = data.boss.hp;
-        }
-        async function combatTurn(action) {
-            sfx('click');
-            const res = await fetch(`${API_URL}/game/combat/turn`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode", action: action, boss_hp_current: currentBossHP })
-            });
-            const data = await res.json();
-            const log = document.getElementById('combat-log');
-            data.log.forEach(l => log.innerHTML += `<div>> ${l}</div>`);
-            log.scrollTop = log.scrollHeight;
-            
-            if (data.status === "VICTORY") {
-                sfx('sheesh');
-                alert(`SHEESH! LOOT: ${data.loot}`);
-                location.reload();
-            } else {
-                currentBossHP = data.new_boss_hp;
-                document.getElementById('boss-hp').innerText = currentBossHP;
-                sfx('spite');
+            } catch(e) {
+                log("Upload Error: " + e.message, "err");
             }
         }
 
-        function showScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-        }
-        function showLoader(v) {
-            v ? document.getElementById('loader').classList.remove('hidden') : document.getElementById('loader').classList.add('hidden');
+        function showPreview(url) {
+            document.getElementById('placeholder').style.display = 'none';
+            const img = document.getElementById('preview');
+            img.src = url;
+            img.style.display = 'block';
         }
 
+        // Start
         init();
     </script>
 </body>
