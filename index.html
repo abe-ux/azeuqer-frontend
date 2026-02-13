@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AZEUQER: TITANIUM</title>
+    <title>AZEUQER: TITANIUM 8.1</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -28,7 +28,14 @@
         .btn { width: 100%; padding: 15px; background: #111; border: 1px solid var(--neon); color: var(--neon); margin-top: 15px; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; cursor: pointer; transition: 0.1s; }
         .btn:active { background: var(--neon); color: #000; transform: scale(0.98); }
         .btn-red { border-color: var(--pink); color: var(--pink); }
-        .btn-sheesh { border-color: #00ff00; color: #00ff00; box-shadow: 0 0 15px rgba(0,255,0,0.2); }
+        
+        /* CAMERA HYBRID BUTTON */
+        .camera-label {
+            display: block; width: 100%; padding: 20px; 
+            background: #111; border: 2px dashed var(--neon); color: var(--neon);
+            font-size: 1.2rem; font-weight: bold; text-transform: uppercase;
+            cursor: pointer; box-sizing: border-box;
+        }
 
         /* CARDS */
         .card { width: 100%; max-width: 350px; height: 450px; margin: 0 auto; border: 1px solid #333; position: relative; background: #000; transition: transform 0.2s; }
@@ -39,26 +46,30 @@
         .stamp-overlay { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.8); border: 1px solid var(--neon); color: var(--neon); padding: 5px; font-size: 0.7rem; transform: rotate(-10deg); box-shadow: 0 0 10px var(--neon); }
 
         /* LOADER */
-        #loader { position: fixed; inset: 0; background: #000; z-index: 100; display: flex; align-items: center; justify-content: center; }
+        #loader { position: fixed; inset: 0; background: #000; z-index: 100; display: flex; align-items: center; justify-content: center; flex-direction: column; }
     </style>
 </head>
 <body>
 
     <div class="scanlines"></div>
-    <div id="loader" class="hidden"><div class="glitch">CONNECTING...</div></div>
+    <div id="loader" class="hidden">
+        <div class="glitch">PROCESSING...</div>
+        <div id="loader-msg" style="color:#888; margin-top:10px; font-size:0.8rem;"></div>
+    </div>
 
     <div id="phaser-container"></div>
 
     <div id="screen-entry" class="screen ui-layer">
         <h1 class="glitch" style="margin-top:50px;">AZEUQER</h1>
         <p style="color:#888;">// REALITY EXTRACTION</p>
-        <div style="border: 1px dashed #333; padding: 40px; margin: 20px;">
-            <label class="btn">
+        
+        <div style="padding: 20px; margin-top: 40px;">
+            <label class="camera-label">
                 📸 SCAN FACE
-                <input type="file" id="cam" accept="image/*" class="hidden" onchange="uploadBio()">
+                <input type="file" id="cam" accept="image/*" capture="user" style="display:none" onchange="uploadBio()">
             </label>
+            <div id="upload-status" style="margin-top:10px; color:#555; font-size: 0.8rem;">WAITING FOR INPUT</div>
         </div>
-        <div id="status-log" style="margin-top:20px; color:#555; font-size: 0.8rem;">SYSTEM READY</div>
     </div>
 
     <div id="screen-feed" class="screen hidden ui-layer">
@@ -69,7 +80,7 @@
         <div id="feed-container"><div style="margin-top:100px;">NO SIGNALS...</div></div>
         <div style="display:flex; gap:15px; position:fixed; bottom:30px; width:90%; left:5%;">
             <button class="btn btn-red" onclick="swipe('SPITE')"> 💀 SPITE</button>
-            <button class="btn btn-sheesh" onclick="swipe('LIGHT')"> 🔥 SHEESH</button>
+            <button class="btn btn-sheesh" style="border-color:#00ff00; color:#00ff00;" onclick="swipe('LIGHT')"> 🔥 SHEESH</button>
         </div>
     </div>
 
@@ -88,7 +99,6 @@
 
     <div id="screen-combat" class="screen hidden ui-layer" style="background: transparent;">
         <h1 class="glitch" style="color:var(--pink); margin-top:20px;">AMBUSH</h1>
-        
         <div style="margin-top: 300px;"></div> <div style="display:flex; gap:10px; margin-top:20px;">
             <button class="btn btn-red" onclick="gameCombatAction('ATTACK')">⚔ ATTACK</button>
             <button class="btn" style="border-color:#fff; color:#fff;" onclick="gameCombatAction('POTION_HP')">💉 HEAL</button>
@@ -101,138 +111,50 @@
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // --- PHASER GAME ENGINE (THE VISUAL CORE) ---
+        // --- PHASER GAME ENGINE (VISUALS) ---
         let game;
-        let combatScene;
-
         class CombatScene extends Phaser.Scene {
             constructor() { super({ key: 'CombatScene' }); }
-
             preload() {
-                // Generative Graphics (No external files needed)
-                const graphics = this.make.graphics({ x: 0, y: 0, add: false });
-                
-                // 1. Draw Boss (Red Demon)
-                graphics.fillStyle(0xff0000, 1);
-                graphics.fillRect(0, 0, 200, 200); // Body
-                graphics.fillStyle(0xffff00, 1);
-                graphics.fillCircle(50, 50, 20); // Eye L
-                graphics.fillCircle(150, 50, 20); // Eye R
-                graphics.generateTexture('boss', 200, 200);
-                
-                // 2. Draw Particle (Spark)
-                graphics.clear();
-                graphics.fillStyle(0xffffff, 1);
-                graphics.fillCircle(5, 5, 5);
-                graphics.generateTexture('spark', 10, 10);
+                const g = this.make.graphics({x:0,y:0,add:false});
+                g.fillStyle(0xff0000, 1); g.fillRect(0,0,200,200); g.generateTexture('boss',200,200);
+                g.clear(); g.fillStyle(0xffffff, 1); g.fillCircle(5,5,5); g.generateTexture('spark',10,10);
             }
-
             create() {
-                this.cameras.main.setBackgroundColor('rgba(0,0,0,0)'); // Transparent
-                
-                // Boss Sprite
-                this.boss = this.add.sprite(this.scale.width / 2, 250, 'boss');
-                this.boss.setAlpha(0); // Hide until combat starts
-
-                // Breathing Animation (Tween)
-                this.tweens.add({
-                    targets: this.boss,
-                    scaleY: 1.05,
-                    scaleX: 0.98,
-                    y: 255,
-                    duration: 1500,
-                    yoyo: true,
-                    repeat: -1,
-                    ease: 'Sine.easeInOut'
-                });
-
-                // Particle System (Explosion)
-                this.particles = this.add.particles(0, 0, 'spark', {
-                    speed: { min: 100, max: 300 },
-                    angle: { min: 0, max: 360 },
-                    scale: { start: 1, end: 0 },
-                    lifespan: 500,
-                    gravityY: 500,
-                    quantity: 20,
-                    emitting: false
-                });
+                this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
+                this.boss = this.add.sprite(this.scale.width/2, 250, 'boss').setAlpha(0);
+                this.tweens.add({targets:this.boss, scaleY:1.05, scaleX:0.98, y:255, duration:1500, yoyo:true, repeat:-1});
+                this.particles = this.add.particles(0,0,'spark',{speed:{min:100,max:300}, scale:{start:1,end:0}, lifespan:500, gravityY:500, quantity:20, emitting:false});
             }
-
-            startCombat(bossName, hp) {
-                this.boss.setAlpha(1);
-                this.boss.y = -200; // Fly in from top
-                this.tweens.add({
-                    targets: this.boss,
-                    y: 250,
-                    duration: 800,
-                    ease: 'Bounce.easeOut'
-                });
-                // Add Health Bar Text
+            startCombat(hp) {
+                this.boss.setAlpha(1).setY(-200);
+                this.tweens.add({targets:this.boss, y:250, duration:800, ease:'Bounce.easeOut'});
                 if(this.hpText) this.hpText.destroy();
-                this.hpText = this.add.text(this.scale.width/2, 120, `HP: ${hp}`, {
-                    fontSize: '24px', fontFamily: 'Courier', color: '#ff0000', fontStyle: 'bold'
-                }).setOrigin(0.5);
+                this.hpText = this.add.text(this.scale.width/2, 120, `HP: ${hp}`, {fontSize:'24px', color:'#ff0000', fontStyle:'bold'}).setOrigin(0.5);
             }
-
             takeDamage(amount) {
-                // 1. Shake Camera
                 this.cameras.main.shake(200, 0.02);
-                
-                // 2. Flash Boss
-                this.boss.setTint(0xff0000);
-                this.time.delayedCall(100, () => this.boss.clearTint());
-
-                // 3. Spawn Particles
+                this.boss.setTint(0xff0000); this.time.delayedCall(100, ()=>this.boss.clearTint());
                 this.particles.emitParticleAt(this.boss.x, this.boss.y);
-
-                // 4. Floating Damage Text
-                const dmgText = this.add.text(this.boss.x, this.boss.y, `-${amount}`, {
-                    fontSize: '40px', color: '#fff', stroke: '#ff0000', strokeThickness: 4
-                }).setOrigin(0.5);
-
-                this.tweens.add({
-                    targets: dmgText,
-                    y: this.boss.y - 100,
-                    alpha: 0,
-                    duration: 1000,
-                    onComplete: () => dmgText.destroy()
-                });
+                const t = this.add.text(this.boss.x, this.boss.y, `-${amount}`, {fontSize:'40px', color:'#fff', stroke:'#f00', strokeThickness:4}).setOrigin(0.5);
+                this.tweens.add({targets:t, y:this.boss.y-100, alpha:0, duration:1000, onComplete:()=>t.destroy()});
             }
-
-            updateHP(val) {
-                this.hpText.setText(`HP: ${val}`);
-            }
-
-            victory() {
-                // Boss Dies
-                this.tweens.add({
-                    targets: this.boss,
-                    scale: 0,
-                    rotation: 10,
-                    duration: 500,
-                    onComplete: () => this.boss.setAlpha(0)
-                });
-                this.particles.emitParticleAt(this.boss.x, this.boss.y, 50); // Big explosion
+            updateHP(val) { this.hpText.setText(`HP: ${val}`); }
+            victory() { 
+                this.tweens.add({targets:this.boss, scale:0, rotation:10, duration:500}); 
+                this.particles.emitParticleAt(this.boss.x, this.boss.y, 50);
             }
         }
-
-        // Initialize Phaser
-        const config = {
-            type: Phaser.AUTO,
-            parent: 'phaser-container',
-            width: window.innerWidth,
-            height: window.innerHeight,
-            transparent: true,
-            scene: [CombatScene]
-        };
+        
+        const config = { type: Phaser.AUTO, parent: 'phaser-container', width: window.innerWidth, height: window.innerHeight, transparent: true, scene: [CombatScene] };
         game = new Phaser.Game(config);
 
-        // --- APP LOGIC (CONNECTING PHASER TO PYTHON) ---
+        // --- APP LOGIC (ROBUST UPLOAD RESTORED) ---
         let feed = [];
         let currentBossHP = 0;
 
         async function init() {
-            showLoader(true);
+            showLoader(true, "Authenticating...");
             try {
                 const res = await fetch(`${API_URL}/auth/login`, {
                     method: "POST", headers: {"Content-Type":"application/json"},
@@ -252,76 +174,77 @@
         }
 
         async function uploadBio() {
-            // ... (Same upload logic as before) ...
-            // Simplified for brevity in this step, paste the working uploadBio from v7.2 here if needed
-            // For now, let's assume the previous working logic is preserved.
             const file = document.getElementById('cam').files[0];
-            if (!file) return;
-            showLoader(true);
+            if (!file) {
+                document.getElementById('upload-status').innerText = "CANCELLED";
+                return;
+            }
+
+            document.getElementById('upload-status').innerText = "ENCRYPTING...";
+            showLoader(true, "UPLOADING BIOMETRICS...");
+            
             const fd = new FormData();
             fd.append("initData", tg.initData || "debug_mode");
             fd.append("file", file);
+
             try {
-                const res = await fetch(`${API_URL}/auth/biolock`, { method: "POST", body: fd });
+                // 15 Second Timeout to prevent "Stuck" state
+                const controller = new AbortController();
+                const id = setTimeout(() => controller.abort(), 15000);
+
+                const res = await fetch(`${API_URL}/auth/biolock`, { 
+                    method: "POST", body: fd, signal: controller.signal 
+                });
+                clearTimeout(id);
+
+                if (!res.ok) {
+                    const txt = await res.text();
+                    throw new Error(`Server ${res.status}: ${txt}`);
+                }
+
                 const data = await res.json();
-                if (data.status === "success") location.reload();
-            } catch(e) { alert("UPLOAD ERROR"); }
-            showLoader(false);
+                if (data.status === "success") { 
+                    location.reload(); 
+                } else { 
+                    throw new Error(data.msg || "Unknown Reject");
+                }
+            } catch(e) { 
+                alert("UPLOAD FAILED:\n" + e.message); 
+                document.getElementById('upload-status').innerText = "FAILED - RETRY";
+            } finally {
+                showLoader(false);
+            }
         }
 
-        // --- COMBAT BRIDGES ---
-        function triggerAmbush() {
-            showScreen('screen-combat');
-            loadCombatInfo();
-        }
-
+        // --- GAMEPLAY BRIDGES ---
+        function triggerAmbush() { showScreen('screen-combat'); loadCombatInfo(); }
         async function loadCombatInfo() {
-            const res = await fetch(`${API_URL}/game/combat/info`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode" })
-            });
+            const res = await fetch(`${API_URL}/game/combat/info`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ initData: tg.initData || "debug_mode" }) });
             const data = await res.json();
             currentBossHP = data.boss.hp;
-            
-            // WAKE UP PHASER
-            const scene = game.scene.getScene('CombatScene');
-            scene.startCombat(data.boss.name, currentBossHP);
+            game.scene.getScene('CombatScene').startCombat(currentBossHP);
         }
-
         async function gameCombatAction(action) {
-            // 1. Call Backend
-            const res = await fetch(`${API_URL}/game/combat/turn`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode", action: action, boss_hp_current: currentBossHP })
-            });
+            const res = await fetch(`${API_URL}/game/combat/turn`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ initData: tg.initData || "debug_mode", action: action, boss_hp_current: currentBossHP }) });
             const data = await res.json();
-            
-            // 2. Trigger Phaser FX
             const scene = game.scene.getScene('CombatScene');
             
             if (action === 'ATTACK') {
                 const dmg = currentBossHP - data.new_boss_hp;
                 if (dmg > 0) scene.takeDamage(dmg);
             }
-
             if (data.status === "VICTORY") {
                 scene.victory();
-                setTimeout(() => {
-                    alert(`VICTORY! LOOT: ${data.loot}`);
-                    location.reload();
-                }, 1500);
+                setTimeout(() => { alert(`VICTORY! LOOT: ${data.loot}`); location.reload(); }, 1500);
             } else {
                 currentBossHP = data.new_boss_hp;
                 scene.updateHP(currentBossHP);
             }
         }
 
-        // --- STANDARD UTILS ---
-        async function loadFeed() { /* ... Same feed logic ... */ 
-             const res = await fetch(`${API_URL}/game/feed`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode" })
-            });
+        // --- UTILS ---
+        async function loadFeed() {
+             const res = await fetch(`${API_URL}/game/feed`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ initData: tg.initData || "debug_mode" }) });
             const data = await res.json();
             feed = data.feed;
             renderCard();
@@ -331,79 +254,49 @@
             if (feed.length === 0) { container.innerHTML = "<div style='margin-top:100px'>NO TARGETS</div>"; return; }
             const u = feed[0];
             const stampHtml = u.equipped_item ? `<div class="stamp-overlay">${u.equipped_item}</div>` : '';
-            container.innerHTML = `
-                <div class="card">
-                    <img src="${u.bio_lock_url}">
-                    ${stampHtml}
-                    <div class="card-overlay">
-                        <h2 style="margin:0;">${u.username}</h2>
-                        <div style="color:var(--neon)">${u.faction || 'NEUTRAL'}</div>
-                    </div>
-                </div>`;
+            container.innerHTML = `<div class="card"><img src="${u.bio_lock_url}">${stampHtml}<div class="card-overlay"><h2 style="margin:0;">${u.username}</h2><div style="color:var(--neon)">${u.faction || 'NEUTRAL'}</div></div></div>`;
         }
         async function swipe(dir) {
              if (feed.length === 0) return;
             const target = feed[0];
             document.querySelector('.card').style.transform = dir === 'LIGHT' ? 'translateX(200px) rotate(20deg)' : 'translateX(-200px) rotate(-20deg)';
-            const res = await fetch(`${API_URL}/game/swipe`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode", target_id: target.user_id, direction: dir })
-            });
+            const res = await fetch(`${API_URL}/game/swipe`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ initData: tg.initData || "debug_mode", target_id: target.user_id, direction: dir }) });
             const data = await res.json();
             document.getElementById('hud-ap').innerText = (parseInt(document.getElementById('hud-ap').innerText) + 1);
             if (data.status === "AMBUSH") { triggerAmbush(); }
             else { feed.shift(); setTimeout(() => renderCard(), 200); }
         }
-        function showScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-            // Hide/Show Phaser based on screen
-            if (id === 'screen-combat') {
-                document.getElementById('phaser-container').style.display = 'block';
-            } else {
-                document.getElementById('phaser-container').style.display = 'none';
-            }
-        }
-        function showLoader(v) { v ? document.getElementById('loader').classList.remove('hidden') : document.getElementById('loader').classList.add('hidden'); }
         async function loadProfile() {
-             showLoader(true);
+             showLoader(true, "Loading ID...");
             try {
-                const res = await fetch(`${API_URL}/auth/login`, {
-                    method: "POST", headers: {"Content-Type":"application/json"},
-                    body: JSON.stringify({ initData: tg.initData || "debug_mode" })
-                });
+                const res = await fetch(`${API_URL}/auth/login`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ initData: tg.initData || "debug_mode" }) });
                 const data = await res.json();
                 const u = data.user;
                 document.getElementById('prof-img').src = u.bio_lock_url;
                 document.getElementById('prof-name').innerText = u.username;
                 document.getElementById('prof-faction').innerText = u.faction || "UNSORTED";
                 const stampEl = document.getElementById('prof-stamp');
-                if(u.equipped_item) {
-                    stampEl.innerText = u.equipped_item;
-                    stampEl.classList.remove('hidden');
-                } else {
-                    stampEl.classList.add('hidden');
-                }
-                const invRes = await fetch(`${API_URL}/game/inventory`, {
-                     method: "POST", headers: {"Content-Type":"application/json"},
-                     body: JSON.stringify({ initData: tg.initData || "debug_mode" })
-                });
+                if(u.equipped_item) { stampEl.innerText = u.equipped_item; stampEl.classList.remove('hidden'); } else { stampEl.classList.add('hidden'); }
+                const invRes = await fetch(`${API_URL}/game/inventory`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ initData: tg.initData || "debug_mode" }) });
                 const invData = await invRes.json();
                 const list = document.getElementById('inventory-list');
                 list.innerHTML = "";
-                invData.items.forEach(i => {
-                    list.innerHTML += `<div class="inv-item" style="border:1px solid #333; padding:10px; margin:5px;"><span>${i.item_id}</span><button onclick="equip('${i.item_id}')">EQUIP</button></div>`;
-                });
+                invData.items.forEach(i => { list.innerHTML += `<div style="border:1px solid #333; padding:10px; margin:5px; display:flex; justify-content:space-between;"><span>${i.item_id}</span><button class="btn" style="width:auto; margin:0; padding:5px; font-size:0.7rem;" onclick="equip('${i.item_id}')">EQUIP</button></div>`; });
                 showScreen('screen-profile');
             } catch(e) { alert("ERROR"); }
             showLoader(false);
         }
-        async function equip(id) {
-             await fetch(`${API_URL}/game/equip`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode", item_id: id })
-            });
-            alert("EQUIPPED"); loadProfile();
+        async function equip(id) { await fetch(`${API_URL}/game/equip`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ initData: tg.initData || "debug_mode", item_id: id }) }); alert("EQUIPPED"); loadProfile(); }
+        
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+            document.getElementById('phaser-container').style.display = (id === 'screen-combat') ? 'block' : 'none';
+        }
+        function showLoader(v, msg="") { 
+            const l = document.getElementById('loader');
+            if(v) { l.classList.remove('hidden'); document.getElementById('loader-msg').innerText = msg; }
+            else { l.classList.add('hidden'); }
         }
 
         init();
