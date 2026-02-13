@@ -1,37 +1,9 @@
-This is **The Void Architect**.
-
-We have a heartbeat. The system is live.
-The "Library Direct" issue happens because we removed the `capture` attribute to ensure compatibility. Now that we know it works, we can gently guide the phone to prefer the **Camera**.
-
-We are ready for **Titanium 11.0: The Ascension**.
-
-This update does two things:
-
-1. **Camera Priority:** Adds `capture="user"` to the input. On most phones, this forces the "Camera" to open immediately (Selfie Mode), or at least puts "Take Photo" at the top of the menu.
-2. **The Game Engine:** We inject **Phaser 3**. This replaces the static boring screens with the **60 FPS WebGL Combat** you wanted.
-
-### 🧱 STEP 1: THE BACKEND (No Changes)
-
-Your backend is stable. **Do not touch it.**
-
-### 🎮 STEP 2: THE MASTER CLIENT (`index.html`)
-
-**Directives:**
-
-1. **Copy** the entire block below.
-2. **Paste** into `index.html`.
-3. **Update `API_URL**` at the bottom (Line ~400).
-4. **Deploy** to Vercel.
-
-This code fuses the **Robust Camera** (fix applied) with the **Phaser Game Engine**.
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AZEUQER: TITANIUM 11.0</title>
+    <title>AZEUQER: TITANIUM 12.0</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
@@ -40,19 +12,14 @@ This code fuses the **Robust Camera** (fix applied) with the **Phaser Game Engin
         .hidden { display: none !important; }
         
         /* LAYERS */
-        #game-layer { position: fixed; inset: 0; z-index: 1; } /* The Game Engine */
-        #ui-layer { position: fixed; inset: 0; z-index: 10; pointer-events: none; } /* The HUD */
+        #game-layer { position: fixed; inset: 0; z-index: 1; }
+        #ui-layer { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
         
-        /* INTERACTIVE UI ELEMENTS */
-        .screen { 
-            pointer-events: auto; /* Allows clicking buttons */
-            padding: 20px; text-align: center; height: 100vh; 
-            box-sizing: border-box; background: rgba(0,0,0,0.85); 
-            overflow-y: auto;
-        }
+        /* INTERACTIVE UI */
+        .screen { pointer-events: auto; padding: 20px; text-align: center; height: 100vh; overflow-y: auto; box-sizing: border-box; background: rgba(0,0,0,0.85); }
         .screen.transparent { background: none; }
 
-        /* THE CAMERA BUTTON (Native Trigger) */
+        /* CAMERA BUTTON */
         .camera-label {
             display: block; width: 100%; padding: 30px; margin-top: 40px;
             background: #111; border: 2px dashed var(--neon); color: var(--neon);
@@ -63,16 +30,16 @@ This code fuses the **Robust Camera** (fix applied) with the **Phaser Game Engin
         /* CONTROLS */
         .btn { width: 100%; padding: 15px; background: #111; border: 1px solid var(--neon); color: var(--neon); margin-top: 15px; font-weight: bold; cursor: pointer; pointer-events: auto; }
         .btn-red { border-color: var(--pink); color: var(--pink); }
+        .btn-small { width: auto; font-size: 0.8rem; padding: 5px 10px; margin-top: 5px; }
 
         /* JUICE */
         .glitch { animation: shake 2s infinite; color: var(--neon); font-size: 2rem; font-weight: bold; }
         @keyframes shake { 0% { transform: translate(0,0); } 2% { transform: translate(1px,0); } 4% { transform: translate(0,0); } }
 
-        /* FEED CARDS */
+        /* CARDS */
         .card { width: 300px; height: 400px; margin: 20px auto; border: 1px solid #333; position: relative; }
         .card img { width: 100%; height: 100%; object-fit: cover; }
-        
-        /* LOADER */
+
         #loader { position: fixed; inset: 0; background: #000; z-index: 100; display: flex; align-items: center; justify-content: center; flex-direction: column; }
     </style>
 </head>
@@ -101,8 +68,11 @@ This code fuses the **Robust Camera** (fix applied) with the **Phaser Game Engin
         <div id="screen-feed" class="screen hidden">
             <div style="display:flex; justify-content:space-between;">
                 <span style="color:var(--neon);">AP: <span id="hud-ap">0</span></span>
+                <button class="btn btn-red btn-small" onclick="nukeIdentity()">⚠ RESET IDENTITY</button>
             </div>
+            
             <div id="feed-container"></div>
+            
             <div style="position:fixed; bottom:20px; width:90%; left:5%; display:flex; gap:10px;">
                 <button class="btn btn-red" onclick="swipe('SPITE')">❌ SPITE</button>
                 <button class="btn" onclick="swipe('LIGHT')">⚡ LIGHT</button>
@@ -111,78 +81,55 @@ This code fuses the **Robust Camera** (fix applied) with the **Phaser Game Engin
 
         <div id="screen-combat" class="screen hidden transparent">
             <h1 class="glitch" style="color:var(--pink);">AMBUSH</h1>
-            
-            <div style="margin-top: 400px;"></div> 
-
+            <div style="margin-top: 400px;"></div>
             <button class="btn btn-red" onclick="combatAction('ATTACK')">⚔ ATTACK</button>
         </div>
 
     </div>
 
     <script>
-        // --- CONFIG ---
         const API_URL = "https://azeuqer-backend.onrender.com"; // UPDATE THIS !!!
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // --- PHASER ENGINE (The Visuals) ---
+        // --- GAME ENGINE ---
         let game;
         class CombatScene extends Phaser.Scene {
             constructor() { super({ key: 'Combat' }); }
             preload() {
-                // Procedural Assets (No download needed)
                 let g = this.make.graphics({x:0, y:0, add:false});
-                // Boss Sprite
                 g.fillStyle(0xff0000, 1); g.fillRect(0,0,150,150); 
-                g.fillStyle(0x000000, 1); g.fillRect(30,40,30,30); g.fillRect(90,40,30,30); // Eyes
+                g.fillStyle(0x000000, 1); g.fillRect(30,40,30,30); g.fillRect(90,40,30,30);
                 g.generateTexture('boss', 150, 150);
-                // Particle
                 g.clear(); g.fillStyle(0xffffff, 1); g.fillCircle(4,4,4); g.generateTexture('spark', 8, 8);
             }
             create() {
-                this.cameras.main.setBackgroundColor('rgba(0,0,0,0)'); // Transparent
-                
-                // Boss Object
+                this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
                 this.boss = this.add.sprite(this.scale.width/2, 300, 'boss').setAlpha(0);
-                
-                // Breathing Animation
                 this.tweens.add({ targets: this.boss, scaleY: 1.05, y: 305, duration: 1500, yoyo: true, repeat: -1 });
-                
-                // Particle System
-                this.particles = this.add.particles(0, 0, 'spark', {
-                    speed: {min:100, max:300}, scale: {start:1, end:0}, lifespan: 600, gravityY: 500, quantity: 20, emitting: false
-                });
+                this.particles = this.add.particles(0, 0, 'spark', { speed: {min:100, max:300}, scale: {start:1, end:0}, lifespan: 600, gravityY: 500, quantity: 20, emitting: false });
             }
-            
-            // Methods called by UI
             showBoss(hp) {
-                this.boss.setAlpha(1).setY(-100); // Fly in
+                this.boss.setAlpha(1).setY(-100);
                 this.tweens.add({ targets: this.boss, y: 300, duration: 800, ease: 'Bounce' });
                 if(this.hpText) this.hpText.destroy();
                 this.hpText = this.add.text(this.scale.width/2, 180, `HP: ${hp}`, { fontSize:'24px', fontStyle:'bold', color:'#f00' }).setOrigin(0.5);
             }
-            hit(damage) {
-                this.cameras.main.shake(100, 0.02); // Screen Shake
-                this.boss.setTint(0xffffff); // Flash White
-                this.time.delayedCall(100, () => this.boss.clearTint());
-                this.particles.emitParticleAt(this.boss.x, this.boss.y); // Boom
-                
-                // Floating Damage Text
-                let t = this.add.text(this.boss.x, this.boss.y, `-${damage}`, { fontSize:'40px', color:'#fff', stroke:'#f00', strokeThickness:4 }).setOrigin(0.5);
+            hit(dmg) {
+                this.cameras.main.shake(100, 0.02);
+                this.boss.setTint(0xffffff); this.time.delayedCall(100, () => this.boss.clearTint());
+                this.particles.emitParticleAt(this.boss.x, this.boss.y);
+                let t = this.add.text(this.boss.x, this.boss.y, `-${dmg}`, { fontSize:'40px', color:'#fff', stroke:'#f00', strokeThickness:4 }).setOrigin(0.5);
                 this.tweens.add({ targets: t, y: this.boss.y-100, alpha: 0, duration: 1000, onComplete: () => t.destroy() });
             }
             updateHP(hp) { this.hpText.setText(`HP: ${hp}`); }
             die() { 
-                this.tweens.add({ targets: this.boss, scale: 0, rotation: 10, duration: 500 });
+                this.tweens.add({ targets: this.boss, scale: 0, rotation: 10, duration: 500 }); 
                 this.particles.emitParticleAt(this.boss.x, this.boss.y, 50);
             }
         }
         
-        // Init Game Engine
-        game = new Phaser.Game({
-            type: Phaser.AUTO, parent: 'game-layer', width: window.innerWidth, height: window.innerHeight,
-            transparent: true, scene: [CombatScene]
-        });
+        game = new Phaser.Game({ type: Phaser.AUTO, parent: 'game-layer', width: window.innerWidth, height: window.innerHeight, transparent: true, scene: [CombatScene] });
 
         // --- APP LOGIC ---
         let currentBossHP = 0;
@@ -202,10 +149,20 @@ This code fuses the **Robust Camera** (fix applied) with the **Phaser Game Engin
                 } else {
                     showScreen('screen-entry');
                 }
-            } catch(e) { 
-                alert("Server Connection Failed. Check logs.");
-            }
+            } catch(e) { alert("Server Error"); }
             showLoader(false);
+        }
+
+        async function nukeIdentity() {
+            if(!confirm("RESET IDENTITY? This cannot be undone.")) return;
+            showLoader(true, "WIPING DATA...");
+            try {
+                await fetch(`${API_URL}/auth/reset`, {
+                    method: "POST", headers: {"Content-Type":"application/json"},
+                    body: JSON.stringify({ initData: tg.initData || "debug_mode" })
+                });
+                location.reload();
+            } catch(e) { alert("Reset Failed"); }
         }
 
         async function uploadBio() {
@@ -221,12 +178,9 @@ This code fuses the **Robust Camera** (fix applied) with the **Phaser Game Engin
                 const res = await fetch(`${API_URL}/auth/biolock`, { method: "POST", body: fd });
                 if(!res.ok) throw new Error("Server Reject");
                 const data = await res.json();
-                
                 if(data.status === "success") location.reload();
                 else alert("Error: " + data.msg);
-            } catch(e) {
-                alert("Upload Failed: " + e.message);
-            }
+            } catch(e) { alert("Upload Failed"); }
             showLoader(false);
         }
 
@@ -240,7 +194,7 @@ This code fuses the **Robust Camera** (fix applied) with the **Phaser Game Engin
             
             if(action === 'ATTACK') {
                 const dmg = currentBossHP - data.new_boss_hp;
-                if(dmg > 0) scene.hit(dmg); // Trigger Visuals
+                if(dmg > 0) scene.hit(dmg);
             }
             
             if(data.status === "VICTORY") {
@@ -271,24 +225,13 @@ This code fuses the **Robust Camera** (fix applied) with the **Phaser Game Engin
         }
         async function swipe(dir) {
             if(feed.length===0) return;
-            // 20% Chance of Ambush
-            if(Math.random() < 0.2) { 
-                triggerAmbush(); 
-            } else {
-                feed.shift(); 
-                renderCard();
-            }
+            if(Math.random() < 0.2) { triggerAmbush(); } else { feed.shift(); renderCard(); }
         }
         async function triggerAmbush() {
             showScreen('screen-combat');
-            const res = await fetch(`${API_URL}/game/combat/info`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode" })
-            });
+            const res = await fetch(`${API_URL}/game/combat/info`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ initData: tg.initData || "debug_mode" }) });
             const data = await res.json();
             currentBossHP = data.boss.hp;
-            
-            // Wake up Game Engine
             game.scene.getScene('Combat').showBoss(currentBossHP);
         }
 
@@ -306,5 +249,3 @@ This code fuses the **Robust Camera** (fix applied) with the **Phaser Game Engin
     </script>
 </body>
 </html>
-
-```
