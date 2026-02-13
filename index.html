@@ -3,239 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AZEUQER: TITANIUM 8.1</title>
+    <title>AZEUQER: TITANIUM</title>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --bg: #050505; --neon: #00ffcc; --pink: #ff00ff; --glass: rgba(255,255,255,0.05); }
-        body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; padding: 0; overflow: hidden; }
+        :root { --bg: #050505; --neon: #00ffcc; --pink: #ff00ff; }
+        body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; }
         .hidden { display: none !important; }
-        .screen { padding: 20px; text-align: center; height: 100vh; width: 100vw; overflow-y: auto; box-sizing: border-box; position: relative; z-index: 10; }
         
-        /* THE GAME CANVAS (Sits behind UI) */
-        #phaser-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-        canvas { display: block; width: 100%; height: 100%; }
+        /* UI LAYERS */
+        #game-layer { position: fixed; inset: 0; z-index: 1; }
+        #ui-layer { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
+        
+        /* INTERACTIVE ELEMENTS (Must have pointer-events: auto) */
+        .screen { pointer-events: auto; padding: 20px; text-align: center; height: 100vh; overflow-y: auto; box-sizing: border-box; background: rgba(0,0,0,0.85); }
+        .screen.transparent { background: none; }
 
-        /* UI OVERLAYS (HTML on top of Canvas) */
-        .ui-layer { position: relative; z-index: 20; }
+        /* CAMERA BUTTON (HYBRID) */
+        .camera-btn {
+            display: block; width: 100%; padding: 30px; margin-top: 50px;
+            background: #111; border: 2px dashed var(--neon); color: var(--neon);
+            font-size: 1.2rem; font-weight: bold; cursor: pointer;
+        }
+        
+        /* CONTROLS */
+        .btn { width: 100%; padding: 15px; background: #111; border: 1px solid var(--neon); color: var(--neon); margin-top: 10px; font-weight: bold; pointer-events: auto; cursor: pointer; }
+        .btn-red { border-color: var(--pink); color: var(--pink); }
 
-        /* VISUAL JUICE */
-        .scanlines { position: fixed; inset: 0; pointer-events: none; z-index: 50; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 2px, 3px 100%; }
-        .glitch { font-size: 2rem; font-weight: bold; color: var(--neon); text-shadow: 2px 0 var(--pink); animation: shake 2s infinite; }
+        /* JUICE */
+        .glitch { animation: shake 2s infinite; color: var(--neon); font-size: 2rem; font-weight: bold; }
         @keyframes shake { 0% { transform: translate(0,0); } 2% { transform: translate(1px,0); } 4% { transform: translate(0,0); } }
 
-        /* CONTROLS */
-        .btn { width: 100%; padding: 15px; background: #111; border: 1px solid var(--neon); color: var(--neon); margin-top: 15px; font-size: 1.2rem; font-weight: bold; text-transform: uppercase; cursor: pointer; transition: 0.1s; }
-        .btn:active { background: var(--neon); color: #000; transform: scale(0.98); }
-        .btn-red { border-color: var(--pink); color: var(--pink); }
-        
-        /* CAMERA HYBRID BUTTON */
-        .camera-label {
-            display: block; width: 100%; padding: 20px; 
-            background: #111; border: 2px dashed var(--neon); color: var(--neon);
-            font-size: 1.2rem; font-weight: bold; text-transform: uppercase;
-            cursor: pointer; box-sizing: border-box;
-        }
-
-        /* CARDS */
-        .card { width: 100%; max-width: 350px; height: 450px; margin: 0 auto; border: 1px solid #333; position: relative; background: #000; transition: transform 0.2s; }
+        /* FEED CARDS */
+        .card { width: 300px; height: 400px; margin: 20px auto; border: 1px solid #333; position: relative; }
         .card img { width: 100%; height: 100%; object-fit: cover; }
-        .card-overlay { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, #000, transparent); padding: 20px; box-sizing: border-box; text-align: left; }
-        
-        /* STAMPS */
-        .stamp-overlay { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.8); border: 1px solid var(--neon); color: var(--neon); padding: 5px; font-size: 0.7rem; transform: rotate(-10deg); box-shadow: 0 0 10px var(--neon); }
 
-        /* LOADER */
         #loader { position: fixed; inset: 0; background: #000; z-index: 100; display: flex; align-items: center; justify-content: center; flex-direction: column; }
     </style>
 </head>
 <body>
 
-    <div class="scanlines"></div>
-    <div id="loader" class="hidden">
-        <div class="glitch">PROCESSING...</div>
-        <div id="loader-msg" style="color:#888; margin-top:10px; font-size:0.8rem;"></div>
-    </div>
+    <div id="loader" class="hidden"><div class="glitch">CONNECTING...</div><div id="loader-msg" style="color:#666; font-size:0.8rem;"></div></div>
 
-    <div id="phaser-container"></div>
+    <div id="game-layer"></div>
 
-    <div id="screen-entry" class="screen ui-layer">
-        <h1 class="glitch" style="margin-top:50px;">AZEUQER</h1>
-        <p style="color:#888;">// REALITY EXTRACTION</p>
-        
-        <div style="padding: 20px; margin-top: 40px;">
-            <label class="camera-label">
-                📸 SCAN FACE
-                <input type="file" id="cam" accept="image/*" capture="user" style="display:none" onchange="uploadBio()">
+    <div id="ui-layer">
+
+        <div id="screen-entry" class="screen">
+            <h1 class="glitch" style="margin-top:50px;">AZEUQER</h1>
+            <p style="color:#888;">// TITANIUM PROTOCOL</p>
+            
+            <label class="camera-btn">
+                📸 TAP TO SCAN FACE
+                <input type="file" id="cam" accept="image/*" style="display:none" onchange="uploadBio()">
             </label>
-            <div id="upload-status" style="margin-top:10px; color:#555; font-size: 0.8rem;">WAITING FOR INPUT</div>
+            <div id="status-log" style="margin-top:20px; color:#555;">SYSTEM READY</div>
         </div>
-    </div>
 
-    <div id="screen-feed" class="screen hidden ui-layer">
-        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-            <span style="color:var(--neon); font-weight:bold;">AP: <span id="hud-ap">0</span></span>
-            <button onclick="loadProfile()" style="background:none; border:1px solid #333; color:#fff; padding:5px 10px;">👤 ME</button>
+        <div id="screen-feed" class="screen hidden">
+            <div style="display:flex; justify-content:space-between;">
+                <span style="color:var(--neon);">AP: <span id="hud-ap">0</span></span>
+            </div>
+            <div id="feed-container"></div>
+            <div style="position:fixed; bottom:20px; width:90%; left:5%; display:flex; gap:10px;">
+                <button class="btn btn-red" onclick="swipe('SPITE')">❌ SPITE</button>
+                <button class="btn" onclick="swipe('LIGHT')">⚡ LIGHT</button>
+            </div>
         </div>
-        <div id="feed-container"><div style="margin-top:100px;">NO SIGNALS...</div></div>
-        <div style="display:flex; gap:15px; position:fixed; bottom:30px; width:90%; left:5%;">
-            <button class="btn btn-red" onclick="swipe('SPITE')"> 💀 SPITE</button>
-            <button class="btn btn-sheesh" style="border-color:#00ff00; color:#00ff00;" onclick="swipe('LIGHT')"> 🔥 SHEESH</button>
-        </div>
-    </div>
 
-    <div id="screen-profile" class="screen hidden ui-layer">
-        <h2 class="glitch" style="margin-bottom:20px;">PASSPORT</h2>
-        <div style="position:relative; width:150px; height:150px; margin: 0 auto;">
-            <img id="prof-img" src="" style="width:100%; height:100%; border:2px solid var(--neon); object-fit:cover;">
-            <div id="prof-stamp" class="stamp-overlay hidden">VOID TOKEN</div>
+        <div id="screen-combat" class="screen hidden transparent">
+            <h1 class="glitch" style="color:var(--pink);">AMBUSH</h1>
+            <div style="margin-top: 400px;"></div> <button class="btn btn-red" onclick="combatAction('ATTACK')">⚔ ATTACK</button>
         </div>
-        <h2 id="prof-name" style="margin:10px 0; color:#fff;">AGENT</h2>
-        <div id="prof-faction" style="color:var(--pink); margin-bottom:20px;">NEUTRAL</div>
-        <h3 style="border-bottom:1px solid #333; padding-bottom:5px; text-align:left;">INVENTORY</h3>
-        <div id="inventory-list" style="text-align:left; max-height: 30vh; overflow-y:auto;"></div>
-        <button class="btn" onclick="showScreen('screen-feed')">BACK TO FEED</button>
-    </div>
 
-    <div id="screen-combat" class="screen hidden ui-layer" style="background: transparent;">
-        <h1 class="glitch" style="color:var(--pink); margin-top:20px;">AMBUSH</h1>
-        <div style="margin-top: 300px;"></div> <div style="display:flex; gap:10px; margin-top:20px;">
-            <button class="btn btn-red" onclick="gameCombatAction('ATTACK')">⚔ ATTACK</button>
-            <button class="btn" style="border-color:#fff; color:#fff;" onclick="gameCombatAction('POTION_HP')">💉 HEAL</button>
-        </div>
     </div>
 
     <script>
-        // --- CONFIGURATION ---
         const API_URL = "https://azeuqer-backend.onrender.com"; // UPDATE THIS !!!
         const tg = window.Telegram.WebApp;
         tg.expand();
 
-        // --- PHASER GAME ENGINE (VISUALS) ---
+        // --- PHASER ENGINE (The Visuals) ---
         let game;
         class CombatScene extends Phaser.Scene {
-            constructor() { super({ key: 'CombatScene' }); }
+            constructor() { super({ key: 'Combat' }); }
             preload() {
-                const g = this.make.graphics({x:0,y:0,add:false});
-                g.fillStyle(0xff0000, 1); g.fillRect(0,0,200,200); g.generateTexture('boss',200,200);
-                g.clear(); g.fillStyle(0xffffff, 1); g.fillCircle(5,5,5); g.generateTexture('spark',10,10);
+                // Procedural Graphics (No Assets Needed)
+                let g = this.make.graphics({x:0, y:0, add:false});
+                g.fillStyle(0xff0000, 1); g.fillRect(0,0,150,150); g.generateTexture('boss', 150, 150);
+                g.clear(); g.fillStyle(0xffffff, 1); g.fillCircle(4,4,4); g.generateTexture('spark', 8, 8);
             }
             create() {
-                this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
-                this.boss = this.add.sprite(this.scale.width/2, 250, 'boss').setAlpha(0);
-                this.tweens.add({targets:this.boss, scaleY:1.05, scaleX:0.98, y:255, duration:1500, yoyo:true, repeat:-1});
-                this.particles = this.add.particles(0,0,'spark',{speed:{min:100,max:300}, scale:{start:1,end:0}, lifespan:500, gravityY:500, quantity:20, emitting:false});
+                this.cameras.main.setBackgroundColor('rgba(0,0,0,0)'); // Transparent
+                this.boss = this.add.sprite(this.scale.width/2, 300, 'boss').setAlpha(0);
+                
+                // Breathing Animation
+                this.tweens.add({ targets: this.boss, scaleY: 1.05, y: 305, duration: 1500, yoyo: true, repeat: -1 });
+                
+                // Particle Emitter
+                this.particles = this.add.particles(0, 0, 'spark', {
+                    speed: {min:100, max:300}, scale: {start:1, end:0}, lifespan: 600, gravityY: 500, quantity: 20, emitting: false
+                });
             }
-            startCombat(hp) {
-                this.boss.setAlpha(1).setY(-200);
-                this.tweens.add({targets:this.boss, y:250, duration:800, ease:'Bounce.easeOut'});
+            showBoss(hp) {
+                this.boss.setAlpha(1).setY(-100);
+                this.tweens.add({ targets: this.boss, y: 300, duration: 800, ease: 'Bounce' });
                 if(this.hpText) this.hpText.destroy();
-                this.hpText = this.add.text(this.scale.width/2, 120, `HP: ${hp}`, {fontSize:'24px', color:'#ff0000', fontStyle:'bold'}).setOrigin(0.5);
+                this.hpText = this.add.text(this.scale.width/2, 180, `HP: ${hp}`, { fontSize:'24px', fontStyle:'bold', color:'#f00' }).setOrigin(0.5);
             }
-            takeDamage(amount) {
-                this.cameras.main.shake(200, 0.02);
-                this.boss.setTint(0xff0000); this.time.delayedCall(100, ()=>this.boss.clearTint());
+            hit(damage) {
+                this.cameras.main.shake(100, 0.02);
+                this.boss.setTint(0xffffff);
+                this.time.delayedCall(100, () => this.boss.clearTint());
                 this.particles.emitParticleAt(this.boss.x, this.boss.y);
-                const t = this.add.text(this.boss.x, this.boss.y, `-${amount}`, {fontSize:'40px', color:'#fff', stroke:'#f00', strokeThickness:4}).setOrigin(0.5);
-                this.tweens.add({targets:t, y:this.boss.y-100, alpha:0, duration:1000, onComplete:()=>t.destroy()});
+                
+                // Floating Text
+                let t = this.add.text(this.boss.x, this.boss.y, `-${damage}`, { fontSize:'40px', color:'#fff', stroke:'#f00', strokeThickness:4 }).setOrigin(0.5);
+                this.tweens.add({ targets: t, y: this.boss.y-100, alpha: 0, duration: 1000, onComplete: () => t.destroy() });
             }
-            updateHP(val) { this.hpText.setText(`HP: ${val}`); }
-            victory() { 
-                this.tweens.add({targets:this.boss, scale:0, rotation:10, duration:500}); 
+            updateHP(hp) { this.hpText.setText(`HP: ${hp}`); }
+            die() { 
+                this.tweens.add({ targets: this.boss, scale: 0, rotation: 10, duration: 500 });
                 this.particles.emitParticleAt(this.boss.x, this.boss.y, 50);
             }
         }
         
-        const config = { type: Phaser.AUTO, parent: 'phaser-container', width: window.innerWidth, height: window.innerHeight, transparent: true, scene: [CombatScene] };
-        game = new Phaser.Game(config);
+        game = new Phaser.Game({
+            type: Phaser.AUTO, parent: 'game-layer', width: window.innerWidth, height: window.innerHeight,
+            transparent: true, scene: [CombatScene]
+        });
 
-        // --- APP LOGIC (ROBUST UPLOAD RESTORED) ---
-        let feed = [];
+        // --- APP LOGIC ---
         let currentBossHP = 0;
 
         async function init() {
-            showLoader(true, "Authenticating...");
+            showLoader(true, "Connecting...");
             try {
                 const res = await fetch(`${API_URL}/auth/login`, {
                     method: "POST", headers: {"Content-Type":"application/json"},
                     body: JSON.stringify({ initData: tg.initData || "debug_mode" })
                 });
                 const data = await res.json();
-                if (data.user.bio_lock_url) {
-                    document.getElementById('hud-ap').innerText = data.user.ap;
+                if(data.user.bio_lock_url) {
                     showScreen('screen-feed');
                     loadFeed();
-                    if (data.user.combat_state === "LOCKED") triggerAmbush();
                 } else {
                     showScreen('screen-entry');
                 }
-            } catch(e) { alert("SERVER ERROR: " + e.message); }
+            } catch(e) { 
+                document.getElementById('status-log').innerText = "SERVER OFFLINE. CHECK RENDER.";
+                alert("Server Connection Failed. Check logs.");
+            }
             showLoader(false);
         }
 
         async function uploadBio() {
             const file = document.getElementById('cam').files[0];
-            if (!file) {
-                document.getElementById('upload-status').innerText = "CANCELLED";
-                return;
-            }
+            if(!file) return;
 
-            document.getElementById('upload-status').innerText = "ENCRYPTING...";
-            showLoader(true, "UPLOADING BIOMETRICS...");
-            
+            showLoader(true, "UPLOADING...");
             const fd = new FormData();
             fd.append("initData", tg.initData || "debug_mode");
             fd.append("file", file);
 
             try {
-                // 15 Second Timeout to prevent "Stuck" state
-                const controller = new AbortController();
-                const id = setTimeout(() => controller.abort(), 15000);
-
-                const res = await fetch(`${API_URL}/auth/biolock`, { 
-                    method: "POST", body: fd, signal: controller.signal 
-                });
-                clearTimeout(id);
-
-                if (!res.ok) {
-                    const txt = await res.text();
-                    throw new Error(`Server ${res.status}: ${txt}`);
-                }
-
+                const res = await fetch(`${API_URL}/auth/biolock`, { method: "POST", body: fd });
+                if(!res.ok) throw new Error("Server Reject");
                 const data = await res.json();
-                if (data.status === "success") { 
-                    location.reload(); 
-                } else { 
-                    throw new Error(data.msg || "Unknown Reject");
-                }
-            } catch(e) { 
-                alert("UPLOAD FAILED:\n" + e.message); 
-                document.getElementById('upload-status').innerText = "FAILED - RETRY";
-            } finally {
-                showLoader(false);
+                
+                if(data.status === "success") location.reload();
+                else alert("Error: " + data.msg);
+            } catch(e) {
+                alert("Upload Failed: " + e.message);
             }
+            showLoader(false);
         }
 
-        // --- GAMEPLAY BRIDGES ---
-        function triggerAmbush() { showScreen('screen-combat'); loadCombatInfo(); }
-        async function loadCombatInfo() {
-            const res = await fetch(`${API_URL}/game/combat/info`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ initData: tg.initData || "debug_mode" }) });
+        async function combatAction(action) {
+            const res = await fetch(`${API_URL}/game/combat/turn`, {
+                method: "POST", headers: {"Content-Type":"application/json"},
+                body: JSON.stringify({ initData: tg.initData || "debug_mode", action: action, boss_hp_current: currentBossHP })
+            });
             const data = await res.json();
-            currentBossHP = data.boss.hp;
-            game.scene.getScene('CombatScene').startCombat(currentBossHP);
-        }
-        async function gameCombatAction(action) {
-            const res = await fetch(`${API_URL}/game/combat/turn`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ initData: tg.initData || "debug_mode", action: action, boss_hp_current: currentBossHP }) });
-            const data = await res.json();
-            const scene = game.scene.getScene('CombatScene');
+            const scene = game.scene.getScene('Combat');
             
-            if (action === 'ATTACK') {
+            if(action === 'ATTACK') {
                 const dmg = currentBossHP - data.new_boss_hp;
-                if (dmg > 0) scene.takeDamage(dmg);
+                if(dmg > 0) scene.hit(dmg);
             }
-            if (data.status === "VICTORY") {
-                scene.victory();
-                setTimeout(() => { alert(`VICTORY! LOOT: ${data.loot}`); location.reload(); }, 1500);
+            
+            if(data.status === "VICTORY") {
+                scene.die();
+                setTimeout(() => { alert(`VICTORY! Loot: ${data.loot}`); location.reload(); }, 1500);
             } else {
                 currentBossHP = data.new_boss_hp;
                 scene.updateHP(currentBossHP);
@@ -243,60 +202,51 @@
         }
 
         // --- UTILS ---
+        let feed = [];
         async function loadFeed() {
-             const res = await fetch(`${API_URL}/game/feed`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ initData: tg.initData || "debug_mode" }) });
+            const res = await fetch(`${API_URL}/game/feed`, {
+                method: "POST", headers: {"Content-Type":"application/json"},
+                body: JSON.stringify({ initData: tg.initData || "debug_mode" })
+            });
             const data = await res.json();
             feed = data.feed;
             renderCard();
         }
         function renderCard() {
-             const container = document.getElementById('feed-container');
-            if (feed.length === 0) { container.innerHTML = "<div style='margin-top:100px'>NO TARGETS</div>"; return; }
+            const c = document.getElementById('feed-container');
+            if(feed.length===0) { c.innerHTML="NO TARGETS"; return; }
             const u = feed[0];
-            const stampHtml = u.equipped_item ? `<div class="stamp-overlay">${u.equipped_item}</div>` : '';
-            container.innerHTML = `<div class="card"><img src="${u.bio_lock_url}">${stampHtml}<div class="card-overlay"><h2 style="margin:0;">${u.username}</h2><div style="color:var(--neon)">${u.faction || 'NEUTRAL'}</div></div></div>`;
+            c.innerHTML = `<div class="card"><img src="${u.bio_lock_url}"></div><div style="margin-top:10px; font-weight:bold;">${u.username}</div>`;
         }
         async function swipe(dir) {
-             if (feed.length === 0) return;
-            const target = feed[0];
-            document.querySelector('.card').style.transform = dir === 'LIGHT' ? 'translateX(200px) rotate(20deg)' : 'translateX(-200px) rotate(-20deg)';
-            const res = await fetch(`${API_URL}/game/swipe`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ initData: tg.initData || "debug_mode", target_id: target.user_id, direction: dir }) });
+            if(feed.length===0) return;
+            // 1 in 5 chance of ambush for testing
+            if(Math.random() < 0.2) { 
+                triggerAmbush(); 
+            } else {
+                feed.shift(); 
+                renderCard();
+            }
+        }
+        async function triggerAmbush() {
+            showScreen('screen-combat');
+            const res = await fetch(`${API_URL}/game/combat/info`, {
+                method: "POST", headers: {"Content-Type":"application/json"},
+                body: JSON.stringify({ initData: tg.initData || "debug_mode" })
+            });
             const data = await res.json();
-            document.getElementById('hud-ap').innerText = (parseInt(document.getElementById('hud-ap').innerText) + 1);
-            if (data.status === "AMBUSH") { triggerAmbush(); }
-            else { feed.shift(); setTimeout(() => renderCard(), 200); }
+            currentBossHP = data.boss.hp;
+            game.scene.getScene('Combat').showBoss(currentBossHP);
         }
-        async function loadProfile() {
-             showLoader(true, "Loading ID...");
-            try {
-                const res = await fetch(`${API_URL}/auth/login`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ initData: tg.initData || "debug_mode" }) });
-                const data = await res.json();
-                const u = data.user;
-                document.getElementById('prof-img').src = u.bio_lock_url;
-                document.getElementById('prof-name').innerText = u.username;
-                document.getElementById('prof-faction').innerText = u.faction || "UNSORTED";
-                const stampEl = document.getElementById('prof-stamp');
-                if(u.equipped_item) { stampEl.innerText = u.equipped_item; stampEl.classList.remove('hidden'); } else { stampEl.classList.add('hidden'); }
-                const invRes = await fetch(`${API_URL}/game/inventory`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ initData: tg.initData || "debug_mode" }) });
-                const invData = await invRes.json();
-                const list = document.getElementById('inventory-list');
-                list.innerHTML = "";
-                invData.items.forEach(i => { list.innerHTML += `<div style="border:1px solid #333; padding:10px; margin:5px; display:flex; justify-content:space-between;"><span>${i.item_id}</span><button class="btn" style="width:auto; margin:0; padding:5px; font-size:0.7rem;" onclick="equip('${i.item_id}')">EQUIP</button></div>`; });
-                showScreen('screen-profile');
-            } catch(e) { alert("ERROR"); }
-            showLoader(false);
-        }
-        async function equip(id) { await fetch(`${API_URL}/game/equip`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ initData: tg.initData || "debug_mode", item_id: id }) }); alert("EQUIPPED"); loadProfile(); }
-        
+
         function showScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
-            document.getElementById('phaser-container').style.display = (id === 'screen-combat') ? 'block' : 'none';
         }
-        function showLoader(v, msg="") { 
+        function showLoader(v, msg="") {
             const l = document.getElementById('loader');
-            if(v) { l.classList.remove('hidden'); document.getElementById('loader-msg').innerText = msg; }
-            else { l.classList.add('hidden'); }
+            if(v) { l.classList.remove('hidden'); document.getElementById('loader-msg').innerText=msg; }
+            else l.classList.add('hidden');
         }
 
         init();
