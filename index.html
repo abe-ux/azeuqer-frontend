@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>AZEUQER: TITANIUM — Prompt 2 Scale-Safe</title>
+<title>AZEUQER: TITANIUM — Prompt 2 Perfected</title>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -21,7 +21,6 @@
   body{background:var(--bg);color:#fff;font-family:'Courier New',monospace;margin:0;overflow:hidden;}
   .hidden{display:none!important;}
 
-  /* Ambient layers */
   .scanlines{
     position:fixed;inset:0;pointer-events:none;z-index:50;
     background:
@@ -30,30 +29,9 @@
     background-size:100% 2px, 3px 100%;
     opacity:0.22;
   }
-  .haze{
-    position:fixed;inset:-40px;pointer-events:none;z-index:3;
-    background:
-      radial-gradient(circle at 30% 20%, rgba(0,255,204,0.08), rgba(0,0,0,0) 55%),
-      radial-gradient(circle at 80% 75%, rgba(255,0,255,0.06), rgba(0,0,0,0) 55%),
-      radial-gradient(circle at 40% 85%, rgba(255,209,102,0.05), rgba(0,0,0,0) 60%);
-    filter: blur(18px);
-    animation: hazeBreath 6.5s ease-in-out infinite alternate;
-    opacity:0.55;
-  }
-  @keyframes hazeBreath{
-    from{transform:translate3d(0,0,0) scale(1);}
-    to{transform:translate3d(0,-8px,0) scale(1.03);}
-  }
-  .vignette{
-    position:fixed;inset:-20px;pointer-events:none;z-index:4;
-    background:radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.62) 85%);
-  }
-
-  /* Layers */
-  #game-layer{position:fixed;inset:0;z-index:1;display:none;} /* Phaser shown only in combat */
+  #game-layer{position:fixed;inset:0;z-index:1;display:none;}
   #ui-layer{position:fixed;inset:0;z-index:10;pointer-events:none;}
 
-  /* Screens */
   .screen{
     pointer-events:auto;
     padding:20px;
@@ -64,18 +42,15 @@
     background:var(--panel);
   }
   .screen.transparent{background:none;}
-
-  /* Typography / tags */
   .glitch{animation:shake 2s infinite;color:var(--neon);font-size:2rem;font-weight:bold;text-shadow:2px 0 var(--pink);}
   @keyframes shake{0%{transform:translate(0,0);}2%{transform:translate(1px,0);}4%{transform:translate(0,0);}}
-  .muted{color:var(--muted);}
-  .small{font-size:0.82rem;color:#bbb;line-height:1.25rem;}
-  .divider{height:1px;background:#222;margin:14px 0;}
+
   .tag{display:inline-block;padding:6px 10px;border:1px solid #333;border-radius:999px;color:#bbb;font-size:0.75rem;}
   .tag.neon{border-color:var(--neon);color:var(--neon);}
   .tag.pink{border-color:var(--pink);color:var(--pink);}
   .tag.red{border-color:var(--red);color:var(--red);}
   .tag.gold{border-color:var(--gold);color:var(--gold);}
+
   .row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
   .card{
     width:380px;max-width:96%;
@@ -86,8 +61,10 @@
     border-radius:12px;
     text-align:left;
   }
+  .divider{height:1px;background:#222;margin:14px 0;}
+  .small{font-size:0.82rem;color:#bbb;line-height:1.25rem;}
+  .muted{color:var(--muted);}
 
-  /* Buttons */
   .btn{
     width:100%;
     padding:14px;
@@ -107,22 +84,6 @@
   .btn-ghost{border-color:#444;color:#bbb;background:rgba(255,255,255,0.03);}
   .btn-ghost:active{background:#222;color:#fff;}
 
-  /* Toggle */
-  .chip{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;border:1px solid #333;background:rgba(255,255,255,0.03);color:#bbb;font-size:0.75rem;}
-  .toggle{width:34px;height:18px;border-radius:999px;border:1px solid #444;background:#111;position:relative;cursor:pointer;}
-  .toggle::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#666;transition:all 180ms ease-out;}
-  .toggle.on{border-color:rgba(0,255,204,0.7);}
-  .toggle.on::after{left:18px;background:var(--neon);}
-
-  /* Gate top images */
-  .topgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;}
-  .topbox{border:1px solid #333;border-radius:14px;overflow:hidden;background:#0b0b0b;}
-  .topimg{width:100%;height:210px;object-fit:cover;display:block;background:#000;}
-  .topmeta{padding:10px;}
-  .topmeta b{display:block;font-size:0.95rem;}
-  .topmeta span{font-size:0.78rem;color:#aaa;}
-
-  /* Camera */
   .camera-label{
     display:block;width:100%;
     padding:18px;
@@ -138,7 +99,13 @@
   }
   video{width:100%;border:2px solid var(--neon);margin-top:12px;border-radius:12px;background:#000;}
 
-  /* Feed */
+  .topgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;}
+  .topbox{border:1px solid #333;border-radius:14px;overflow:hidden;background:#0b0b0b;}
+  .topimg{width:100%;height:210px;object-fit:cover;display:block;background:#000;}
+  .topmeta{padding:10px;}
+  .topmeta b{display:block;font-size:0.95rem;}
+  .topmeta span{font-size:0.78rem;color:#aaa;}
+
   .hud{
     display:flex;gap:10px;
     justify-content:space-between;
@@ -151,18 +118,6 @@
   .hud-right{display:flex;gap:10px;align-items:center;}
 
   .stagewrap{width:380px;max-width:96%;margin:14px auto 0;position:relative;}
-  .aura{
-    position:absolute;inset:-18px;border-radius:26px;pointer-events:none;z-index:-1;
-    background:
-      radial-gradient(circle at 30% 30%, rgba(0,255,204,0.16), rgba(0,0,0,0) 55%),
-      radial-gradient(circle at 70% 60%, rgba(255,0,255,0.12), rgba(0,0,0,0) 60%),
-      radial-gradient(circle at 50% 100%, rgba(255,209,102,0.10), rgba(0,0,0,0) 55%);
-    filter: blur(18px);
-    opacity:0.62;
-    animation: auraDrift 7.2s ease-in-out infinite alternate;
-  }
-  @keyframes auraDrift{from{transform:translate3d(0,0,0) scale(1);}to{transform:translate3d(0,-10px,0) scale(1.05);} }
-
   .stage{position:relative;height:520px;border-radius:18px;}
   .stack-card{
     position:absolute;left:0;right:0;top:0;
@@ -189,21 +144,11 @@
     width:92%;max-width:520px;display:flex;gap:12px;z-index:30;
   }
 
-  /* Impact FX */
-  .impact{position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0;transition:opacity 170ms;}
-  .impact.on{opacity:1;}
-  .impact.light{background:radial-gradient(circle at 50% 55%, rgba(0,255,204,0.28), rgba(0,0,0,0) 55%);}
-  .impact.spite{background:radial-gradient(circle at 50% 55%, rgba(255,51,51,0.30), rgba(0,0,0,0) 55%);}
-  .spark{position:fixed;width:6px;height:6px;border-radius:50%;pointer-events:none;z-index:45;animation:sparkFly 520ms ease-out forwards;}
-  @keyframes sparkFly{from{transform:translate3d(0,0,0) scale(1);opacity:1;}to{transform:translate3d(var(--dx), var(--dy), 0) scale(0.2);opacity:0;}}
-
-  /* Loader */
   #loader{
     position:fixed;inset:0;background:#000;z-index:100;
     display:flex;align-items:center;justify-content:center;flex-direction:column;
   }
 
-  /* Combat HUD (simple DOM; phaser does visuals) */
   .combatHud{
     width:380px;max-width:96%;
     margin:10px auto 0;
@@ -213,18 +158,13 @@
     border-radius:12px;
     text-align:left;
   }
-  .hpbar{
-    height:10px;background:#111;border:1px solid #333;border-radius:999px;overflow:hidden;margin-top:8px;
-  }
+  .hpbar{height:10px;background:#111;border:1px solid #333;border-radius:999px;overflow:hidden;margin-top:8px;}
   .hpfill{height:100%;background:linear-gradient(90deg, rgba(255,51,51,0.9), rgba(255,0,255,0.5));width:100%;}
 </style>
 </head>
 
 <body>
 <div class="scanlines"></div>
-<div id="impact" class="impact"></div>
-<div id="haze" class="haze hidden"></div>
-<div id="vignette" class="vignette hidden"></div>
 
 <div id="loader" class="hidden">
   <div class="glitch">CONNECTING...</div>
@@ -276,9 +216,9 @@
       <div class="divider"></div>
 
       <div class="small muted">User: <b id="meName">AGENT</b> (#<span id="meId">—</span>)</div>
+      <div class="small muted">Faction: <b id="meFaction">UNSORTED</b> <span id="meFactionNote" class="muted"></span></div>
       <div class="small muted">AP: <b id="meAP">0</b> | Energy: <b id="meEnergy">30</b> | Vis: <b id="meVis">10</b></div>
       <div class="small muted">BioLock: <b id="meBio">GATE</b></div>
-      <div class="small muted">Regen: <b id="meRegen">1</b> energy / <b id="meRegenSec">180</b>s</div>
 
       <div id="emailBlock" style="margin-top:12px;">
         <div class="small muted" style="margin-bottom:6px;">Email (recovery & rewards):</div>
@@ -303,10 +243,9 @@
 
       <div class="divider"></div>
       <div class="row">
-        <div class="chip"><span>Sound</span><div id="audioToggle" class="toggle"></div></div>
+        <button class="btn btn-small btn-ghost" onclick="goFeed()">GO FEED</button>
         <button class="btn btn-small btn-red" onclick="resetMe()">RESET</button>
       </div>
-      <div class="small muted" style="margin-top:10px;">Audio unlocks after first tap.</div>
     </div>
 
     <div id="status-log" class="small muted" style="margin-top:14px;">SYSTEM READY</div>
@@ -322,13 +261,12 @@
         <span class="tag">Vis: <b id="hudVis">10</b></span>
       </div>
       <div class="hud-right">
-        <div class="chip"><span>Sound</span><div id="audioToggleFeed" class="toggle"></div></div>
+        <span id="signalTag" class="tag">Signal: …</span>
         <button class="btn btn-small btn-ghost" onclick="backToGate()">TOP</button>
       </div>
     </div>
 
     <div class="stagewrap">
-      <div class="aura"></div>
       <div class="stage">
         <div class="stack-card" id="card-front">
           <img id="imgFront" src="" alt="front"/>
@@ -337,7 +275,7 @@
             <div class="meta">
               <div class="pill">Body: <span id="bodyFront">—</span></div>
               <div class="pill">Rule: <span id="ruleMode">5m</span></div>
-              <div class="pill">Signal: <span id="signalMode">LIVE</span></div>
+              <div class="pill">Faction: <span id="factionMode">UNSORTED</span></div>
             </div>
           </div>
         </div>
@@ -355,6 +293,7 @@
     </div>
 
     <div class="small muted" id="feedMsg" style="margin-top:12px;">Fetching targets…</div>
+    <div class="small muted" id="feedWhy" style="margin-top:6px;"></div>
 
     <div class="swipebar">
       <button class="btn btn-red" onclick="swipeBtn('SPITE')">💀 SPITE</button>
@@ -365,23 +304,23 @@
   <!-- COMBAT -->
   <div id="screen-combat" class="screen hidden transparent">
     <h1 class="glitch" style="color:var(--red); margin-top:20px;">AMBUSH</h1>
+
     <div class="combatHud">
       <div class="row">
         <span class="tag red">BOSS</span>
-        <span class="tag gold">Swipe 10 Trigger</span>
+        <span id="bossName" class="tag gold">…</span>
       </div>
-      <div class="small muted" style="margin-top:8px;">This is the combat entry stub. Next Prompt will wire turns server-side.</div>
       <div class="divider"></div>
-      <div class="small">Boss HP</div>
+      <div class="small">Boss HP: <b id="bossHPText">0</b></div>
       <div class="hpbar"><div id="bossHPFill" class="hpfill" style="width:100%"></div></div>
-      <div class="small muted" style="margin-top:6px;">(Visual-only for now)</div>
+      <div class="small muted" id="combatMsg" style="margin-top:8px;">Stand by…</div>
     </div>
 
     <div style="margin-top: 340px;"></div>
 
     <div style="display:flex; gap:10px; justify-content:center; max-width:520px; margin:0 auto;">
-      <button class="btn btn-red" onclick="combatAction('ATTACK')">⚔ ATTACK</button>
-      <button class="btn" style="border-color:#fff; color:#fff;" onclick="combatAction('POTION_HP')">💉 HEAL</button>
+      <button class="btn btn-red" onclick="combatTurn('ATTACK')">⚔ ATTACK</button>
+      <button class="btn" style="border-color:#fff; color:#fff;" onclick="combatTurn('POTION_HP')">💉 HEAL</button>
     </div>
     <button class="btn btn-small btn-ghost" style="margin-top:12px;" onclick="exitCombat()">↩ BACK</button>
   </div>
@@ -389,11 +328,7 @@
 </div>
 
 <script>
-/* =========================
-   CONFIG
-========================= */
 const API_URL = "https://azeuqer-backend.onrender.com";
-
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
 try { if (tg) { tg.ready(); tg.expand(); } } catch (e) {}
 
@@ -402,61 +337,16 @@ const isTelegram = !!tg;
 
 let ME = null;
 let FEED = [];
+let FEED_FAKE = false;
 let FALLBACK_USED = false;
+
 let cameraStream = null;
 
-/* Combat local visuals */
-let game;
-let bossHP = 100;
+// Combat
+let bossHP = 0;
 
-/* =========================
-   PHASER COMBAT VISUALS
-========================= */
-class CombatScene extends Phaser.Scene{
-  constructor(){ super({key:"Combat"}); }
-  preload(){
-    const g = this.make.graphics({x:0,y:0,add:false});
-    g.fillStyle(0xff0000, 1); g.fillRect(0,0,180,180);
-    g.fillStyle(0x000000, 1); g.fillRect(35,50,35,35); g.fillRect(110,50,35,35);
-    g.generateTexture("boss", 180, 180);
-
-    g.clear(); g.fillStyle(0xffffff,1); g.fillCircle(4,4,4);
-    g.generateTexture("spark", 8, 8);
-  }
-  create(){
-    this.cameras.main.setBackgroundColor("rgba(0,0,0,0)");
-    this.boss = this.add.sprite(this.scale.width/2, 280, "boss").setAlpha(0);
-    this.tweens.add({targets:this.boss, scaleY:1.06, y:286, duration:1500, yoyo:true, repeat:-1});
-    this.particles = this.add.particles(0,0,"spark",{speed:{min:120,max:420}, scale:{start:1,end:0}, lifespan:600, gravityY:500, quantity:18, emitting:false});
-    this.hpText = null;
-  }
-  showBoss(hp){
-    this.boss.setAlpha(1).setY(-120).setScale(1);
-    this.tweens.add({targets:this.boss, y:280, duration:800, ease:"Bounce"});
-    if(this.hpText) this.hpText.destroy();
-    this.hpText = this.add.text(this.scale.width/2, 160, `HP: ${hp}`, {fontSize:"28px", fontStyle:"bold", color:"#ff0000", stroke:"#000", strokeThickness:4}).setOrigin(0.5);
-  }
-  hit(dmg){
-    this.cameras.main.shake(140,0.02);
-    this.boss.setTint(0xffffff); this.time.delayedCall(90, ()=>this.boss.clearTint());
-    this.particles.emitParticleAt(this.boss.x, this.boss.y);
-    const t=this.add.text(this.boss.x, this.boss.y, `-${dmg}`, {fontSize:"46px", color:"#fff", stroke:"#f00", strokeThickness:6, fontStyle:"bold"}).setOrigin(0.5);
-    this.tweens.add({targets:t, y:this.boss.y-120, alpha:0, duration:900, ease:"Power1", onComplete:()=>t.destroy()});
-  }
-  updateHP(hp){ if(this.hpText) this.hpText.setText(`HP: ${hp}`); }
-}
-function initPhaser(){
-  const cfg={type:Phaser.AUTO,parent:"game-layer",width:window.innerWidth,height:window.innerHeight,transparent:true,scene:[CombatScene]};
-  game = new Phaser.Game(cfg);
-}
-initPhaser();
-
-/* =========================
-   HELPERS
-========================= */
-const el=(id)=>document.getElementById(id);
+const el = (id)=>document.getElementById(id);
 function showLoader(v,msg=""){const l=el("loader"); if(v){l.classList.remove("hidden"); el("loader-msg").innerText=msg;} else l.classList.add("hidden");}
-function logStatus(msg){ el("status-log").textContent = msg; }
 function escapeHtml(str){return String(str||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");}
 function absUrl(u){
   if(!u) return "";
@@ -468,132 +358,10 @@ function showScreen(id){
   ["screen-gate","screen-feed","screen-combat"].forEach(s=>el(s).classList.add("hidden"));
   el(id).classList.remove("hidden");
 
-  const feedOn = (id==="screen-feed");
-  el("haze").classList.toggle("hidden", !feedOn);
-  el("vignette").classList.toggle("hidden", !feedOn);
-
   const gl = el("game-layer");
-  if(id==="screen-combat"){
-    gl.style.display="block";
-    game.scene.getScene("Combat").scene.resume();
-  }else{
-    gl.style.display="none";
-    game.scene.getScene("Combat").scene.pause();
-  }
+  gl.style.display = (id==="screen-combat") ? "block" : "none";
 }
 
-/* =========================
-   Subtle Audio (WebAudio)
-========================= */
-const AudioFX = (() => {
-  let ctx=null, enabled=false, unlocked=false, master=null;
-  function ensure(){
-    if(ctx) return ctx;
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if(!AC) return null;
-    ctx = new AC();
-    master = ctx.createGain(); master.gain.value = 0.16;
-    master.connect(ctx.destination);
-    return ctx;
-  }
-  async function unlock(){
-    if(unlocked) return true;
-    const c=ensure(); if(!c) return false;
-    try{
-      await c.resume();
-      const o=c.createOscillator(), g=c.createGain();
-      g.gain.value=0.00001; o.connect(g); g.connect(master);
-      o.frequency.value=440; o.start(); o.stop(c.currentTime+0.01);
-      unlocked=true; return true;
-    }catch(e){ return false; }
-  }
-  function syncUI(){
-    el("audioToggle")?.classList.toggle("on", enabled);
-    el("audioToggleFeed")?.classList.toggle("on", enabled);
-  }
-  function setEnabled(v){ enabled=!!v; syncUI(); }
-  function clickSoft(){
-    if(!enabled || !unlocked) return;
-    const c=ensure(); if(!c) return;
-    const bufferSize=0.03*c.sampleRate;
-    const buffer=c.createBuffer(1, bufferSize, c.sampleRate);
-    const data=buffer.getChannelData(0);
-    for(let i=0;i<bufferSize;i++) data[i]=(Math.random()*2-1)*(1-i/bufferSize);
-    const noise=c.createBufferSource(); noise.buffer=buffer;
-    const g=c.createGain();
-    g.gain.setValueAtTime(0.00001,c.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.08,c.currentTime+0.005);
-    g.gain.exponentialRampToValueAtTime(0.00001,c.currentTime+0.03);
-    noise.connect(g); g.connect(master);
-    noise.start(); noise.stop(c.currentTime+0.035);
-  }
-  function success(kind="LIGHT"){
-    if(!enabled || !unlocked) return;
-    const c=ensure(); if(!c) return;
-    const base = (kind==="LIGHT") ? 620 : 310;
-    const o1=c.createOscillator(), o2=c.createOscillator();
-    const g=c.createGain(), filter=c.createBiquadFilter();
-    filter.type="lowpass"; filter.frequency.value=1600;
-    o1.type="sine"; o2.type="triangle";
-    o1.frequency.setValueAtTime(base,c.currentTime);
-    o2.frequency.setValueAtTime(base*1.5,c.currentTime);
-    g.gain.setValueAtTime(0.00001,c.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.10,c.currentTime+0.012);
-    g.gain.exponentialRampToValueAtTime(0.00001,c.currentTime+0.16);
-    o1.connect(filter); o2.connect(filter); filter.connect(g); g.connect(master);
-    o1.start(); o2.start(); o1.stop(c.currentTime+0.18); o2.stop(c.currentTime+0.18);
-  }
-  function error(){
-    if(!enabled || !unlocked) return;
-    const c=ensure(); if(!c) return;
-    const o=c.createOscillator(), g=c.createGain();
-    o.type="sine";
-    o.frequency.setValueAtTime(140,c.currentTime);
-    o.frequency.exponentialRampToValueAtTime(90,c.currentTime+0.08);
-    g.gain.setValueAtTime(0.00001,c.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.12,c.currentTime+0.01);
-    g.gain.exponentialRampToValueAtTime(0.00001,c.currentTime+0.1);
-    o.connect(g); g.connect(master); o.start(); o.stop(c.currentTime+0.12);
-  }
-  return { unlock, setEnabled, clickSoft, success, error, get enabled(){return enabled;}, get unlocked(){return unlocked;} };
-})();
-function wireAudio(){
-  const handler = async ()=>{
-    await AudioFX.unlock();
-    AudioFX.setEnabled(!AudioFX.enabled);
-    AudioFX.clickSoft();
-  };
-  el("audioToggle")?.addEventListener("click", handler);
-  el("audioToggleFeed")?.addEventListener("click", handler);
-  window.addEventListener("pointerdown", async ()=>{ if(!AudioFX.unlocked) await AudioFX.unlock(); }, {passive:true});
-}
-
-/* =========================
-   FX
-========================= */
-function impact(kind){
-  const box=el("impact");
-  box.className="impact on " + (kind==="LIGHT" ? "light":"spite");
-  setTimeout(()=>box.className="impact",170);
-}
-function sparkle(kind){
-  for(let i=0;i<10;i++){
-    const s=document.createElement("div");
-    s.className="spark";
-    const x=window.innerWidth*0.5+(Math.random()*40-20);
-    const y=window.innerHeight*0.55+(Math.random()*30-15);
-    s.style.left=x+"px"; s.style.top=y+"px";
-    s.style.setProperty("--dx",(Math.random()*160-80)+"px");
-    s.style.setProperty("--dy",(Math.random()*220-40)+"px");
-    s.style.background = (kind==="LIGHT") ? "rgba(0,255,204,0.95)" : "rgba(255,51,51,0.92)";
-    document.body.appendChild(s);
-    setTimeout(()=>s.remove(),600);
-  }
-}
-
-/* =========================
-   API
-========================= */
 async function api(path, body){
   const res = await fetch(API_URL + path, {
     method:"POST",
@@ -603,14 +371,9 @@ async function api(path, body){
   return await res.json();
 }
 
-/* =========================
-   INIT
-========================= */
 async function init(){
   showLoader(true,"CONNECTING...");
   try{
-    wireAudio();
-
     const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
     const login = await api("/auth/login", { initData });
     if(login.status !== "ok") throw new Error(login.msg||"LOGIN_FAIL");
@@ -622,7 +385,6 @@ async function init(){
     if(ME.email) el("emailBlock").style.display="none";
     else el("emailBlock").style.display="block";
 
-    // gate/ready
     if(ME.bio_lock_url){
       el("gateState").className="tag neon";
       el("gateState").textContent="READY";
@@ -635,8 +397,7 @@ async function init(){
       showScreen("screen-gate");
     }
   }catch(e){
-    logStatus("BACKEND ERROR");
-    AudioFX.error();
+    el("status-log").textContent="BACKEND ERROR";
     showScreen("screen-gate");
   }finally{
     showLoader(false);
@@ -650,10 +411,8 @@ function renderGate(){
   el("meEnergy").textContent = ME.energy ?? 30;
   el("meVis").textContent = ME.visibility_credits ?? 10;
   el("meBio").textContent = ME.bio_lock_url ? "PASS":"GATE";
-
-  // regen info if backend returns it in swipe response; set defaults here
-  el("meRegen").textContent = "1";
-  el("meRegenSec").textContent = "180";
+  el("meFaction").textContent = ME.faction || "UNSORTED";
+  el("meFactionNote").textContent = (ME.faction_assigned ? "(assigned)" : "(initiation)");
 }
 
 async function pingOnce(){
@@ -662,9 +421,6 @@ async function pingOnce(){
 }
 setInterval(pingOnce, 30000);
 
-/* =========================
-   Gate: Email
-========================= */
 async function submitEmail(){
   const email = (el("emailInput").value||"").trim();
   el("emailMsg").textContent="";
@@ -675,20 +431,15 @@ async function submitEmail(){
     const r = await api("/auth/email", { initData, email });
     if(r.status !== "ok"){
       el("emailMsg").textContent = "Error: " + (r.msg||"FAIL");
-      AudioFX.error();
       return;
     }
     el("emailMsg").textContent = "Saved.";
-    AudioFX.success("LIGHT");
     el("emailBlock").style.display="none";
   }finally{
     showLoader(false);
   }
 }
 
-/* =========================
-   Gate: Top Images + Boss thumbnails
-========================= */
 async function loadTopImages(){
   const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
   const r = await api("/game/top_images", { initData });
@@ -717,22 +468,29 @@ async function loadTopImages(){
   });
 }
 
-/* =========================
-   FEED
-========================= */
 async function loadFeed(){
   const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
   el("feedMsg").textContent="Fetching targets…";
+  el("feedWhy").textContent="";
+
   const r = await api("/game/feed", { initData });
   if(r.status !== "ok"){ el("feedMsg").textContent="Feed error."; return; }
 
   FEED = r.feed || [];
+  FEED_FAKE = !!r.fake;
   FALLBACK_USED = !!r.fallback;
 
   el("ruleMode").textContent = FALLBACK_USED ? "1h":"5m";
+  el("factionMode").textContent = ME.faction || "UNSORTED";
+  el("signalTag").textContent = "Signal: " + (FEED_FAKE ? "FAKE" : "REAL");
+  el("signalTag").className = "tag " + (FEED_FAKE ? "red" : "neon");
+
+  if(FEED_FAKE){
+    el("feedWhy").textContent = "Reason: Not enough ACTIVE VERIFIED users in the last 5m/1h. Open app on multiple accounts + keep them active (ping) to populate REAL feed.";
+  }
+
   renderHUD(ME.swipes_today || 0);
   renderCards();
-  attachDrag();
 }
 
 function renderHUD(swipes){
@@ -741,6 +499,7 @@ function renderHUD(swipes){
   el("hudVis").textContent = ME.visibility_credits ?? 10;
   el("hudSwipes").textContent = swipes ?? 0;
 }
+
 function setCard(which, data){
   if(which==="front"){
     el("imgFront").src = absUrl(data?.bio_lock_url||"");
@@ -752,6 +511,7 @@ function setCard(which, data){
     el("bodyNext").textContent = data?.body_asset_id || "—";
   }
 }
+
 function renderCards(){
   if(FEED.length===0){
     setCard("front",{username:"NO TARGETS",bio_lock_url:"",body_asset_id:"—"});
@@ -761,7 +521,7 @@ function renderCards(){
   }
   setCard("front", FEED[0]);
   setCard("next", FEED[1] || {username:"…",bio_lock_url:"",body_asset_id:"—"});
-  el("feedMsg").textContent="Drag to swipe or tap buttons.";
+  el("feedMsg").textContent="Swipe to judge. Every 10th swipe triggers AMBUSH.";
 }
 
 async function swipeBtn(dir){
@@ -770,10 +530,6 @@ async function swipeBtn(dir){
 }
 
 async function commitSwipe(direction){
-  impact(direction);
-  sparkle(direction);
-  AudioFX.success(direction);
-
   const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
   const target = FEED[0];
 
@@ -787,21 +543,22 @@ async function commitSwipe(direction){
 
   if(r.status !== "ok"){
     el("feedMsg").textContent = "Blocked: " + (r.msg||"FAIL");
-    AudioFX.error();
     card.style.transition="transform 220ms ease-out";
     card.style.transform="translate3d(0,0,0) rotate(0deg)";
     return;
   }
 
-  // Update authoritative numbers
   ME.ap = r.new_ap;
   ME.energy = r.new_energy;
   ME.visibility_credits = r.new_visibility_credits;
 
-  renderHUD(r.swipes_today);
-  el("meRegenSec").textContent = r.energy_regen_seconds || 180;
+  if(r.faction) ME.faction = r.faction;
+  if(r.faction_assigned !== undefined) ME.faction_assigned = r.faction_assigned;
 
-  // Advance deck
+  renderGate(); // update faction status on gate too
+  el("factionMode").textContent = ME.faction || "UNSORTED";
+  renderHUD(r.swipes_today);
+
   FEED.shift();
 
   setTimeout(async ()=>{
@@ -809,7 +566,6 @@ async function commitSwipe(direction){
     card.style.transform="translate3d(0,0,0) rotate(0deg)";
     renderCards();
 
-    // If ambush triggered (exact 10th swipe)
     if(r.ambush){
       await enterCombat();
       return;
@@ -819,101 +575,73 @@ async function commitSwipe(direction){
   }, 280);
 }
 
-/* =========================
-   DRAG SWIPE
-========================= */
-let dragging=false,startX=0,startY=0;
-function attachDrag(){
-  const card = el("card-front");
-  if(card.dataset.bound==="1") return;
-  card.dataset.bound="1";
-
-  const onDown=(e)=>{
-    if(FEED.length===0) return;
-    dragging=true;
-    const p=(e.touches&&e.touches[0])?e.touches[0]:e;
-    startX=p.clientX; startY=p.clientY;
-    card.style.transition="none";
-    AudioFX.clickSoft();
-  };
-  const onMove=(e)=>{
-    if(!dragging) return;
-    const p=(e.touches&&e.touches[0])?e.touches[0]:e;
-    const dx=p.clientX-startX, dy=p.clientY-startY;
-    const rot=dx/18;
-    card.style.transform=`translate3d(${dx}px, ${dy}px, 0) rotate(${rot}deg)`;
-    if(dx>80) el("feedMsg").textContent="RELEASE: LIGHT";
-    else if(dx<-80) el("feedMsg").textContent="RELEASE: SPITE";
-    else el("feedMsg").textContent="Drag to swipe or tap buttons.";
-  };
-  const onUp=async()=>{
-    if(!dragging) return;
-    dragging=false;
-    const tr=card.style.transform||"";
-    let dx=0;
-    const m=tr.match(/translate3d\(([-0-9.]+)px/);
-    if(m) dx=parseFloat(m[1]||"0");
-    if(dx>140) return commitSwipe("LIGHT");
-    if(dx<-140) return commitSwipe("SPITE");
-    card.style.transition="transform 220ms ease-out";
-    card.style.transform="translate3d(0,0,0) rotate(0deg)";
-  };
-
-  card.addEventListener("pointerdown", onDown);
-  window.addEventListener("pointermove", onMove, {passive:true});
-  window.addEventListener("pointerup", onUp);
-
-  card.addEventListener("touchstart", onDown, {passive:true});
-  window.addEventListener("touchmove", onMove, {passive:true});
-  window.addEventListener("touchend", onUp, {passive:true});
-}
-
-/* =========================
-   COMBAT (entry stub)
-========================= */
 async function enterCombat(){
-  // Quick transition feel
-  el("feedMsg").textContent="AMBUSH DETECTED…";
-  AudioFX.success("SPITE");
-
-  // show combat screen
   showScreen("screen-combat");
+  el("combatMsg").textContent="Summoning…";
 
-  // wake phaser visuals
-  bossHP = 100;
+  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+  const info = await api("/game/combat/info", { initData });
+
+  if(info.status !== "ok"){
+    el("combatMsg").textContent="Combat info failed.";
+    return;
+  }
+
+  bossHP = info.boss.hp;
+  el("bossName").textContent = info.boss.name;
+  el("bossHPText").textContent = bossHP;
   el("bossHPFill").style.width = "100%";
-  game.scene.getScene("Combat").showBoss(bossHP);
+  el("combatMsg").textContent = "Engage.";
 }
 
-function combatAction(action){
-  // Placeholder: purely visual dopamine, until we wire Prompt 4 combat endpoints
-  if(action==="ATTACK"){
-    const dmg = Math.max(4, Math.floor(Math.random()*12));
-    bossHP = Math.max(0, bossHP - dmg);
-    const pct = Math.max(0, Math.floor((bossHP/100)*100));
-    el("bossHPFill").style.width = pct + "%";
-    game.scene.getScene("Combat").hit(dmg);
-    game.scene.getScene("Combat").updateHP(bossHP);
-    AudioFX.success("LIGHT");
-    if(bossHP<=0){
-      setTimeout(()=>{
-        alert("VICTORY (stub). Loot drops in Prompt 4.");
-        exitCombat();
-      }, 450);
-    }
-  } else {
-    // heal stub
-    AudioFX.success("LIGHT");
+async function combatTurn(action){
+  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+  el("combatMsg").textContent="Executing…";
+
+  const r = await api("/game/combat/turn", {
+    initData,
+    action,
+    boss_hp_current: bossHP
+  });
+
+  if(r.status === "error"){
+    el("combatMsg").textContent = "Error: " + (r.msg||"FAIL");
+    return;
   }
+
+  bossHP = r.new_boss_hp;
+  el("bossHPText").textContent = bossHP;
+  const pct = Math.max(0, Math.floor((bossHP / Math.max(1, bossHP + (r.boss_hit||0) + 20)) * 100));
+  el("bossHPFill").style.width = Math.max(0, Math.min(100, pct)) + "%";
+
+  if(r.status === "VICTORY"){
+    el("combatMsg").textContent = "VICTORY. Loot: " + (r.loot||"UNKNOWN");
+    setTimeout(()=>{ alert("Loot acquired: " + (r.loot||"UNKNOWN")); exitCombat(); }, 700);
+    return;
+  }
+
+  el("combatMsg").textContent = "Boss retaliates (" + (r.boss_hit||"?") + ").";
 }
 
 function exitCombat(){
   showScreen("screen-feed");
+  el("feedMsg").textContent="Back to feed.";
 }
 
-/* =========================
-   CAMERA / BIOLOCK
-========================= */
+function backToGate(){ showScreen("screen-gate"); }
+function goFeed(){ if(ME && ME.bio_lock_url){ showScreen("screen-feed"); loadFeed(); } }
+
+async function resetMe(){
+  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+  if(!confirm("RESET?")) return;
+  showLoader(true,"RESETTING...");
+  try{
+    await api("/auth/reset",{initData});
+    location.reload();
+  }finally{ showLoader(false); }
+}
+
+/* CAMERA */
 async function openCamera(){
   if (isIOS && isTelegram) return openCameraFallback();
   if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ alert("Camera not supported."); return; }
@@ -926,11 +654,9 @@ async function openCamera(){
     await videoEl.play();
     el("camera-box").classList.remove("hidden");
     el("cam-debug").textContent="Camera started.";
-    AudioFX.clickSoft();
   }catch(err){
     alert("Camera denied.");
     el("cam-debug").textContent="Error: "+(err.name||err);
-    AudioFX.error();
   }finally{ showLoader(false); }
 }
 function openCameraFallback(){
@@ -963,7 +689,6 @@ async function uploadBioBlob(blobOrFile){
   el("biolock-error").textContent="";
   showLoader(true,"VERIFYING...");
   try{
-    await AudioFX.unlock();
     const fd=new FormData();
     fd.append("initData",(tg && tg.initData)?tg.initData:"debug_mode");
     fd.append("file",blobOrFile,"face.jpg");
@@ -971,34 +696,15 @@ async function uploadBioBlob(blobOrFile){
     const data=await res.json();
     if(data.status!=="success"){
       el("biolock-error").textContent = "BIOLOCK FAIL: " + (data.msg||"FAIL");
-      AudioFX.error();
       await init();
       return;
     }
-    AudioFX.success("LIGHT");
     await init();
   }catch(e){
     el("biolock-error").textContent = "BIOLOCK FAIL";
-    AudioFX.error();
   }finally{
     showLoader(false);
   }
-}
-
-/* =========================
-   NAV
-========================= */
-function backToGate(){ showScreen("screen-gate"); }
-async function resetMe(){
-  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
-  if(!confirm("RESET?")) return;
-  showLoader(true,"RESETTING...");
-  try{
-    await api("/auth/reset",{initData});
-    location.reload();
-  }catch(e){
-    AudioFX.error();
-  }finally{ showLoader(false); }
 }
 
 init();
