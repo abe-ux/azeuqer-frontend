@@ -3,48 +3,103 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>AZEUQER: TITANIUM — PROMPT 2 POLISH + TOP IMAGES + EMAIL</title>
+<title>AZEUQER: TITANIUM — Prompt 2 Scale-Safe</title>
 
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
   :root{
-    --bg:#050505; --panel:rgba(0,0,0,0.86);
-    --neon:#00ffcc; --pink:#ff00ff; --red:#ff3333; --gold:#ffd166; --muted:#777;
+    --bg:#050505;
+    --panel:rgba(0,0,0,0.86);
+    --neon:#00ffcc;
+    --pink:#ff00ff;
+    --red:#ff3333;
+    --gold:#ffd166;
+    --muted:#777;
   }
   body{background:var(--bg);color:#fff;font-family:'Courier New',monospace;margin:0;overflow:hidden;}
   .hidden{display:none!important;}
-  .scanlines{position:fixed;inset:0;pointer-events:none;z-index:50;background:
-    linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%),
-    linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06));
-    background-size:100% 2px, 3px 100%; opacity:0.22;
+
+  /* Ambient layers */
+  .scanlines{
+    position:fixed;inset:0;pointer-events:none;z-index:50;
+    background:
+      linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%),
+      linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06));
+    background-size:100% 2px, 3px 100%;
+    opacity:0.22;
   }
-  .haze{position:fixed;inset:-40px;pointer-events:none;z-index:3;
-    background:radial-gradient(circle at 30% 20%, rgba(0,255,204,0.08), rgba(0,0,0,0) 55%),
-               radial-gradient(circle at 80% 75%, rgba(255,0,255,0.06), rgba(0,0,0,0) 55%),
-               radial-gradient(circle at 40% 85%, rgba(255,209,102,0.05), rgba(0,0,0,0) 60%);
-    filter: blur(18px); animation: hazeBreath 6.5s ease-in-out infinite alternate; opacity:0.55;
+  .haze{
+    position:fixed;inset:-40px;pointer-events:none;z-index:3;
+    background:
+      radial-gradient(circle at 30% 20%, rgba(0,255,204,0.08), rgba(0,0,0,0) 55%),
+      radial-gradient(circle at 80% 75%, rgba(255,0,255,0.06), rgba(0,0,0,0) 55%),
+      radial-gradient(circle at 40% 85%, rgba(255,209,102,0.05), rgba(0,0,0,0) 60%);
+    filter: blur(18px);
+    animation: hazeBreath 6.5s ease-in-out infinite alternate;
+    opacity:0.55;
   }
-  @keyframes hazeBreath{ from{transform:translate3d(0,0,0) scale(1);} to{transform:translate3d(0,-8px,0) scale(1.03);} }
-  .vignette{position:fixed;inset:-20px;pointer-events:none;z-index:4;background:
-    radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.62) 85%);
+  @keyframes hazeBreath{
+    from{transform:translate3d(0,0,0) scale(1);}
+    to{transform:translate3d(0,-8px,0) scale(1.03);}
+  }
+  .vignette{
+    position:fixed;inset:-20px;pointer-events:none;z-index:4;
+    background:radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.62) 85%);
   }
 
+  /* Layers */
+  #game-layer{position:fixed;inset:0;z-index:1;display:none;} /* Phaser shown only in combat */
   #ui-layer{position:fixed;inset:0;z-index:10;pointer-events:none;}
-  .screen{pointer-events:auto;padding:20px;text-align:center;height:100vh;overflow-y:auto;box-sizing:border-box;background:var(--panel);}
+
+  /* Screens */
+  .screen{
+    pointer-events:auto;
+    padding:20px;
+    text-align:center;
+    height:100vh;
+    overflow-y:auto;
+    box-sizing:border-box;
+    background:var(--panel);
+  }
+  .screen.transparent{background:none;}
+
+  /* Typography / tags */
   .glitch{animation:shake 2s infinite;color:var(--neon);font-size:2rem;font-weight:bold;text-shadow:2px 0 var(--pink);}
   @keyframes shake{0%{transform:translate(0,0);}2%{transform:translate(1px,0);}4%{transform:translate(0,0);}}
-  .card{width:380px;max-width:96%;margin:14px auto;padding:14px;border:1px solid #333;background:rgba(255,255,255,0.03);border-radius:12px;text-align:left;}
-  .row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
+  .muted{color:var(--muted);}
+  .small{font-size:0.82rem;color:#bbb;line-height:1.25rem;}
+  .divider{height:1px;background:#222;margin:14px 0;}
   .tag{display:inline-block;padding:6px 10px;border:1px solid #333;border-radius:999px;color:#bbb;font-size:0.75rem;}
   .tag.neon{border-color:var(--neon);color:var(--neon);}
   .tag.pink{border-color:var(--pink);color:var(--pink);}
   .tag.red{border-color:var(--red);color:var(--red);}
   .tag.gold{border-color:var(--gold);color:var(--gold);}
-  .small{font-size:0.82rem;color:#bbb;line-height:1.25rem;}
-  .muted{color:var(--muted);}
-  .divider{height:1px;background:#222;margin:14px 0;}
-  .btn{width:100%;padding:14px;background:#111;border:1px solid var(--neon);color:var(--neon);margin-top:12px;font-weight:bold;cursor:pointer;pointer-events:auto;border-radius:10px;}
+  .row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
+  .card{
+    width:380px;max-width:96%;
+    margin:14px auto;
+    padding:14px;
+    border:1px solid #333;
+    background:rgba(255,255,255,0.03);
+    border-radius:12px;
+    text-align:left;
+  }
+
+  /* Buttons */
+  .btn{
+    width:100%;
+    padding:14px;
+    background:#111;
+    border:1px solid var(--neon);
+    color:var(--neon);
+    margin-top:12px;
+    font-weight:bold;
+    cursor:pointer;
+    pointer-events:auto;
+    border-radius:10px;
+  }
   .btn:active{transform:scale(0.99);background:var(--neon);color:#000;}
   .btn-red{border-color:var(--red);color:var(--red);}
   .btn-red:active{background:var(--red);color:#000;}
@@ -52,13 +107,14 @@
   .btn-ghost{border-color:#444;color:#bbb;background:rgba(255,255,255,0.03);}
   .btn-ghost:active{background:#222;color:#fff;}
 
-  .camera-label{display:block;width:100%;padding:18px;margin-top:12px;background:rgba(17,17,17,0.9);
-    border:2px dashed var(--neon);color:var(--neon);font-size:1.05rem;font-weight:bold;cursor:pointer;
-    text-transform:uppercase;border-radius:12px;
-  }
-  video{width:100%;border:2px solid var(--neon);margin-top:12px;border-radius:12px;background:#000;}
-  #loader{position:fixed;inset:0;background:#000;z-index:100;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+  /* Toggle */
+  .chip{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;border:1px solid #333;background:rgba(255,255,255,0.03);color:#bbb;font-size:0.75rem;}
+  .toggle{width:34px;height:18px;border-radius:999px;border:1px solid #444;background:#111;position:relative;cursor:pointer;}
+  .toggle::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#666;transition:all 180ms ease-out;}
+  .toggle.on{border-color:rgba(0,255,204,0.7);}
+  .toggle.on::after{left:18px;background:var(--neon);}
 
+  /* Gate top images */
   .topgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;}
   .topbox{border:1px solid #333;border-radius:14px;overflow:hidden;background:#0b0b0b;}
   .topimg{width:100%;height:210px;object-fit:cover;display:block;background:#000;}
@@ -66,44 +122,101 @@
   .topmeta b{display:block;font-size:0.95rem;}
   .topmeta span{font-size:0.78rem;color:#aaa;}
 
-  /* FEED STACK */
-  .hud{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin:0 auto;width:380px;max-width:96%;}
+  /* Camera */
+  .camera-label{
+    display:block;width:100%;
+    padding:18px;
+    margin-top:12px;
+    background:rgba(17,17,17,0.9);
+    border:2px dashed var(--neon);
+    color:var(--neon);
+    font-size:1.05rem;
+    font-weight:bold;
+    cursor:pointer;
+    text-transform:uppercase;
+    border-radius:12px;
+  }
+  video{width:100%;border:2px solid var(--neon);margin-top:12px;border-radius:12px;background:#000;}
+
+  /* Feed */
+  .hud{
+    display:flex;gap:10px;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    margin:0 auto;
+    width:380px;max-width:96%;
+  }
   .hud-left{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
   .hud-right{display:flex;gap:10px;align-items:center;}
 
   .stagewrap{width:380px;max-width:96%;margin:14px auto 0;position:relative;}
-  .aura{position:absolute;inset:-18px;border-radius:26px;pointer-events:none;z-index:-1;
+  .aura{
+    position:absolute;inset:-18px;border-radius:26px;pointer-events:none;z-index:-1;
     background:
       radial-gradient(circle at 30% 30%, rgba(0,255,204,0.16), rgba(0,0,0,0) 55%),
       radial-gradient(circle at 70% 60%, rgba(255,0,255,0.12), rgba(0,0,0,0) 60%),
       radial-gradient(circle at 50% 100%, rgba(255,209,102,0.10), rgba(0,0,0,0) 55%);
-    filter: blur(18px); opacity:0.62; animation: auraDrift 7.2s ease-in-out infinite alternate;
+    filter: blur(18px);
+    opacity:0.62;
+    animation: auraDrift 7.2s ease-in-out infinite alternate;
   }
   @keyframes auraDrift{from{transform:translate3d(0,0,0) scale(1);}to{transform:translate3d(0,-10px,0) scale(1.05);} }
+
   .stage{position:relative;height:520px;border-radius:18px;}
-  .stack-card{position:absolute;left:0;right:0;top:0;border:1px solid #333;border-radius:16px;overflow:hidden;background:#0b0b0b;
-    box-shadow:0 10px 40px rgba(0,0,0,0.45); touch-action:none; user-select:none;
+  .stack-card{
+    position:absolute;left:0;right:0;top:0;
+    border:1px solid #333;
+    border-radius:16px;
+    overflow:hidden;
+    background:#0b0b0b;
+    box-shadow:0 10px 40px rgba(0,0,0,0.45);
+    touch-action:none;
+    user-select:none;
   }
   .stack-card img{width:100%;height:520px;object-fit:cover;display:block;background:#000;}
-  .overlay{position:absolute;left:0;right:0;bottom:0;padding:16px;background:linear-gradient(to top, rgba(0,0,0,0.96), rgba(0,0,0,0));}
+  .overlay{
+    position:absolute;left:0;right:0;bottom:0;
+    padding:16px;
+    background:linear-gradient(to top, rgba(0,0,0,0.96), rgba(0,0,0,0));
+  }
   .big-name{font-size:1.35rem;font-weight:bold;margin:0;}
   .meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
   .meta .pill{padding:6px 10px;border:1px solid #333;border-radius:999px;font-size:0.75rem;color:#ccc;background:rgba(255,255,255,0.04);}
 
-  .swipebar{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);width:92%;max-width:520px;display:flex;gap:12px;z-index:30;}
+  .swipebar{
+    position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+    width:92%;max-width:520px;display:flex;gap:12px;z-index:30;
+  }
+
+  /* Impact FX */
   .impact{position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0;transition:opacity 170ms;}
   .impact.on{opacity:1;}
   .impact.light{background:radial-gradient(circle at 50% 55%, rgba(0,255,204,0.28), rgba(0,0,0,0) 55%);}
   .impact.spite{background:radial-gradient(circle at 50% 55%, rgba(255,51,51,0.30), rgba(0,0,0,0) 55%);}
-
   .spark{position:fixed;width:6px;height:6px;border-radius:50%;pointer-events:none;z-index:45;animation:sparkFly 520ms ease-out forwards;}
   @keyframes sparkFly{from{transform:translate3d(0,0,0) scale(1);opacity:1;}to{transform:translate3d(var(--dx), var(--dy), 0) scale(0.2);opacity:0;}}
 
-  .chip{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;border:1px solid #333;background:rgba(255,255,255,0.03);color:#bbb;font-size:0.75rem;}
-  .toggle{width:34px;height:18px;border-radius:999px;border:1px solid #444;background:#111;position:relative;cursor:pointer;}
-  .toggle::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#666;transition:all 180ms ease-out;}
-  .toggle.on{border-color:rgba(0,255,204,0.7);}
-  .toggle.on::after{left:18px;background:var(--neon);}
+  /* Loader */
+  #loader{
+    position:fixed;inset:0;background:#000;z-index:100;
+    display:flex;align-items:center;justify-content:center;flex-direction:column;
+  }
+
+  /* Combat HUD (simple DOM; phaser does visuals) */
+  .combatHud{
+    width:380px;max-width:96%;
+    margin:10px auto 0;
+    padding:10px 12px;
+    border:1px solid #333;
+    background:rgba(0,0,0,0.55);
+    border-radius:12px;
+    text-align:left;
+  }
+  .hpbar{
+    height:10px;background:#111;border:1px solid #333;border-radius:999px;overflow:hidden;margin-top:8px;
+  }
+  .hpfill{height:100%;background:linear-gradient(90deg, rgba(255,51,51,0.9), rgba(255,0,255,0.5));width:100%;}
 </style>
 </head>
 
@@ -117,6 +230,8 @@
   <div class="glitch">CONNECTING...</div>
   <div id="loader-msg" style="color:#666;font-size:0.85rem;margin-top:10px;"></div>
 </div>
+
+<div id="game-layer"></div>
 
 <div id="ui-layer">
 
@@ -163,9 +278,10 @@
       <div class="small muted">User: <b id="meName">AGENT</b> (#<span id="meId">—</span>)</div>
       <div class="small muted">AP: <b id="meAP">0</b> | Energy: <b id="meEnergy">30</b> | Vis: <b id="meVis">10</b></div>
       <div class="small muted">BioLock: <b id="meBio">GATE</b></div>
+      <div class="small muted">Regen: <b id="meRegen">1</b> energy / <b id="meRegenSec">180</b>s</div>
 
       <div id="emailBlock" style="margin-top:12px;">
-        <div class="small muted" style="margin-bottom:6px;">Email (for recovery & rewards):</div>
+        <div class="small muted" style="margin-bottom:6px;">Email (recovery & rewards):</div>
         <input id="emailInput" type="email" placeholder="you@email.com"
           style="width:100%;padding:12px;border-radius:10px;border:1px solid #333;background:#0b0b0b;color:#fff;box-sizing:border-box;">
         <button class="btn" onclick="submitEmail()">SAVE EMAIL</button>
@@ -246,6 +362,30 @@
     </div>
   </div>
 
+  <!-- COMBAT -->
+  <div id="screen-combat" class="screen hidden transparent">
+    <h1 class="glitch" style="color:var(--red); margin-top:20px;">AMBUSH</h1>
+    <div class="combatHud">
+      <div class="row">
+        <span class="tag red">BOSS</span>
+        <span class="tag gold">Swipe 10 Trigger</span>
+      </div>
+      <div class="small muted" style="margin-top:8px;">This is the combat entry stub. Next Prompt will wire turns server-side.</div>
+      <div class="divider"></div>
+      <div class="small">Boss HP</div>
+      <div class="hpbar"><div id="bossHPFill" class="hpfill" style="width:100%"></div></div>
+      <div class="small muted" style="margin-top:6px;">(Visual-only for now)</div>
+    </div>
+
+    <div style="margin-top: 340px;"></div>
+
+    <div style="display:flex; gap:10px; justify-content:center; max-width:520px; margin:0 auto;">
+      <button class="btn btn-red" onclick="combatAction('ATTACK')">⚔ ATTACK</button>
+      <button class="btn" style="border-color:#fff; color:#fff;" onclick="combatAction('POTION_HP')">💉 HEAL</button>
+    </div>
+    <button class="btn btn-small btn-ghost" style="margin-top:12px;" onclick="exitCombat()">↩ BACK</button>
+  </div>
+
 </div>
 
 <script>
@@ -265,26 +405,81 @@ let FEED = [];
 let FALLBACK_USED = false;
 let cameraStream = null;
 
+/* Combat local visuals */
+let game;
+let bossHP = 100;
+
+/* =========================
+   PHASER COMBAT VISUALS
+========================= */
+class CombatScene extends Phaser.Scene{
+  constructor(){ super({key:"Combat"}); }
+  preload(){
+    const g = this.make.graphics({x:0,y:0,add:false});
+    g.fillStyle(0xff0000, 1); g.fillRect(0,0,180,180);
+    g.fillStyle(0x000000, 1); g.fillRect(35,50,35,35); g.fillRect(110,50,35,35);
+    g.generateTexture("boss", 180, 180);
+
+    g.clear(); g.fillStyle(0xffffff,1); g.fillCircle(4,4,4);
+    g.generateTexture("spark", 8, 8);
+  }
+  create(){
+    this.cameras.main.setBackgroundColor("rgba(0,0,0,0)");
+    this.boss = this.add.sprite(this.scale.width/2, 280, "boss").setAlpha(0);
+    this.tweens.add({targets:this.boss, scaleY:1.06, y:286, duration:1500, yoyo:true, repeat:-1});
+    this.particles = this.add.particles(0,0,"spark",{speed:{min:120,max:420}, scale:{start:1,end:0}, lifespan:600, gravityY:500, quantity:18, emitting:false});
+    this.hpText = null;
+  }
+  showBoss(hp){
+    this.boss.setAlpha(1).setY(-120).setScale(1);
+    this.tweens.add({targets:this.boss, y:280, duration:800, ease:"Bounce"});
+    if(this.hpText) this.hpText.destroy();
+    this.hpText = this.add.text(this.scale.width/2, 160, `HP: ${hp}`, {fontSize:"28px", fontStyle:"bold", color:"#ff0000", stroke:"#000", strokeThickness:4}).setOrigin(0.5);
+  }
+  hit(dmg){
+    this.cameras.main.shake(140,0.02);
+    this.boss.setTint(0xffffff); this.time.delayedCall(90, ()=>this.boss.clearTint());
+    this.particles.emitParticleAt(this.boss.x, this.boss.y);
+    const t=this.add.text(this.boss.x, this.boss.y, `-${dmg}`, {fontSize:"46px", color:"#fff", stroke:"#f00", strokeThickness:6, fontStyle:"bold"}).setOrigin(0.5);
+    this.tweens.add({targets:t, y:this.boss.y-120, alpha:0, duration:900, ease:"Power1", onComplete:()=>t.destroy()});
+  }
+  updateHP(hp){ if(this.hpText) this.hpText.setText(`HP: ${hp}`); }
+}
+function initPhaser(){
+  const cfg={type:Phaser.AUTO,parent:"game-layer",width:window.innerWidth,height:window.innerHeight,transparent:true,scene:[CombatScene]};
+  game = new Phaser.Game(cfg);
+}
+initPhaser();
+
 /* =========================
    HELPERS
 ========================= */
-const el = (id)=>document.getElementById(id);
+const el=(id)=>document.getElementById(id);
 function showLoader(v,msg=""){const l=el("loader"); if(v){l.classList.remove("hidden"); el("loader-msg").innerText=msg;} else l.classList.add("hidden");}
 function logStatus(msg){ el("status-log").textContent = msg; }
-function showScreen(id){
-  el("screen-gate").classList.add("hidden");
-  el("screen-feed").classList.add("hidden");
-  el(id).classList.remove("hidden");
-  const feedOn = (id==="screen-feed");
-  el("haze").classList.toggle("hidden", !feedOn);
-  el("vignette").classList.toggle("hidden", !feedOn);
-}
 function escapeHtml(str){return String(str||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");}
 function absUrl(u){
   if(!u) return "";
   if(u.startsWith("http")) return u;
   if(u.startsWith("/")) return API_URL + u;
   return u;
+}
+function showScreen(id){
+  ["screen-gate","screen-feed","screen-combat"].forEach(s=>el(s).classList.add("hidden"));
+  el(id).classList.remove("hidden");
+
+  const feedOn = (id==="screen-feed");
+  el("haze").classList.toggle("hidden", !feedOn);
+  el("vignette").classList.toggle("hidden", !feedOn);
+
+  const gl = el("game-layer");
+  if(id==="screen-combat"){
+    gl.style.display="block";
+    game.scene.getScene("Combat").scene.resume();
+  }else{
+    gl.style.display="none";
+    game.scene.getScene("Combat").scene.pause();
+  }
 }
 
 /* =========================
@@ -312,11 +507,11 @@ const AudioFX = (() => {
       unlocked=true; return true;
     }catch(e){ return false; }
   }
-  function setEnabled(v){ enabled=!!v; syncUI(); }
   function syncUI(){
     el("audioToggle")?.classList.toggle("on", enabled);
     el("audioToggleFeed")?.classList.toggle("on", enabled);
   }
+  function setEnabled(v){ enabled=!!v; syncUI(); }
   function clickSoft(){
     if(!enabled || !unlocked) return;
     const c=ensure(); if(!c) return;
@@ -362,7 +557,6 @@ const AudioFX = (() => {
   }
   return { unlock, setEnabled, clickSoft, success, error, get enabled(){return enabled;}, get unlocked(){return unlocked;} };
 })();
-
 function wireAudio(){
   const handler = async ()=>{
     await AudioFX.unlock();
@@ -391,8 +585,7 @@ function sparkle(kind){
     s.style.left=x+"px"; s.style.top=y+"px";
     s.style.setProperty("--dx",(Math.random()*160-80)+"px");
     s.style.setProperty("--dy",(Math.random()*220-40)+"px");
-    if(kind==="LIGHT"){ s.style.background="rgba(0,255,204,0.95)"; }
-    else{ s.style.background="rgba(255,51,51,0.92)"; }
+    s.style.background = (kind==="LIGHT") ? "rgba(0,255,204,0.95)" : "rgba(255,51,51,0.92)";
     document.body.appendChild(s);
     setTimeout(()=>s.remove(),600);
   }
@@ -410,6 +603,9 @@ async function api(path, body){
   return await res.json();
 }
 
+/* =========================
+   INIT
+========================= */
 async function init(){
   showLoader(true,"CONNECTING...");
   try{
@@ -423,19 +619,16 @@ async function init(){
     renderGate();
     await loadTopImages();
 
-    if(ME.email){
-      el("emailBlock").style.display="none";
-    } else {
-      el("emailBlock").style.display="block";
-    }
+    if(ME.email) el("emailBlock").style.display="none";
+    else el("emailBlock").style.display="block";
 
-    // if user has bio-lock, proceed to feed
+    // gate/ready
     if(ME.bio_lock_url){
       el("gateState").className="tag neon";
       el("gateState").textContent="READY";
       showScreen("screen-feed");
       await loadFeed();
-      await pingLoop();
+      await pingOnce();
     } else {
       el("gateState").className="tag red";
       el("gateState").textContent="LOCKED";
@@ -457,8 +650,21 @@ function renderGate(){
   el("meEnergy").textContent = ME.energy ?? 30;
   el("meVis").textContent = ME.visibility_credits ?? 10;
   el("meBio").textContent = ME.bio_lock_url ? "PASS":"GATE";
+
+  // regen info if backend returns it in swipe response; set defaults here
+  el("meRegen").textContent = "1";
+  el("meRegenSec").textContent = "180";
 }
 
+async function pingOnce(){
+  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+  try{ await api("/game/ping", { initData }); }catch(e){}
+}
+setInterval(pingOnce, 30000);
+
+/* =========================
+   Gate: Email
+========================= */
 async function submitEmail(){
   const email = (el("emailInput").value||"").trim();
   el("emailMsg").textContent="";
@@ -480,6 +686,9 @@ async function submitEmail(){
   }
 }
 
+/* =========================
+   Gate: Top Images + Boss thumbnails
+========================= */
 async function loadTopImages(){
   const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
   const r = await api("/game/top_images", { initData });
@@ -490,11 +699,9 @@ async function loadTopImages(){
 
   el("topEImg").src = absUrl(e.bio_lock_url);
   el("topDImg").src = absUrl(d.bio_lock_url);
-
   el("topEName").textContent = (e.username||"UNKNOWN") + ` (Light: ${e.votes_light||0})`;
   el("topDName").textContent = (d.username||"UNKNOWN") + ` (Spite: ${d.votes_spite||0})`;
 
-  // boss thumbnails
   const row = el("bossRow");
   row.innerHTML = "";
   (r.bosses||[]).slice(0,6).forEach(b=>{
@@ -510,12 +717,6 @@ async function loadTopImages(){
   });
 }
 
-async function pingLoop(){
-  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
-  try{ await api("/game/ping", { initData }); }catch(e){}
-}
-setInterval(pingLoop, 30000);
-
 /* =========================
    FEED
 ========================= */
@@ -524,11 +725,12 @@ async function loadFeed(){
   el("feedMsg").textContent="Fetching targets…";
   const r = await api("/game/feed", { initData });
   if(r.status !== "ok"){ el("feedMsg").textContent="Feed error."; return; }
+
   FEED = r.feed || [];
   FALLBACK_USED = !!r.fallback;
 
   el("ruleMode").textContent = FALLBACK_USED ? "1h":"5m";
-  renderHUD(0);
+  renderHUD(ME.swipes_today || 0);
   renderCards();
   attachDrag();
 }
@@ -539,7 +741,6 @@ function renderHUD(swipes){
   el("hudVis").textContent = ME.visibility_credits ?? 10;
   el("hudSwipes").textContent = swipes ?? 0;
 }
-
 function setCard(which, data){
   if(which==="front"){
     el("imgFront").src = absUrl(data?.bio_lock_url||"");
@@ -551,7 +752,6 @@ function setCard(which, data){
     el("bodyNext").textContent = data?.body_asset_id || "—";
   }
 }
-
 function renderCards(){
   if(FEED.length===0){
     setCard("front",{username:"NO TARGETS",bio_lock_url:"",body_asset_id:"—"});
@@ -576,15 +776,14 @@ async function commitSwipe(direction){
 
   const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
   const target = FEED[0];
+
   const card = el("card-front");
   card.style.transition="transform 260ms ease-out";
   const outX = direction==="LIGHT" ? 520 : -520;
   const rot = direction==="LIGHT" ? 18 : -18;
   card.style.transform = `translate3d(${outX}px, -20px, 0) rotate(${rot}deg)`;
 
-  const r = await api("/game/swipe", {
-    initData, target_id: target.user_id, direction
-  });
+  const r = await api("/game/swipe", { initData, target_id: target.user_id, direction });
 
   if(r.status !== "ok"){
     el("feedMsg").textContent = "Blocked: " + (r.msg||"FAIL");
@@ -594,18 +793,28 @@ async function commitSwipe(direction){
     return;
   }
 
+  // Update authoritative numbers
   ME.ap = r.new_ap;
   ME.energy = r.new_energy;
   ME.visibility_credits = r.new_visibility_credits;
 
   renderHUD(r.swipes_today);
+  el("meRegenSec").textContent = r.energy_regen_seconds || 180;
 
+  // Advance deck
   FEED.shift();
 
-  setTimeout(()=>{
+  setTimeout(async ()=>{
     card.style.transition="none";
     card.style.transform="translate3d(0,0,0) rotate(0deg)";
     renderCards();
+
+    // If ambush triggered (exact 10th swipe)
+    if(r.ambush){
+      await enterCombat();
+      return;
+    }
+
     if(FEED.length < 3) loadFeed();
   }, 280);
 }
@@ -657,6 +866,49 @@ function attachDrag(){
   card.addEventListener("touchstart", onDown, {passive:true});
   window.addEventListener("touchmove", onMove, {passive:true});
   window.addEventListener("touchend", onUp, {passive:true});
+}
+
+/* =========================
+   COMBAT (entry stub)
+========================= */
+async function enterCombat(){
+  // Quick transition feel
+  el("feedMsg").textContent="AMBUSH DETECTED…";
+  AudioFX.success("SPITE");
+
+  // show combat screen
+  showScreen("screen-combat");
+
+  // wake phaser visuals
+  bossHP = 100;
+  el("bossHPFill").style.width = "100%";
+  game.scene.getScene("Combat").showBoss(bossHP);
+}
+
+function combatAction(action){
+  // Placeholder: purely visual dopamine, until we wire Prompt 4 combat endpoints
+  if(action==="ATTACK"){
+    const dmg = Math.max(4, Math.floor(Math.random()*12));
+    bossHP = Math.max(0, bossHP - dmg);
+    const pct = Math.max(0, Math.floor((bossHP/100)*100));
+    el("bossHPFill").style.width = pct + "%";
+    game.scene.getScene("Combat").hit(dmg);
+    game.scene.getScene("Combat").updateHP(bossHP);
+    AudioFX.success("LIGHT");
+    if(bossHP<=0){
+      setTimeout(()=>{
+        alert("VICTORY (stub). Loot drops in Prompt 4.");
+        exitCombat();
+      }, 450);
+    }
+  } else {
+    // heal stub
+    AudioFX.success("LIGHT");
+  }
+}
+
+function exitCombat(){
+  showScreen("screen-feed");
 }
 
 /* =========================
