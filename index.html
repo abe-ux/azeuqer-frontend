@@ -1,250 +1,246 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AZEUQER: TITANIUM 12.0</title>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        :root { --bg: #050505; --neon: #00ffcc; --pink: #ff00ff; }
-        body { background: var(--bg); color: #fff; font-family: 'Courier New', monospace; margin: 0; padding: 0; overflow: hidden; }
-        .hidden { display: none !important; }
-        
-        /* LAYERS */
-        #game-layer { position: fixed; inset: 0; z-index: 1; }
-        #ui-layer { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
-        
-        /* INTERACTIVE UI */
-        .screen { pointer-events: auto; padding: 20px; text-align: center; height: 100vh; overflow-y: auto; box-sizing: border-box; background: rgba(0,0,0,0.85); }
-        .screen.transparent { background: none; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>AZEUQER: TITANIUM 12.0</title>
 
-        /* CAMERA BUTTON */
-        .camera-label {
-            display: block; width: 100%; padding: 30px; margin-top: 40px;
-            background: #111; border: 2px dashed var(--neon); color: var(--neon);
-            font-size: 1.2rem; font-weight: bold; cursor: pointer;
-            text-transform: uppercase;
-        }
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-        /* CONTROLS */
-        .btn { width: 100%; padding: 15px; background: #111; border: 1px solid var(--neon); color: var(--neon); margin-top: 15px; font-weight: bold; cursor: pointer; pointer-events: auto; }
-        .btn-red { border-color: var(--pink); color: var(--pink); }
-        .btn-small { width: auto; font-size: 0.8rem; padding: 5px 10px; margin-top: 5px; }
+<style>
+:root { --bg:#050505; --neon:#00ffcc; --pink:#ff00ff; }
+body { background:var(--bg); color:#fff; font-family:'Courier New', monospace; margin:0; overflow:hidden; }
+.hidden{display:none!important;}
 
-        /* JUICE */
-        .glitch { animation: shake 2s infinite; color: var(--neon); font-size: 2rem; font-weight: bold; }
-        @keyframes shake { 0% { transform: translate(0,0); } 2% { transform: translate(1px,0); } 4% { transform: translate(0,0); } }
+#game-layer{position:fixed;inset:0;z-index:1;}
+#ui-layer{position:fixed;inset:0;z-index:10;pointer-events:none;}
+.screen{pointer-events:auto;padding:20px;text-align:center;height:100vh;overflow-y:auto;box-sizing:border-box;background:rgba(0,0,0,0.85);}
+.screen.transparent{background:none;}
 
-        /* CARDS */
-        .card { width: 300px; height: 400px; margin: 20px auto; border: 1px solid #333; position: relative; }
-        .card img { width: 100%; height: 100%; object-fit: cover; }
+.camera-label{
+display:block;width:100%;padding:30px;margin-top:40px;
+background:#111;border:2px dashed var(--neon);
+color:var(--neon);font-size:1.2rem;font-weight:bold;cursor:pointer;
+text-transform:uppercase;
+}
 
-        #loader { position: fixed; inset: 0; background: #000; z-index: 100; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-    </style>
+.btn{width:100%;padding:15px;background:#111;border:1px solid var(--neon);color:var(--neon);margin-top:15px;font-weight:bold;cursor:pointer;}
+.btn-red{border-color:var(--pink);color:var(--pink);}
+.btn-small{width:auto;font-size:0.8rem;padding:5px 10px;margin-top:5px;}
+
+.glitch{animation:shake 2s infinite;color:var(--neon);font-size:2rem;font-weight:bold;}
+@keyframes shake{0%{transform:translate(0,0);}2%{transform:translate(1px,0);}4%{transform:translate(0,0);}}
+
+.card{width:300px;height:400px;margin:20px auto;border:1px solid #333;position:relative;}
+.card img{width:100%;height:100%;object-fit:cover;}
+
+#loader{position:fixed;inset:0;background:#000;z-index:100;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+video{width:100%;border:2px solid var(--neon);margin-top:20px;}
+</style>
 </head>
+
 <body>
 
-    <div id="loader" class="hidden">
-        <div class="glitch">CONNECTING...</div>
-        <div id="loader-msg" style="color:#666; font-size:0.8rem; margin-top:10px;"></div>
-    </div>
+<div id="loader" class="hidden">
+<div class="glitch">CONNECTING...</div>
+<div id="loader-msg" style="color:#666;font-size:0.8rem;margin-top:10px;"></div>
+</div>
 
-    <div id="game-layer"></div>
+<div id="game-layer"></div>
 
-    <div id="ui-layer">
+<div id="ui-layer">
 
-        <div id="screen-entry" class="screen">
-            <h1 class="glitch" style="margin-top:50px;">AZEUQER</h1>
-            <p style="color:#888;">// REALITY EXTRACTION</p>
-            
-           <button class="camera-label" onclick="openCamera()">📸 SCAN FACE</button>
-<video id="video" autoplay playsinline style="width:100%; margin-top:20px;"></video>
+<div id="screen-entry" class="screen">
+<h1 class="glitch" style="margin-top:50px;">AZEUQER</h1>
+<p style="color:#888;">// REALITY EXTRACTION</p>
 
-            <div id="status-log" style="margin-top:20px; color:#555;">SYSTEM READY</div>
-        </div>
+<button class="camera-label" onclick="openCamera()">📸 SCAN FACE</button>
 
-        <div id="screen-feed" class="screen hidden">
-            <div style="display:flex; justify-content:space-between;">
-                <span style="color:var(--neon);">AP: <span id="hud-ap">0</span></span>
-                <button class="btn btn-red btn-small" onclick="nukeIdentity()">⚠ RESET IDENTITY</button>
-            </div>
-            
-            <div id="feed-container"></div>
-            
-            <div style="position:fixed; bottom:20px; width:90%; left:5%; display:flex; gap:10px;">
-                <button class="btn btn-red" onclick="swipe('SPITE')">❌ SPITE</button>
-                <button class="btn" onclick="swipe('LIGHT')">⚡ LIGHT</button>
-            </div>
-        </div>
+<div id="camera-box" class="hidden">
+<video id="video" autoplay playsinline></video>
+<button class="btn" onclick="capturePhoto()">📸 CAPTURE</button>
+</div>
 
-        <div id="screen-combat" class="screen hidden transparent">
-            <h1 class="glitch" style="color:var(--pink);">AMBUSH</h1>
-            <div style="margin-top: 400px;"></div>
-            <button class="btn btn-red" onclick="combatAction('ATTACK')">⚔ ATTACK</button>
-        </div>
+<canvas id="canvas" class="hidden"></canvas>
 
-    </div>
+<div id="status-log" style="margin-top:20px;color:#555;">SYSTEM READY</div>
+</div>
 
-    <script>
-        const API_URL = "https://azeuqer-backend.onrender.com"; // UPDATE THIS !!!
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+<div id="screen-feed" class="screen hidden">
+<div style="display:flex;justify-content:space-between;">
+<span style="color:var(--neon);">AP: <span id="hud-ap">0</span></span>
+<button class="btn btn-red btn-small" onclick="nukeIdentity()">⚠ RESET IDENTITY</button>
+</div>
+<div id="feed-container"></div>
+</div>
 
-        // --- GAME ENGINE ---
-        let game;
-        class CombatScene extends Phaser.Scene {
-            constructor() { super({ key: 'Combat' }); }
-            preload() {
-                let g = this.make.graphics({x:0, y:0, add:false});
-                g.fillStyle(0xff0000, 1); g.fillRect(0,0,150,150); 
-                g.fillStyle(0x000000, 1); g.fillRect(30,40,30,30); g.fillRect(90,40,30,30);
-                g.generateTexture('boss', 150, 150);
-                g.clear(); g.fillStyle(0xffffff, 1); g.fillCircle(4,4,4); g.generateTexture('spark', 8, 8);
-            }
-            create() {
-                this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
-                this.boss = this.add.sprite(this.scale.width/2, 300, 'boss').setAlpha(0);
-                this.tweens.add({ targets: this.boss, scaleY: 1.05, y: 305, duration: 1500, yoyo: true, repeat: -1 });
-                this.particles = this.add.particles(0, 0, 'spark', { speed: {min:100, max:300}, scale: {start:1, end:0}, lifespan: 600, gravityY: 500, quantity: 20, emitting: false });
-            }
-            showBoss(hp) {
-                this.boss.setAlpha(1).setY(-100);
-                this.tweens.add({ targets: this.boss, y: 300, duration: 800, ease: 'Bounce' });
-                if(this.hpText) this.hpText.destroy();
-                this.hpText = this.add.text(this.scale.width/2, 180, `HP: ${hp}`, { fontSize:'24px', fontStyle:'bold', color:'#f00' }).setOrigin(0.5);
-            }
-            hit(dmg) {
-                this.cameras.main.shake(100, 0.02);
-                this.boss.setTint(0xffffff); this.time.delayedCall(100, () => this.boss.clearTint());
-                this.particles.emitParticleAt(this.boss.x, this.boss.y);
-                let t = this.add.text(this.boss.x, this.boss.y, `-${dmg}`, { fontSize:'40px', color:'#fff', stroke:'#f00', strokeThickness:4 }).setOrigin(0.5);
-                this.tweens.add({ targets: t, y: this.boss.y-100, alpha: 0, duration: 1000, onComplete: () => t.destroy() });
-            }
-            updateHP(hp) { this.hpText.setText(`HP: ${hp}`); }
-            die() { 
-                this.tweens.add({ targets: this.boss, scale: 0, rotation: 10, duration: 500 }); 
-                this.particles.emitParticleAt(this.boss.x, this.boss.y, 50);
-            }
-        }
-        
-        game = new Phaser.Game({ type: Phaser.AUTO, parent: 'game-layer', width: window.innerWidth, height: window.innerHeight, transparent: true, scene: [CombatScene] });
+</div>
 
-        // --- APP LOGIC ---
-        let currentBossHP = 0;
+<script>
+const API_URL = "https://azeuqer-backend.onrender.com";
+const tg = window.Telegram.WebApp;
 
-        async function init() {
-            showLoader(true, "Connecting...");
-            try {
-                const res = await fetch(`${API_URL}/auth/login`, {
-                    method: "POST", headers: {"Content-Type":"application/json"},
-                    body: JSON.stringify({ initData: tg.initData || "debug_mode" })
-                });
-                const data = await res.json();
-                
-                if(data.user.bio_lock_url) {
-                    showScreen('screen-feed');
-                    loadFeed();
-                } else {
-                    showScreen('screen-entry');
-                }
-            } catch(e) { alert("Server Error"); }
-            showLoader(false);
-        }
+tg.ready();
+tg.expand();
 
-        async function nukeIdentity() {
-            if(!confirm("RESET IDENTITY? This cannot be undone.")) return;
-            showLoader(true, "WIPING DATA...");
-            try {
-                await fetch(`${API_URL}/auth/reset`, {
-                    method: "POST", headers: {"Content-Type":"application/json"},
-                    body: JSON.stringify({ initData: tg.initData || "debug_mode" })
-                });
-                location.reload();
-            } catch(e) { alert("Reset Failed"); }
-        }
+let cameraStream = null;
+let currentBossHP = 0;
 
-        async function uploadBio() {
-            const file = document.getElementById('cam').files[0];
-            if(!file) return;
+/* =======================
+   CAMERA SYSTEM
+======================= */
 
-            showLoader(true, "UPLOADING...");
-            const fd = new FormData();
-            fd.append("initData", tg.initData || "debug_mode");
-            fd.append("file", file);
+async function openCamera(){
+try{
+showLoader(true,"ACCESSING CAMERA...");
 
-            try {
-                const res = await fetch(`${API_URL}/auth/biolock`, { method: "POST", body: fd });
-                if(!res.ok) throw new Error("Server Reject");
-                const data = await res.json();
-                if(data.status === "success") location.reload();
-                else alert("Error: " + data.msg);
-            } catch(e) { alert("Upload Failed"); }
-            showLoader(false);
-        }
+cameraStream = await navigator.mediaDevices.getUserMedia({
+video:{facingMode:"user",width:{ideal:720},height:{ideal:1280}},
+audio:false
+});
 
-        async function combatAction(action) {
-            const res = await fetch(`${API_URL}/game/combat/turn`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode", action: action, boss_hp_current: currentBossHP })
-            });
-            const data = await res.json();
-            const scene = game.scene.getScene('Combat');
-            
-            if(action === 'ATTACK') {
-                const dmg = currentBossHP - data.new_boss_hp;
-                if(dmg > 0) scene.hit(dmg);
-            }
-            
-            if(data.status === "VICTORY") {
-                scene.die();
-                setTimeout(() => { alert(`VICTORY! Loot: ${data.loot}`); location.reload(); }, 1500);
-            } else {
-                currentBossHP = data.new_boss_hp;
-                scene.updateHP(currentBossHP);
-            }
-        }
+document.getElementById("video").srcObject = cameraStream;
+document.getElementById("camera-box").classList.remove("hidden");
 
-        // --- UTILS ---
-        let feed = [];
-        async function loadFeed() {
-            const res = await fetch(`${API_URL}/game/feed`, {
-                method: "POST", headers: {"Content-Type":"application/json"},
-                body: JSON.stringify({ initData: tg.initData || "debug_mode" })
-            });
-            const data = await res.json();
-            feed = data.feed;
-            renderCard();
-        }
-        function renderCard() {
-            const c = document.getElementById('feed-container');
-            if(feed.length===0) { c.innerHTML="NO TARGETS"; return; }
-            const u = feed[0];
-            c.innerHTML = `<div class="card"><img src="${u.bio_lock_url}"></div><div style="margin-top:10px; font-weight:bold;">${u.username}</div>`;
-        }
-        async function swipe(dir) {
-            if(feed.length===0) return;
-            if(Math.random() < 0.2) { triggerAmbush(); } else { feed.shift(); renderCard(); }
-        }
-        async function triggerAmbush() {
-            showScreen('screen-combat');
-            const res = await fetch(`${API_URL}/game/combat/info`, { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify({ initData: tg.initData || "debug_mode" }) });
-            const data = await res.json();
-            currentBossHP = data.boss.hp;
-            game.scene.getScene('Combat').showBoss(currentBossHP);
-        }
+}catch(err){
+alert("Camera permission denied or unsupported.");
+console.error(err);
+}
+showLoader(false);
+}
 
-        function showScreen(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-            document.getElementById(id).classList.remove('hidden');
-        }
-        function showLoader(v, msg="") {
-            const l = document.getElementById('loader');
-            if(v) { l.classList.remove('hidden'); document.getElementById('loader-msg').innerText=msg; }
-            else l.classList.add('hidden');
-        }
+function capturePhoto(){
+const video=document.getElementById("video");
+const canvas=document.getElementById("canvas");
 
-        init();
-    </script>
+canvas.width=video.videoWidth;
+canvas.height=video.videoHeight;
+
+const ctx=canvas.getContext("2d");
+ctx.drawImage(video,0,0);
+
+canvas.toBlob(async(blob)=>{
+stopCamera();
+await uploadBioBlob(blob);
+},"image/jpeg",0.9);
+}
+
+function stopCamera(){
+if(cameraStream){
+cameraStream.getTracks().forEach(track=>track.stop());
+cameraStream=null;
+}
+document.getElementById("camera-box").classList.add("hidden");
+}
+
+async function uploadBioBlob(blob){
+showLoader(true,"UPLOADING...");
+
+const fd=new FormData();
+fd.append("initData",tg.initData||"debug_mode");
+fd.append("file",blob,"face.jpg");
+
+try{
+const res=await fetch(`${API_URL}/auth/biolock`,{method:"POST",body:fd});
+if(!res.ok)throw new Error("Upload failed");
+
+const data=await res.json();
+
+if(data.status==="success"){
+location.reload();
+}else{
+alert("Error: "+data.msg);
+}
+}catch(e){
+alert("Upload failed");
+console.error(e);
+}
+showLoader(false);
+}
+
+/* =======================
+   APP INIT
+======================= */
+
+async function init(){
+showLoader(true,"Connecting...");
+try{
+const res=await fetch(`${API_URL}/auth/login`,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({initData:tg.initData||"debug_mode"})
+});
+const data=await res.json();
+
+if(data.user && data.user.bio_lock_url){
+showScreen('screen-feed');
+loadFeed();
+}else{
+showScreen('screen-entry');
+}
+}catch(e){alert("Server Error");}
+showLoader(false);
+}
+
+async function nukeIdentity(){
+if(!confirm("RESET IDENTITY?"))return;
+showLoader(true,"WIPING DATA...");
+try{
+await fetch(`${API_URL}/auth/reset`,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({initData:tg.initData||"debug_mode"})
+});
+location.reload();
+}catch(e){alert("Reset Failed");}
+}
+
+/* =======================
+   FEED
+======================= */
+
+let feed=[];
+async function loadFeed(){
+const res=await fetch(`${API_URL}/game/feed`,{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({initData:tg.initData||"debug_mode"})
+});
+const data=await res.json();
+feed=data.feed||[];
+renderCard();
+}
+
+function renderCard(){
+const c=document.getElementById('feed-container');
+if(feed.length===0){c.innerHTML="NO TARGETS";return;}
+const u=feed[0];
+c.innerHTML=`<div class="card"><img src="${u.bio_lock_url}"></div>
+<div style="margin-top:10px;font-weight:bold;">${u.username}</div>`;
+}
+
+/* =======================
+   UTILS
+======================= */
+
+function showScreen(id){
+document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+document.getElementById(id).classList.remove('hidden');
+}
+
+function showLoader(v,msg=""){
+const l=document.getElementById('loader');
+if(v){
+l.classList.remove('hidden');
+document.getElementById('loader-msg').innerText=msg;
+}else{
+l.classList.add('hidden');
+}
+}
+
+init();
+</script>
+
 </body>
 </html>
