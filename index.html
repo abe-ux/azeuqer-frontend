@@ -3,75 +3,133 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>AZEUQER: TITANIUM 13.2 (Profile + Inventory + Combat)</title>
+<title>AZEUQER: TITANIUM — PROMPT 1</title>
 
-<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-  :root { --bg:#050505; --neon:#00ffcc; --pink:#ff00ff; --red:#ff3333; }
-  body { background:var(--bg); color:#fff; font-family:'Courier New', monospace; margin:0; overflow:hidden; }
-  .hidden{display:none!important;}
-
-  /* LAYERS */
-  #game-layer { position:fixed; inset:0; z-index:1; }
-  #ui-layer { position:fixed; inset:0; z-index:10; pointer-events:none; }
-
-  /* SCREENS */
-  .screen {
-    pointer-events:auto; padding:20px; text-align:center;
-    height:100vh; overflow-y:auto; box-sizing:border-box;
-    background:rgba(0,0,0,0.85);
-    transition: opacity 0.3s;
+  :root{
+    --bg:#050505; --panel:rgba(0,0,0,0.85);
+    --neon:#00ffcc; --pink:#ff00ff; --red:#ff3333; --muted:#777;
   }
-  .screen.transparent { background:none; }
-
-  /* JUICE & GLITCH */
-  .scanlines {
-    position:fixed; inset:0; pointer-events:none; z-index:50;
+  body{background:var(--bg);color:#fff;font-family:'Courier New',monospace;margin:0;overflow:hidden;}
+  .hidden{display:none!important;}
+  .scanlines{
+    position:fixed;inset:0;pointer-events:none;z-index:50;
     background:
       linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%),
       linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06));
     background-size:100% 2px, 3px 100%;
   }
-  .glitch { animation:shake 2s infinite; color:var(--neon); font-size:2rem; font-weight:bold; text-shadow: 2px 0 var(--pink); }
-  @keyframes shake{0%{transform:translate(0,0);}2%{transform:translate(1px,0);}4%{transform:translate(0,0);} }
 
-  /* CONTROLS */
-  .camera-label{
-    display:block; width:100%; padding:30px; margin-top:40px;
-    background:rgba(17,17,17,0.9); border:2px dashed var(--neon);
-    color:var(--neon); font-size:1.2rem; font-weight:bold; cursor:pointer;
-    text-transform:uppercase;
+  #ui-layer{position:fixed;inset:0;z-index:10;pointer-events:none;}
+  .screen{
+    pointer-events:auto;padding:20px;text-align:center;
+    height:100vh;overflow-y:auto;box-sizing:border-box;
+    background:var(--panel);
   }
+  .screen.transparent{background:none;}
+  .glitch{
+    animation:shake 2s infinite;
+    color:var(--neon);font-size:2rem;font-weight:bold;
+    text-shadow:2px 0 var(--pink);
+  }
+  @keyframes shake{
+    0%{transform:translate(0,0);}2%{transform:translate(1px,0);}4%{transform:translate(0,0);}
+  }
+
+  /* Pioneer visual */
+  .pioneer-glitch{
+    color:#fff;
+    text-shadow:
+      0 0 6px var(--neon),
+      0 0 12px var(--pink),
+      0 0 20px var(--neon);
+    animation: pglow 1.4s infinite alternate;
+  }
+  @keyframes pglow{
+    from{filter:brightness(1);}
+    to{filter:brightness(1.35);}
+  }
+
+  .card{
+    width:320px;max-width:95%;
+    margin:14px auto;padding:14px;
+    border:1px solid #333;background:rgba(255,255,255,0.03);
+    border-radius:10px;text-align:left;
+  }
+  .row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
+  .tag{
+    display:inline-block;padding:6px 10px;border:1px solid #333;border-radius:999px;
+    color:#bbb;font-size:0.75rem;
+  }
+  .tag.neon{border-color:var(--neon);color:var(--neon);}
+  .tag.pink{border-color:var(--pink);color:var(--pink);}
+  .tag.red{border-color:var(--red);color:var(--red);}
+  .small{font-size:0.8rem;color:#bbb;line-height:1.2rem;}
+  .muted{color:var(--muted);}
+
   .btn{
-    width:100%; padding:15px; background:#111;
-    border:1px solid var(--neon); color:var(--neon);
-    margin-top:15px; font-weight:bold; cursor:pointer;
-    pointer-events:auto;
+    width:100%;padding:14px;background:#111;border:1px solid var(--neon);
+    color:var(--neon);margin-top:12px;font-weight:bold;cursor:pointer;
+    pointer-events:auto;border-radius:10px;
   }
-  .btn:active{ transform:scale(0.98); background:var(--neon); color:#000; }
-  .btn-red{ border-color:var(--red); color:var(--red); }
-  .btn-red:active{ background:var(--red); color:#000; }
-  .btn-small{ width:auto; font-size:0.8rem; padding:5px 10px; margin:0; }
+  .btn:active{transform:scale(0.99);background:var(--neon);color:#000;}
+  .btn-red{border-color:var(--red);color:var(--red);}
+  .btn-red:active{background:var(--red);color:#000;}
+  .btn-small{width:auto;padding:8px 10px;font-size:0.8rem;margin-top:0;border-radius:10px;}
 
-  /* CARD & PROFILE */
-  .card{ width:300px; height:400px; margin:20px auto; border:1px solid #333; position:relative; background:#000; overflow:hidden; }
-  .card img{ width:100%; height:100%; object-fit:cover; }
-  .card-overlay{
-    position:absolute; bottom:0; width:100%;
-    background:linear-gradient(to top, #000, transparent);
-    padding:20px; box-sizing:border-box; text-align:left;
+  .camera-label{
+    display:block;width:100%;padding:20px;margin-top:14px;
+    background:rgba(17,17,17,0.9);
+    border:2px dashed var(--neon);
+    color:var(--neon);font-size:1.05rem;font-weight:bold;cursor:pointer;
+    text-transform:uppercase;border-radius:12px;
   }
 
-  /* INVENTORY GRID */
-  .inv-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; margin-top:20px; }
-  .inv-item { border:1px solid #333; padding:10px; font-size:0.7rem; background:rgba(255,255,255,0.05); cursor:pointer; user-select:none; }
-  .inv-item.equipped { border-color:var(--neon); box-shadow:0 0 10px var(--neon); }
+  video{width:100%;border:2px solid var(--neon);margin-top:12px;border-radius:12px;background:#000;}
+  #loader{
+    position:fixed;inset:0;background:#000;z-index:100;
+    display:flex;align-items:center;justify-content:center;flex-direction:column;
+  }
 
-  /* VIDEO & LOADER */
-  video{ width:100%; border:2px solid var(--neon); margin-top:20px; }
-  #loader{ position:fixed; inset:0; background:#000; z-index:100; display:flex; align-items:center; justify-content:center; flex-direction:column; }
+  /* Slider module */
+  .slider-wrap{margin-top:14px;}
+  .slider{
+    width:100%;
+    accent-color: var(--neon);
+  }
+  .slider-label{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-top:10px;
+    color:#bbb;
+  }
+  .slider-label b{color:#fff;}
+  .slider-pips{
+    display:flex;justify-content:space-between;font-size:0.7rem;color:#666;margin-top:4px;
+  }
+
+  /* Avatar preview */
+  .avatar{
+    width:120px;height:120px;margin:0 auto;border:2px solid var(--neon);
+    border-radius:14px;overflow:hidden;background:#000;position:relative;
+  }
+  .avatar img{width:100%;height:100%;object-fit:cover;}
+  .badge{
+    position:absolute;bottom:-10px;right:-10px;
+    background:#000;border:1px solid var(--neon);color:var(--neon);
+    padding:6px 8px;font-size:0.7rem;font-weight:bold;border-radius:10px;
+  }
+
+  .divider{height:1px;background:#222;margin:14px 0;}
+
+  /* Copy box */
+  .copybox{
+    width:100%;padding:12px;border:1px solid #333;border-radius:10px;
+    background:rgba(0,0,0,0.4);color:#ccc;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+  }
+  .copybox code{color:#ddd;word-break:break-all;font-size:0.8rem;}
 </style>
 </head>
 
@@ -80,79 +138,157 @@
 
 <div id="loader" class="hidden">
   <div class="glitch">CONNECTING...</div>
-  <div id="loader-msg" style="color:#666;font-size:0.8rem;margin-top:10px;"></div>
+  <div id="loader-msg" style="color:#666;font-size:0.85rem;margin-top:10px;"></div>
 </div>
-
-<div id="game-layer"></div>
 
 <div id="ui-layer">
 
-  <!-- ENTRY -->
+  <!-- SCREEN: ENTRY GATE -->
   <div id="screen-entry" class="screen">
-    <h1 class="glitch" style="margin-top:50px;">AZEUQER</h1>
-    <p style="color:#888;">// GAMIFIED PROTOCOL v13.2</p>
+    <h1 id="title" class="glitch" style="margin-top:30px;">AZEUQER</h1>
+    <p class="muted" style="margin:6px 0 0;">// PROMPT 1: GENESIS & SCHEMA</p>
 
-    <button class="camera-label" onclick="openCamera()">📸 SCAN FACE</button>
-
-    <div id="camera-box" class="hidden">
-      <video id="video" autoplay playsinline muted></video>
-      <button class="btn" onclick="capturePhoto()">📸 CAPTURE</button>
-      <button class="btn btn-red" onclick="stopCamera()">✖ CLOSE</button>
-      <small id="cam-debug" style="display:block; margin-top:5px; color:#555;"></small>
-    </div>
-
-    <input id="cameraFallback" class="hidden" type="file" accept="image/*" capture="user" />
-    <canvas id="canvas" class="hidden"></canvas>
-    <div id="status-log" style="margin-top:20px;color:#555;">SYSTEM READY</div>
-  </div>
-
-  <!-- FEED -->
-  <div id="screen-feed" class="screen hidden">
-    <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding-bottom:10px; border-bottom:1px solid #333;">
-      <span style="color:var(--neon); font-weight:bold; font-size:1.2rem;">AP: <span id="hud-ap">0</span></span>
-      <div style="display:flex; gap:10px;">
-        <button class="btn btn-small" onclick="loadProfile()">👤 ME</button>
-        <button class="btn btn-red btn-small" onclick="nukeIdentity()">⚠ RESET</button>
+    <div class="card">
+      <div class="row">
+        <span class="tag neon">STATUS</span>
+        <span id="gate-status" class="tag red">LOCKED</span>
+      </div>
+      <div class="divider"></div>
+      <div class="small">
+        <div>• Bio-Lock is mandatory. No face, no game.</div>
+        <div>• First 100 users become <b>PIONEER</b> and are instantly VERIFIED.</div>
+        <div>• Referrals are <b>locked</b> until Bio-Lock is completed.</div>
       </div>
     </div>
 
-    <div id="feed-container"></div>
+    <!-- Profile mini -->
+    <div class="card">
+      <div class="row">
+        <span class="tag pink">IDENTITY</span>
+        <span id="role-tag" class="tag">CITIZEN</span>
+        <span id="verif-tag" class="tag">PENDING</span>
+      </div>
+      <div class="divider"></div>
 
-    <div style="position:fixed; bottom:30px; width:90%; left:5%; display:flex; gap:15px;">
-      <button class="btn btn-red" onclick="swipe('SPITE')">💀 SPITE</button>
-      <button class="btn" onclick="swipe('LIGHT')">⚡ LIGHT</button>
+      <div class="avatar">
+        <img id="me-img" src="" alt="me" />
+        <div id="pioneer-badge" class="badge hidden">PIONEER</div>
+      </div>
+      <h2 id="me-name" style="margin:12px 0 0;">AGENT</h2>
+      <div class="small muted">User ID: <span id="me-id">—</span></div>
+      <div class="small muted">AP: <span id="me-ap">0</span></div>
     </div>
+
+    <!-- Referral UI -->
+    <div class="card">
+      <div class="row">
+        <span class="tag neon">REFERRAL</span>
+        <span id="ref-status" class="tag">NONE</span>
+      </div>
+      <div class="divider"></div>
+
+      <div class="small">
+        Invite others using your link. Rewards are paid after the invitee completes Bio-Lock.
+      </div>
+
+      <div class="copybox" style="margin-top:10px;">
+        <code id="ref-link">t.me/YourBot?start=ref_0</code>
+        <button class="btn btn-small" onclick="copyReferral()">COPY</button>
+      </div>
+
+      <div id="ref-debug" class="small muted" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- Bio-Lock Gate -->
+    <button class="camera-label" onclick="openCamera()">📸 SCAN FACE (BIO-LOCK)</button>
+
+    <div id="camera-box" class="hidden">
+      <video id="video" autoplay playsinline muted></video>
+      <button class="btn" onclick="capturePhoto()">📸 CAPTURE & SUBMIT</button>
+      <button class="btn btn-red" onclick="stopCamera()">✖ CLOSE</button>
+      <small id="cam-debug" style="display:block;margin-top:8px;color:#555;"></small>
+    </div>
+
+    <!-- iOS fallback -->
+    <input id="cameraFallback" class="hidden" type="file" accept="image/*" capture="user" />
+    <canvas id="canvas" class="hidden"></canvas>
+
+    <!-- Vessel (Cosmetic sliders) -->
+    <div class="card">
+      <div class="row">
+        <span class="tag pink">VESSEL</span>
+        <span class="tag">COSMETIC ONLY</span>
+      </div>
+      <div class="divider"></div>
+
+      <div class="small muted">
+        Tune your Vessel. These sliders are cosmetic and only generate <code>body_asset_id</code>.
+      </div>
+
+      <div class="slider-wrap">
+        <div class="slider-label"><b>WORK</b> <span id="v-work">50</span></div>
+        <input id="s-work" class="slider" type="range" min="0" max="100" value="50" oninput="onSlider()" />
+        <div class="slider-pips"><span>Idle</span><span>Driven</span></div>
+
+        <div class="slider-label"><b>PACE</b> <span id="v-pace">50</span></div>
+        <input id="s-pace" class="slider" type="range" min="0" max="100" value="50" oninput="onSlider()" />
+        <div class="slider-pips"><span>Slow</span><span>Fast</span></div>
+
+        <div class="slider-label"><b>MIND</b> <span id="v-mind">50</span></div>
+        <input id="s-mind" class="slider" type="range" min="0" max="100" value="50" oninput="onSlider()" />
+        <div class="slider-pips"><span>Primal</span><span>Sharp</span></div>
+
+        <div class="slider-label"><b>VIBE</b> <span id="v-vibe">50</span></div>
+        <input id="s-vibe" class="slider" type="range" min="0" max="100" value="50" oninput="onSlider()" />
+        <div class="slider-pips"><span>Cold</span><span>Cool</span></div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="row">
+        <div class="small muted">body_asset_id:</div>
+        <div class="tag neon" id="body-asset">body_mid_mid_mid_mid.png</div>
+      </div>
+
+      <button class="btn" onclick="saveVessel()">💾 SAVE VESSEL</button>
+      <div id="vessel-msg" class="small muted" style="margin-top:10px;"></div>
+    </div>
+
+    <button class="btn btn-red" onclick="resetIdentity()">⚠ RESET IDENTITY</button>
+
+    <div id="status-log" class="small muted" style="margin-top:14px;">SYSTEM READY</div>
   </div>
 
-  <!-- PROFILE -->
-  <div id="screen-profile" class="screen hidden">
-    <h2 class="glitch" style="margin-bottom:20px;">PASSPORT</h2>
+  <!-- SCREEN: VERIFIED HOME (Prompt 1 ends here; Prompt 2 builds feed) -->
+  <div id="screen-home" class="screen hidden">
+    <h1 id="home-title" class="glitch" style="margin-top:30px;">AZEUQER</h1>
+    <p class="muted" style="margin:6px 0 0;">// ACCESS GRANTED</p>
 
-    <div style="width:150px; height:150px; margin:0 auto; border:2px solid var(--neon); padding:5px; position:relative;">
-      <img id="prof-img" src="" alt="profile" style="width:100%; height:100%; object-fit:cover;">
-      <div id="prof-badge" style="position:absolute; bottom:-10px; right:-10px; background:#000; border:1px solid var(--neon); color:var(--neon); padding:5px; font-size:0.7rem; font-weight:bold;" class="hidden">ITEM</div>
+    <div class="card">
+      <div class="row">
+        <span class="tag neon">YOU</span>
+        <span id="home-role" class="tag">CITIZEN</span>
+        <span id="home-verif" class="tag">PENDING</span>
+      </div>
+      <div class="divider"></div>
+
+      <div class="avatar">
+        <img id="home-img" src="" alt="me" />
+        <div id="home-pioneer-badge" class="badge hidden">PIONEER</div>
+      </div>
+      <h2 id="home-name" style="margin:12px 0 0;">AGENT</h2>
+      <div class="small muted">User ID: <span id="home-id">—</span></div>
+      <div class="small muted">AP: <span id="home-ap">0</span></div>
+      <div class="small muted">body_asset_id: <span id="home-body">—</span></div>
+
+      <div class="divider"></div>
+
+      <div class="small">
+        Prompt 1 is complete. Next: Social Feed, Swipes, Faction dynamics (Prompt 2).
+      </div>
+
+      <button class="btn" onclick="showScreen('screen-entry')">↩ BACK</button>
     </div>
-
-    <h2 id="prof-name" style="margin-top:20px;">AGENT</h2>
-    <div id="prof-faction" style="color:var(--pink); margin-bottom:20px;">NEUTRAL</div>
-
-    <div style="text-align:left; border-top:1px solid #333; padding-top:10px;">
-      <h3 style="margin:0; color:#888;">INVENTORY</h3>
-      <div id="inventory-list" class="inv-grid"></div>
-    </div>
-
-    <button class="btn" onclick="showScreen('screen-feed')">BACK TO FEED</button>
-  </div>
-
-  <!-- COMBAT -->
-  <div id="screen-combat" class="screen hidden transparent">
-    <h1 class="glitch" style="color:var(--red); margin-top:20px;">AMBUSH</h1>
-    <div style="margin-top:350px;"></div>
-    <div style="display:flex; gap:10px; justify-content:center;">
-      <button class="btn btn-red" onclick="gameCombatAction('ATTACK')">⚔ ATTACK</button>
-      <button class="btn" style="border-color:#fff; color:#fff;" onclick="gameCombatAction('POTION_HP')">💉 HEAL</button>
-    </div>
-    <button class="btn btn-small" style="margin-top:12px;border-color:#777;color:#777;" onclick="exitCombat()">↩ BACK</button>
   </div>
 
 </div>
@@ -161,129 +297,156 @@
 /** ======================
  * CONFIG
  * ====================== */
-const API_URL = "https://azeuqer-backend.onrender.com"; // ✅ correct (no extra quote)
-
+const API_URL = "https://azeuqer-backend.onrender.com"; // your Render backend
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
-try { if (tg) { tg.ready(); tg.expand(); } } catch(e) {}
+
+try { if (tg) { tg.ready(); tg.expand(); } } catch (e) {}
 
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 const isTelegram = !!tg;
 
+let ME = null;
 let cameraStream = null;
-let feed = [];
-let currentBossHP = 0;
 
 /** ======================
- * PHASER ENGINE
+ * LOADER + SCREENS
  * ====================== */
-let game;
-
-class CombatScene extends Phaser.Scene {
-  constructor(){ super({ key:'Combat' }); }
-
-  preload(){
-    const g = this.make.graphics({x:0,y:0,add:false});
-    g.fillStyle(0xff0000, 1); g.fillRect(0,0,160,160);
-    g.fillStyle(0x000000, 1); g.fillRect(30,40,30,30); g.fillRect(100,40,30,30);
-    g.generateTexture('boss', 160, 160);
-
-    g.clear(); g.fillStyle(0xffffff, 1); g.fillCircle(4,4,4);
-    g.generateTexture('spark', 8, 8);
-  }
-
-  create(){
-    this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
-    this.boss = this.add.sprite(this.scale.width/2, 300, 'boss').setAlpha(0);
-
-    this.tweens.add({ targets:this.boss, scaleY:1.05, y:305, duration:1500, yoyo:true, repeat:-1 });
-
-    this.particles = this.add.particles(0,0,'spark',{
-      speed:{min:100,max:400}, scale:{start:1,end:0}, lifespan:600, gravityY:500, quantity:20, emitting:false
-    });
-
-    this.hpText = null;
-  }
-
-  showBoss(hp){
-    this.boss.setAlpha(1).setY(-100).setScale(1);
-    this.tweens.add({ targets:this.boss, y:300, duration:800, ease:'Bounce' });
-
-    if(this.hpText) this.hpText.destroy();
-    this.hpText = this.add.text(this.scale.width/2, 180, `HP: ${hp}`, {
-      fontSize:'28px', fontStyle:'bold', color:'#ff0000', stroke:'#000', strokeThickness:4
-    }).setOrigin(0.5);
-  }
-
-  hit(damage){
-    this.cameras.main.shake(150, 0.02);
-    this.boss.setTint(0xffffff);
-    this.time.delayedCall(100, ()=>this.boss.clearTint());
-
-    this.particles.emitParticleAt(this.boss.x, this.boss.y);
-
-    const t = this.add.text(this.boss.x, this.boss.y, `-${damage}`, {
-      fontSize:'48px', color:'#fff', stroke:'#f00', strokeThickness:6, fontStyle:'bold'
-    }).setOrigin(0.5);
-
-    this.tweens.add({ targets:t, y:this.boss.y-120, alpha:0, duration:1000, ease:'Power1', onComplete:()=>t.destroy() });
-  }
-
-  updateHP(hp){ if(this.hpText) this.hpText.setText(`HP: ${hp}`); }
-
-  die(){
-    this.tweens.add({ targets:this.boss, scale:0, rotation:5, duration:500 });
-    this.particles.emitParticleAt(this.boss.x, this.boss.y, 50);
+function showLoader(v, msg="") {
+  const l = document.getElementById("loader");
+  if (v) {
+    l.classList.remove("hidden");
+    document.getElementById("loader-msg").innerText = msg;
+  } else {
+    l.classList.add("hidden");
   }
 }
 
-game = new Phaser.Game({
-  type: Phaser.AUTO,
-  parent: 'game-layer',
-  width: window.innerWidth,
-  height: window.innerHeight,
-  transparent: true,
-  scene: [CombatScene]
-});
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+}
 
-// Start hidden + paused (saves battery)
-document.getElementById('game-layer').style.display = 'none';
-try { game.scene.getScene('Combat').scene.pause(); } catch(e) {}
+function logStatus(msg){
+  const el = document.getElementById("status-log");
+  if (el) el.textContent = msg;
+}
 
 /** ======================
- * CAMERA
+ * REFERRAL LINK
+ * ====================== */
+function buildReferralLink(userId){
+  // You will update bot username later; keep placeholder for now.
+  // If you know your bot username, set it here:
+  const BOT = "AzeuqerBot";
+  return `https://t.me/${BOT}?start=ref_${userId}`;
+}
+
+async function copyReferral(){
+  const txt = document.getElementById("ref-link").innerText;
+  try{
+    await navigator.clipboard.writeText(txt);
+    document.getElementById("ref-debug").innerText = "Copied to clipboard.";
+  }catch(e){
+    // fallback for older webviews
+    const ta = document.createElement("textarea");
+    ta.value = txt; document.body.appendChild(ta);
+    ta.select(); document.execCommand("copy");
+    document.body.removeChild(ta);
+    document.getElementById("ref-debug").innerText = "Copied (fallback).";
+  }
+}
+
+/** ======================
+ * VESSEL (Cosmetic sliders)
+ * ====================== */
+function bucket(v){
+  if (v <= 33) return "low";
+  if (v <= 66) return "mid";
+  return "high";
+}
+function computeBodyAsset(){
+  const w = Number(document.getElementById("s-work").value);
+  const p = Number(document.getElementById("s-pace").value);
+  const m = Number(document.getElementById("s-mind").value);
+  const v = Number(document.getElementById("s-vibe").value);
+  const id = `body_${bucket(w)}_${bucket(p)}_${bucket(m)}_${bucket(v)}.png`;
+  document.getElementById("body-asset").innerText = id;
+  return id;
+}
+function onSlider(){
+  document.getElementById("v-work").innerText = document.getElementById("s-work").value;
+  document.getElementById("v-pace").innerText = document.getElementById("s-pace").value;
+  document.getElementById("v-mind").innerText = document.getElementById("s-mind").value;
+  document.getElementById("v-vibe").innerText = document.getElementById("s-vibe").value;
+  computeBodyAsset();
+}
+
+async function saveVessel(){
+  if (!ME) { alert("Not logged in."); return; }
+  // Prompt 1 backend currently doesn’t include a dedicated vessel endpoint.
+  // For Prompt 1 we store body_asset_id by calling login again with a special field.
+  // If you want a dedicated endpoint later, we’ll add it in the next backend iteration.
+  showLoader(true, "SAVING VESSEL...");
+  try{
+    const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+    const body_asset_id = computeBodyAsset();
+
+    // We store it by hitting a lightweight "profile save" endpoint.
+    // If your backend does not have it yet, we show a clean message.
+    const res = await fetch(`${API_URL}/profile/vessel`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ initData, body_asset_id })
+    });
+
+    const data = await res.json();
+    if (data.status === "ok") {
+      ME.body_asset_id = body_asset_id;
+      document.getElementById("vessel-msg").innerText = "Vessel saved.";
+      renderMe(ME);
+    } else {
+      document.getElementById("vessel-msg").innerText = "Backend missing /profile/vessel. Tell me and I’ll add it (full main.py).";
+    }
+  }catch(e){
+    document.getElementById("vessel-msg").innerText = "Save failed.";
+  }finally{
+    showLoader(false);
+  }
+}
+
+/** ======================
+ * CAMERA / BIOLOCK
  * ====================== */
 async function openCamera(){
   if (isIOS && isTelegram) {
-    logCamDebug("iOS+Telegram → capture fallback.");
+    logCamDebug("iOS + Telegram detected → using capture fallback.");
     return openCameraFallback();
   }
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    alert("Camera not supported."); return;
+    alert("Camera API not supported.");
+    return;
   }
 
   const videoEl = document.getElementById("video");
   try{
-    showLoader(true,"OPENING CAMERA...");
-    videoEl.setAttribute("playsinline","");
+    showLoader(true, "ACCESSING CAMERA...");
+    videoEl.setAttribute("playsinline", "");
     videoEl.muted = true;
 
     cameraStream = await navigator.mediaDevices.getUserMedia({
-      video:{ facingMode:{ ideal:"user" } },
-      audio:false
+      video: { facingMode: { ideal: "user" }, width: { ideal: 720 }, height: { ideal: 1280 } },
+      audio: false
     });
 
     videoEl.srcObject = cameraStream;
-
-    // Wait for metadata then play (helps black-screen cases)
     await new Promise(resolve => { videoEl.onloadedmetadata = () => resolve(); });
     await videoEl.play();
 
     document.getElementById("camera-box").classList.remove("hidden");
     logCamDebug("Camera started.");
   }catch(err){
-    console.error(err);
-    alert("Camera denied / blocked.");
-    logCamDebug("Err: " + (err && err.name ? err.name : String(err)));
+    alert("Camera permission denied / unsupported.");
+    logCamDebug("Error: " + (err.name || err));
   }finally{
     showLoader(false);
   }
@@ -292,382 +455,198 @@ async function openCamera(){
 function openCameraFallback(){
   const input = document.getElementById("cameraFallback");
   input.onchange = async () => {
-    const f = input.files && input.files[0];
-    if(!f) return;
-    showLoader(true,"UPLOADING...");
-    try { await uploadBioBlob(f); }
-    finally { showLoader(false); input.value = ""; }
+    const file = input.files && input.files[0];
+    if (!file) return;
+    try{
+      showLoader(true, "UPLOADING BIO-LOCK...");
+      await uploadBioBlob(file);
+    }finally{
+      showLoader(false);
+      input.value = "";
+    }
   };
   input.click();
 }
 
 function capturePhoto(){
-  const v = document.getElementById("video");
-  const c = document.getElementById("canvas");
-  if(!v.videoWidth || !v.videoHeight){ alert("Wait for camera..."); return; }
+  const video = document.getElementById("video");
+  const canvas = document.getElementById("canvas");
 
-  c.width = v.videoWidth;
-  c.height = v.videoHeight;
-  c.getContext("2d").drawImage(v,0,0);
+  if (!video.videoWidth) {
+    alert("Camera not ready.");
+    return;
+  }
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext("2d").drawImage(video, 0, 0);
 
-  c.toBlob(async (b) => {
-    if(!b){ alert("Capture failed."); return; }
+  canvas.toBlob(async (blob) => {
+    if (!blob) { alert("Capture failed."); return; }
     stopCamera();
-    await uploadBioBlob(b);
-  }, "image/jpeg", 0.9);
+    showLoader(true, "UPLOADING BIO-LOCK...");
+    try{
+      await uploadBioBlob(blob);
+    }finally{
+      showLoader(false);
+    }
+  }, "image/jpeg", 0.92);
 }
 
 function stopCamera(){
   try{
-    const v = document.getElementById("video");
-    if(v){ v.pause(); v.srcObject = null; }
+    const videoEl = document.getElementById("video");
+    if (videoEl) { videoEl.pause(); videoEl.srcObject = null; }
   }catch(e){}
-
-  if(cameraStream){
-    cameraStream.getTracks().forEach(t=>t.stop());
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
     cameraStream = null;
   }
   document.getElementById("camera-box").classList.add("hidden");
 }
 
-async function uploadBioBlob(fileOrBlob){
-  showLoader(true,"UPLOADING BIOMETRICS...");
+async function uploadBioBlob(blobOrFile){
   const fd = new FormData();
-  fd.append("initData", tg ? tg.initData : "debug_mode");
-  fd.append("file", fileOrBlob, "face.jpg");
+  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+  fd.append("initData", initData);
+  fd.append("file", blobOrFile, "face.jpg");
 
-  try{
-    const res = await fetch(`${API_URL}/auth/biolock`, { method:"POST", body:fd });
-    const d = await res.json().catch(()=>({}));
-    if(res.ok && d.status === "success") location.reload();
-    else alert(d.msg || "Upload failed");
-  }catch(e){
-    console.error(e);
-    alert("Upload failed");
-  }finally{
-    showLoader(false);
-  }
-}
+  const res = await fetch(`${API_URL}/auth/biolock`, { method:"POST", body: fd });
+  const data = await res.json();
 
-/** ======================
- * INIT / AUTH
- * ====================== */
-async function init(){
-  showLoader(true,"CONNECTING...");
-  try{
-    const res = await fetch(`${API_URL}/auth/login`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ initData: tg ? tg.initData : "debug_mode" })
-    });
-    const data = await res.json();
-
-    if(data.user && data.user.bio_lock_url){
-      document.getElementById('hud-ap').innerText = data.user.ap || 0;
-      showScreen('screen-feed');
-      await loadFeed();
-    }else{
-      showScreen('screen-entry');
-    }
-  }catch(e){
-    console.error(e);
-    showScreen('screen-entry');
-  }finally{
-    showLoader(false);
-  }
-}
-
-/** ======================
- * PROFILE & INVENTORY
- * ====================== */
-async function loadProfile(){
-  showLoader(true,"LOADING PROFILE...");
-  try{
-    // Use login to fetch fresh user object
-    const res = await fetch(`${API_URL}/auth/login`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ initData: tg ? tg.initData : "debug_mode" })
-    });
-    const data = await res.json();
-    const u = data.user || {};
-
-    document.getElementById('prof-img').src = u.bio_lock_url || "";
-    document.getElementById('prof-name').innerText = u.username || "AGENT";
-    document.getElementById('prof-faction').innerText = u.faction || "UNSORTED";
-
-    const badge = document.getElementById('prof-badge');
-    if(u.equipped_item){
-      badge.innerText = u.equipped_item;
-      badge.classList.remove('hidden');
-    }else{
-      badge.classList.add('hidden');
-    }
-
-    // Inventory endpoint (must exist on backend)
-    const invRes = await fetch(`${API_URL}/game/inventory`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ initData: tg ? tg.initData : "debug_mode" })
-    });
-    const invData = await invRes.json().catch(()=>({}));
-
-    const items = Array.isArray(invData.items) ? invData.items : [];
-    const grid = document.getElementById('inventory-list');
-    grid.innerHTML = "";
-
-    if(items.length === 0){
-      grid.innerHTML = "<div style='grid-column:span 3; color:#555;'>NO LOOT YET</div>";
-    }else{
-      items.forEach(i => {
-        const id = i.item_id || i.id || String(i);
-        const equipped = (u.equipped_item && String(u.equipped_item) === String(id)) ? "equipped" : "";
-        grid.innerHTML += `<div class="inv-item ${equipped}" onclick="equip('${escapeAttr(id)}')">${escapeHtml(id)}</div>`;
-      });
-    }
-
-    showScreen('screen-profile');
-  }catch(e){
-    console.error(e);
-    alert("Profile Error");
-  }finally{
-    showLoader(false);
-  }
-}
-
-async function equip(itemId){
-  showLoader(true,"EQUIPPING...");
-  try{
-    const res = await fetch(`${API_URL}/game/equip`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ initData: tg ? tg.initData : "debug_mode", item_id: itemId })
-    });
-    if(!res.ok){
-      const d = await res.json().catch(()=>({}));
-      throw new Error(d.msg || "Equip failed");
-    }
-    await loadProfile(); // refresh UI
-  }catch(e){
-    console.error(e);
-    alert("Equip failed");
-  }finally{
-    showLoader(false);
-  }
-}
-
-/** ======================
- * FEED
- * ====================== */
-async function loadFeed(){
-  try{
-    const res = await fetch(`${API_URL}/game/feed`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ initData: tg ? tg.initData : "debug_mode" })
-    });
-    const d = await res.json();
-    feed = d.feed || [];
-    renderCard();
-  }catch(e){
-    console.error(e);
-    document.getElementById('feed-container').innerHTML = "FEED ERROR";
-  }
-}
-
-function renderCard(){
-  const c = document.getElementById('feed-container');
-  if(feed.length === 0){ c.innerHTML = "NO TARGETS"; return; }
-
-  const u = feed[0];
-  c.innerHTML =
-    `<div class="card">
-      <img src="${escapeAttr(u.bio_lock_url || "")}" alt="target">
-      <div class="card-overlay">
-        <h2 class="glitch" style="margin:0;font-size:1.5rem;">${escapeHtml(u.username || "UNKNOWN")}</h2>
-      </div>
-    </div>`;
-}
-
-async function swipe(dir){
-  if(feed.length === 0) return;
-
-  // Ambush chance
-  if(Math.random() < 0.2){
-    await triggerAmbush();
+  if (data.status !== "success") {
+    alert(data.msg || "Bio-Lock failed.");
     return;
   }
 
-  try{
-    const t = feed[0];
-    const res = await fetch(`${API_URL}/game/swipe`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({
-        initData: tg ? tg.initData : "debug_mode",
-        target_id: t.user_id,
-        direction: dir
-      })
-    });
-    const d = await res.json().catch(()=>({}));
-
-    // Prefer server truth if provided
-    const apEl = document.getElementById('hud-ap');
-    if(typeof d.new_ap === "number") apEl.innerText = d.new_ap;
-    else apEl.innerText = (parseInt(apEl.innerText) || 0) + 1;
-
-    feed.shift();
-    renderCard();
-  }catch(e){
-    console.error(e);
-  }
+  // Refresh user state
+  await init();
+  logStatus("BIO-LOCK COMPLETE.");
 }
 
-/** ======================
- * COMBAT
- * ====================== */
-async function triggerAmbush(){
-  showScreen('screen-combat');
-  const scene = game.scene.getScene('Combat');
-
-  try{
-    const res = await fetch(`${API_URL}/game/combat/info`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ initData: tg ? tg.initData : "debug_mode" })
-    });
-    const d = await res.json().catch(()=>({}));
-
-    const hp = (d && d.boss && typeof d.boss.hp === "number") ? d.boss.hp : 25;
-    currentBossHP = hp;
-
-    scene.showBoss(currentBossHP);
-  }catch(e){
-    console.error(e);
-    currentBossHP = 25;
-    scene.showBoss(currentBossHP);
-  }
-}
-
-async function gameCombatAction(act){
-  const scene = game.scene.getScene('Combat');
-
-  try{
-    const res = await fetch(`${API_URL}/game/combat/turn`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({
-        initData: tg ? tg.initData : "debug_mode",
-        action: act,
-        boss_hp_current: currentBossHP
-      })
-    });
-
-    const d = await res.json().catch(()=>({}));
-
-    const nextHP = (typeof d.new_boss_hp === "number") ? d.new_boss_hp : currentBossHP;
-
-    if(act === "ATTACK"){
-      const dmg = Math.max(0, currentBossHP - nextHP);
-      if(dmg > 0) scene.hit(dmg);
-    }
-
-    if(d.status === "VICTORY"){
-      scene.die();
-      setTimeout(() => {
-        alert(`VICTORY! Loot: ${d.loot || "???"}`);
-        showScreen('screen-feed');
-        loadFeed();
-      }, 1200);
-      return;
-    }
-
-    currentBossHP = nextHP;
-    scene.updateHP(currentBossHP);
-  }catch(e){
-    console.error(e);
-    // If backend not ready, do nothing (or add offline prototype here)
-  }
-}
-
-function exitCombat(){
-  showScreen('screen-feed');
+function logCamDebug(msg){
+  const el = document.getElementById("cam-debug");
+  if (el) el.textContent = String(msg);
 }
 
 /** ======================
  * RESET
  * ====================== */
-async function nukeIdentity(){
-  if(!confirm("RESET IDENTITY?")) return;
-  showLoader(true,"RESETTING...");
+async function resetIdentity(){
+  if (!confirm("RESET IDENTITY?")) return;
+  showLoader(true, "WIPING...");
   try{
-    await fetch(`${API_URL}/auth/reset`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({ initData: tg ? tg.initData : "debug_mode" })
+    const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+    await fetch(`${API_URL}/auth/reset`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ initData })
     });
     location.reload();
   }catch(e){
-    console.error(e);
-    alert("Reset failed");
+    alert("Reset failed.");
   }finally{
     showLoader(false);
   }
 }
 
 /** ======================
- * UI / UTILS
+ * RENDER USER
  * ====================== */
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
-  document.getElementById(id).classList.remove('hidden');
-
-  // Toggle Phaser layer + pause/resume (battery)
-  const gl = document.getElementById('game-layer');
-  const scene = game.scene.getScene('Combat');
-
-  if(id === 'screen-combat'){
-    gl.style.display = 'block';
-    scene.scene.resume();
-  }else{
-    gl.style.display = 'none';
-    scene.scene.pause();
-  }
+function setTag(el, text, kind=null){
+  el.classList.remove("neon","pink","red");
+  if (kind) el.classList.add(kind);
+  el.textContent = text;
 }
 
-function showLoader(v, msg=""){
-  const l = document.getElementById('loader');
-  if(v){
-    l.classList.remove('hidden');
-    document.getElementById('loader-msg').innerText = msg;
-  }else{
-    l.classList.add('hidden');
-  }
-}
+function renderMe(user){
+  // ENTRY screen
+  document.getElementById("me-id").innerText = user.user_id ?? user.tg_id ?? "—";
+  document.getElementById("me-name").innerText = user.username || "AGENT";
+  document.getElementById("me-ap").innerText = user.ap ?? 0;
 
-function logCamDebug(msg){
-  const el = document.getElementById("cam-debug");
-  if(el) el.textContent = msg;
-  console.log(msg);
-}
+  const img = user.bio_lock_url || "";
+  document.getElementById("me-img").src = img;
 
-function escapeHtml(str){
-  return String(str)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
+  setTag(document.getElementById("role-tag"), (user.role || "CITIZEN"), (user.role === "PIONEER" ? "neon" : null));
+  setTag(document.getElementById("verif-tag"), (user.verification_status || "PENDING"),
+         (user.verification_status === "VERIFIED" ? "neon" : (user.verification_status === "REJECTED" ? "red" : "pink")));
 
-function escapeAttr(str){
-  // safe for putting inside attributes like src=""
-  return escapeHtml(str).replaceAll("`","&#096;");
+  const pioneer = (user.role === "PIONEER");
+  document.getElementById("pioneer-badge").classList.toggle("hidden", !pioneer);
+  document.getElementById("title").classList.toggle("pioneer-glitch", pioneer);
+
+  // Referral status + link
+  const refStatus = user.referral_status || "NONE";
+  setTag(document.getElementById("ref-status"), refStatus,
+    refStatus === "PAID" ? "neon" : (refStatus === "PENDING" ? "pink" : (refStatus === "BROKEN" ? "red" : null))
+  );
+  document.getElementById("ref-link").innerText = buildReferralLink(user.user_id ?? user.tg_id ?? 0);
+
+  // Gate status
+  const gate = user.bio_lock_url ? "UNLOCKED" : "LOCKED";
+  setTag(document.getElementById("gate-status"), gate, gate === "UNLOCKED" ? "neon" : "red");
+
+  // HOME screen
+  document.getElementById("home-id").innerText = user.user_id ?? user.tg_id ?? "—";
+  document.getElementById("home-name").innerText = user.username || "AGENT";
+  document.getElementById("home-ap").innerText = user.ap ?? 0;
+  document.getElementById("home-img").src = img;
+  document.getElementById("home-body").innerText = user.body_asset_id || "—";
+
+  setTag(document.getElementById("home-role"), (user.role || "CITIZEN"), (user.role === "PIONEER" ? "neon" : null));
+  setTag(document.getElementById("home-verif"), (user.verification_status || "PENDING"),
+         (user.verification_status === "VERIFIED" ? "neon" : (user.verification_status === "REJECTED" ? "red" : "pink")));
+
+  document.getElementById("home-pioneer-badge").classList.toggle("hidden", !pioneer);
+  document.getElementById("home-title").classList.toggle("pioneer-glitch", pioneer);
+
+  // Sliders preload if body_asset_id exists (best-effort)
+  // We don't reverse-map asset_id to sliders. Prompt 1 keeps it simple.
 }
 
 /** ======================
- * START
+ * INIT (Prompt 1)
  * ====================== */
+async function init(){
+  showLoader(true, "CONNECTING...");
+  try{
+    const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+
+    // Optional: capture Telegram start_param
+    const start_param = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) ? tg.initDataUnsafe.start_param : "";
+
+    // Send to backend. Backend supports start_param inside initData; this also helps if you later parse it.
+    const res = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ initData, start_param })
+    });
+
+    const data = await res.json();
+    if (data.status !== "ok" || !data.user) {
+      throw new Error(data.msg || "Login failed");
+    }
+
+    ME = data.user;
+    renderMe(ME);
+
+    // Gate: if bio_lock_url exists, go to home; else stay entry
+    if (ME.bio_lock_url) showScreen("screen-home");
+    else showScreen("screen-entry");
+
+    logStatus("CONNECTED.");
+  }catch(e){
+    showScreen("screen-entry");
+    logStatus("BACKEND ERROR.");
+  }finally{
+    showLoader(false);
+  }
+}
+
+/** ======================
+ * BOOT
+ * ====================== */
+onSlider();
 init();
 </script>
 </body>
