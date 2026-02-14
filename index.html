@@ -28,7 +28,6 @@
     height:100vh;overflow-y:auto;box-sizing:border-box;
     background:var(--panel);
   }
-  .screen.transparent{background:none;}
   .glitch{
     animation:shake 2s infinite;
     color:var(--neon);font-size:2rem;font-weight:bold;
@@ -38,25 +37,18 @@
     0%{transform:translate(0,0);}2%{transform:translate(1px,0);}4%{transform:translate(0,0);}
   }
 
-  /* Pioneer visual */
   .pioneer-glitch{
     color:#fff;
-    text-shadow:
-      0 0 6px var(--neon),
-      0 0 12px var(--pink),
-      0 0 20px var(--neon);
-    animation: pglow 1.4s infinite alternate;
+    text-shadow: 0 0 6px var(--neon), 0 0 12px var(--pink), 0 0 20px var(--neon);
+    animation:pglow 1.4s infinite alternate;
   }
-  @keyframes pglow{
-    from{filter:brightness(1);}
-    to{filter:brightness(1.35);}
-  }
+  @keyframes pglow{from{filter:brightness(1);}to{filter:brightness(1.35);} }
 
   .card{
-    width:320px;max-width:95%;
+    width:340px;max-width:95%;
     margin:14px auto;padding:14px;
     border:1px solid #333;background:rgba(255,255,255,0.03);
-    border-radius:10px;text-align:left;
+    border-radius:12px;text-align:left;
   }
   .row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
   .tag{
@@ -66,8 +58,9 @@
   .tag.neon{border-color:var(--neon);color:var(--neon);}
   .tag.pink{border-color:var(--pink);color:var(--pink);}
   .tag.red{border-color:var(--red);color:var(--red);}
-  .small{font-size:0.8rem;color:#bbb;line-height:1.2rem;}
+  .small{font-size:0.82rem;color:#bbb;line-height:1.25rem;}
   .muted{color:var(--muted);}
+  .divider{height:1px;background:#222;margin:14px 0;}
 
   .btn{
     width:100%;padding:14px;background:#111;border:1px solid var(--neon);
@@ -93,23 +86,12 @@
     display:flex;align-items:center;justify-content:center;flex-direction:column;
   }
 
-  /* Slider module */
   .slider-wrap{margin-top:14px;}
-  .slider{
-    width:100%;
-    accent-color: var(--neon);
-  }
-  .slider-label{
-    display:flex;justify-content:space-between;align-items:center;
-    margin-top:10px;
-    color:#bbb;
-  }
+  .slider{width:100%;accent-color:var(--neon);}
+  .slider-label{display:flex;justify-content:space-between;align-items:center;margin-top:10px;color:#bbb;}
   .slider-label b{color:#fff;}
-  .slider-pips{
-    display:flex;justify-content:space-between;font-size:0.7rem;color:#666;margin-top:4px;
-  }
+  .slider-pips{display:flex;justify-content:space-between;font-size:0.7rem;color:#666;margin-top:4px;}
 
-  /* Avatar preview */
   .avatar{
     width:120px;height:120px;margin:0 auto;border:2px solid var(--neon);
     border-radius:14px;overflow:hidden;background:#000;position:relative;
@@ -121,9 +103,14 @@
     padding:6px 8px;font-size:0.7rem;font-weight:bold;border-radius:10px;
   }
 
-  .divider{height:1px;background:#222;margin:14px 0;}
+  .vessel-preview{
+    width:260px;max-width:100%;
+    margin:12px auto 0;
+    border:1px solid #333;border-radius:12px;
+    overflow:hidden;background:#000;
+  }
+  .vessel-preview img{width:100%;display:block;}
 
-  /* Copy box */
   .copybox{
     width:100%;padding:12px;border:1px solid #333;border-radius:10px;
     background:rgba(0,0,0,0.4);color:#ccc;
@@ -143,10 +130,9 @@
 
 <div id="ui-layer">
 
-  <!-- SCREEN: ENTRY GATE -->
   <div id="screen-entry" class="screen">
     <h1 id="title" class="glitch" style="margin-top:30px;">AZEUQER</h1>
-    <p class="muted" style="margin:6px 0 0;">// PROMPT 1: GENESIS & SCHEMA</p>
+    <p class="muted" style="margin:6px 0 0;">// PROMPT 1: GENESIS</p>
 
     <div class="card">
       <div class="row">
@@ -157,11 +143,10 @@
       <div class="small">
         <div>• Bio-Lock is mandatory. No face, no game.</div>
         <div>• First 100 users become <b>PIONEER</b> and are instantly VERIFIED.</div>
-        <div>• Referrals are <b>locked</b> until Bio-Lock is completed.</div>
+        <div>• Referrals pay out after Bio-Lock.</div>
       </div>
     </div>
 
-    <!-- Profile mini -->
     <div class="card">
       <div class="row">
         <span class="tag pink">IDENTITY</span>
@@ -177,9 +162,13 @@
       <h2 id="me-name" style="margin:12px 0 0;">AGENT</h2>
       <div class="small muted">User ID: <span id="me-id">—</span></div>
       <div class="small muted">AP: <span id="me-ap">0</span></div>
+      <div class="small muted">body_asset_id: <span id="me-body">—</span></div>
+
+      <div class="vessel-preview">
+        <img id="vessel-art" src="" alt="vessel art" />
+      </div>
     </div>
 
-    <!-- Referral UI -->
     <div class="card">
       <div class="row">
         <span class="tag neon">REFERRAL</span>
@@ -192,14 +181,13 @@
       </div>
 
       <div class="copybox" style="margin-top:10px;">
-        <code id="ref-link">t.me/YourBot?start=ref_0</code>
+        <code id="ref-link">https://t.me/AzeuqerBot?start=ref_0</code>
         <button class="btn btn-small" onclick="copyReferral()">COPY</button>
       </div>
 
       <div id="ref-debug" class="small muted" style="margin-top:10px;"></div>
     </div>
 
-    <!-- Bio-Lock Gate -->
     <button class="camera-label" onclick="openCamera()">📸 SCAN FACE (BIO-LOCK)</button>
 
     <div id="camera-box" class="hidden">
@@ -209,11 +197,9 @@
       <small id="cam-debug" style="display:block;margin-top:8px;color:#555;"></small>
     </div>
 
-    <!-- iOS fallback -->
     <input id="cameraFallback" class="hidden" type="file" accept="image/*" capture="user" />
     <canvas id="canvas" class="hidden"></canvas>
 
-    <!-- Vessel (Cosmetic sliders) -->
     <div class="card">
       <div class="row">
         <span class="tag pink">VESSEL</span>
@@ -222,7 +208,7 @@
       <div class="divider"></div>
 
       <div class="small muted">
-        Tune your Vessel. These sliders are cosmetic and only generate <code>body_asset_id</code>.
+        Adjust sliders to generate <code>body_asset_id</code>. (No stats impact.)
       </div>
 
       <div class="slider-wrap">
@@ -255,51 +241,14 @@
     </div>
 
     <button class="btn btn-red" onclick="resetIdentity()">⚠ RESET IDENTITY</button>
-
     <div id="status-log" class="small muted" style="margin-top:14px;">SYSTEM READY</div>
-  </div>
-
-  <!-- SCREEN: VERIFIED HOME (Prompt 1 ends here; Prompt 2 builds feed) -->
-  <div id="screen-home" class="screen hidden">
-    <h1 id="home-title" class="glitch" style="margin-top:30px;">AZEUQER</h1>
-    <p class="muted" style="margin:6px 0 0;">// ACCESS GRANTED</p>
-
-    <div class="card">
-      <div class="row">
-        <span class="tag neon">YOU</span>
-        <span id="home-role" class="tag">CITIZEN</span>
-        <span id="home-verif" class="tag">PENDING</span>
-      </div>
-      <div class="divider"></div>
-
-      <div class="avatar">
-        <img id="home-img" src="" alt="me" />
-        <div id="home-pioneer-badge" class="badge hidden">PIONEER</div>
-      </div>
-      <h2 id="home-name" style="margin:12px 0 0;">AGENT</h2>
-      <div class="small muted">User ID: <span id="home-id">—</span></div>
-      <div class="small muted">AP: <span id="home-ap">0</span></div>
-      <div class="small muted">body_asset_id: <span id="home-body">—</span></div>
-
-      <div class="divider"></div>
-
-      <div class="small">
-        Prompt 1 is complete. Next: Social Feed, Swipes, Faction dynamics (Prompt 2).
-      </div>
-
-      <button class="btn" onclick="showScreen('screen-entry')">↩ BACK</button>
-    </div>
   </div>
 
 </div>
 
 <script>
-/** ======================
- * CONFIG
- * ====================== */
-const API_URL = "https://azeuqer-backend.onrender.com"; // your Render backend
+const API_URL = "https://azeuqer-backend.onrender.com";
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
-
 try { if (tg) { tg.ready(); tg.expand(); } } catch (e) {}
 
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -308,57 +257,19 @@ const isTelegram = !!tg;
 let ME = null;
 let cameraStream = null;
 
-/** ======================
- * LOADER + SCREENS
- * ====================== */
-function showLoader(v, msg="") {
+function showLoader(v, msg=""){
   const l = document.getElementById("loader");
-  if (v) {
-    l.classList.remove("hidden");
-    document.getElementById("loader-msg").innerText = msg;
-  } else {
-    l.classList.add("hidden");
-  }
+  if (v){ l.classList.remove("hidden"); document.getElementById("loader-msg").innerText = msg; }
+  else { l.classList.add("hidden"); }
+}
+function logStatus(msg){ document.getElementById("status-log").textContent = msg; }
+
+function setTag(el, text, kind=null){
+  el.classList.remove("neon","pink","red");
+  if (kind) el.classList.add(kind);
+  el.textContent = text;
 }
 
-function showScreen(id){
-  document.querySelectorAll(".screen").forEach(s => s.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
-}
-
-function logStatus(msg){
-  const el = document.getElementById("status-log");
-  if (el) el.textContent = msg;
-}
-
-/** ======================
- * REFERRAL LINK
- * ====================== */
-function buildReferralLink(userId){
-  // You will update bot username later; keep placeholder for now.
-  // If you know your bot username, set it here:
-  const BOT = "AzeuqerBot";
-  return `https://t.me/${BOT}?start=ref_${userId}`;
-}
-
-async function copyReferral(){
-  const txt = document.getElementById("ref-link").innerText;
-  try{
-    await navigator.clipboard.writeText(txt);
-    document.getElementById("ref-debug").innerText = "Copied to clipboard.";
-  }catch(e){
-    // fallback for older webviews
-    const ta = document.createElement("textarea");
-    ta.value = txt; document.body.appendChild(ta);
-    ta.select(); document.execCommand("copy");
-    document.body.removeChild(ta);
-    document.getElementById("ref-debug").innerText = "Copied (fallback).";
-  }
-}
-
-/** ======================
- * VESSEL (Cosmetic sliders)
- * ====================== */
 function bucket(v){
   if (v <= 33) return "low";
   if (v <= 66) return "mid";
@@ -378,21 +289,131 @@ function onSlider(){
   document.getElementById("v-pace").innerText = document.getElementById("s-pace").value;
   document.getElementById("v-mind").innerText = document.getElementById("s-mind").value;
   document.getElementById("v-vibe").innerText = document.getElementById("s-vibe").value;
-  computeBodyAsset();
+  const id = computeBodyAsset();
+  document.getElementById("vessel-art").src = vesselSvgDataUrl(id);
+}
+
+function buildReferralLink(userId){
+  const BOT = "AzeuqerBot";
+  return `https://t.me/${BOT}?start=ref_${userId}`;
+}
+
+async function copyReferral(){
+  const txt = document.getElementById("ref-link").innerText;
+  try{
+    await navigator.clipboard.writeText(txt);
+    document.getElementById("ref-debug").innerText = "Copied to clipboard.";
+  }catch(e){
+    const ta = document.createElement("textarea");
+    ta.value = txt; document.body.appendChild(ta);
+    ta.select(); document.execCommand("copy");
+    document.body.removeChild(ta);
+    document.getElementById("ref-debug").innerText = "Copied (fallback).";
+  }
+}
+
+function vesselSvgDataUrl(body_asset_id){
+  // Deterministic palette from asset id:
+  const hash = [...body_asset_id].reduce((a,c)=>((a*31)+c.charCodeAt(0))>>>0, 7);
+  const hue1 = hash % 360;
+  const hue2 = (hue1 + 140) % 360;
+  const hue3 = (hue1 + 260) % 360;
+
+  const svg = `
+  <svg xmlns="http://www.w3.org/2000/svg" width="600" height="360" viewBox="0 0 600 360">
+    <defs>
+      <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+        <stop offset="0" stop-color="hsl(${hue1} 70% 8%)"/>
+        <stop offset="1" stop-color="hsl(${hue2} 70% 10%)"/>
+      </linearGradient>
+      <radialGradient id="aura" cx="50%" cy="48%" r="55%">
+        <stop offset="0" stop-color="hsl(${hue3} 90% 70%)" stop-opacity="0.35"/>
+        <stop offset="1" stop-color="hsl(${hue3} 90% 70%)" stop-opacity="0"/>
+      </radialGradient>
+      <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+        <feGaussianBlur stdDeviation="6" result="b"/>
+        <feMerge>
+          <feMergeNode in="b"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+
+    <rect width="600" height="360" fill="url(#bg)"/>
+    <rect width="600" height="360" fill="url(#aura)"/>
+
+    <!-- ground -->
+    <path d="M0,310 C120,280 220,330 320,315 C420,300 520,320 600,295 L600,360 L0,360 Z"
+          fill="rgba(0,0,0,0.55)"/>
+
+    <!-- vehicle (hover board / cloud / ship hybrid) -->
+    <g filter="url(#glow)">
+      <path d="M120,250 C160,210 260,210 300,240 C340,270 420,270 470,245
+               C520,220 560,235 560,255
+               C560,285 520,300 480,298
+               C430,296 380,320 320,318
+               C260,316 210,300 170,300
+               C130,300 100,285 100,265
+               C100,258 108,255 120,250 Z"
+            fill="rgba(0,255,204,0.12)" stroke="rgba(0,255,204,0.55)" stroke-width="2"/>
+
+      <circle cx="190" cy="285" r="10" fill="rgba(255,0,255,0.25)" stroke="rgba(255,0,255,0.7)"/>
+      <circle cx="400" cy="285" r="10" fill="rgba(255,0,255,0.25)" stroke="rgba(255,0,255,0.7)"/>
+    </g>
+
+    <!-- pilot capsule -->
+    <g filter="url(#glow)">
+      <path d="M260,210 C260,180 340,180 340,210 C340,245 320,265 300,265
+               C280,265 260,245 260,210 Z"
+            fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.35)"/>
+      <circle cx="300" cy="218" r="24" fill="rgba(0,0,0,0.35)" stroke="rgba(0,255,204,0.55)"/>
+      <circle cx="292" cy="212" r="4" fill="rgba(255,255,255,0.55)"/>
+    </g>
+
+    <!-- label -->
+    <text x="20" y="40" font-family="Courier New, monospace" font-size="18" fill="rgba(255,255,255,0.65)">
+      ${body_asset_id}
+    </text>
+  </svg>`;
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+
+function renderMe(user){
+  document.getElementById("me-id").innerText = user.user_id ?? user.tg_id ?? "—";
+  document.getElementById("me-name").innerText = user.username || "AGENT";
+  document.getElementById("me-ap").innerText = user.ap ?? 0;
+
+  const img = user.bio_lock_url || "";
+  document.getElementById("me-img").src = img;
+
+  setTag(document.getElementById("role-tag"), (user.role || "CITIZEN"), (user.role === "PIONEER" ? "neon" : null));
+  setTag(document.getElementById("verif-tag"), (user.verification_status || "PENDING"),
+         (user.verification_status === "VERIFIED" ? "neon" : (user.verification_status === "REJECTED" ? "red" : "pink")));
+
+  const pioneer = (user.role === "PIONEER");
+  document.getElementById("pioneer-badge").classList.toggle("hidden", !pioneer);
+  document.getElementById("title").classList.toggle("pioneer-glitch", pioneer);
+
+  const gate = user.bio_lock_url ? "UNLOCKED" : "LOCKED";
+  setTag(document.getElementById("gate-status"), gate, gate === "UNLOCKED" ? "neon" : "red");
+
+  const refStatus = user.referral_status || "NONE";
+  setTag(document.getElementById("ref-status"), refStatus,
+    refStatus === "PAID" ? "neon" : (refStatus === "PENDING" ? "pink" : (refStatus === "BROKEN" ? "red" : null))
+  );
+  document.getElementById("ref-link").innerText = buildReferralLink(user.user_id ?? user.tg_id ?? 0);
+
+  document.getElementById("me-body").innerText = user.body_asset_id || "—";
+  document.getElementById("vessel-art").src = vesselSvgDataUrl(user.body_asset_id || computeBodyAsset());
 }
 
 async function saveVessel(){
   if (!ME) { alert("Not logged in."); return; }
-  // Prompt 1 backend currently doesn’t include a dedicated vessel endpoint.
-  // For Prompt 1 we store body_asset_id by calling login again with a special field.
-  // If you want a dedicated endpoint later, we’ll add it in the next backend iteration.
   showLoader(true, "SAVING VESSEL...");
   try{
     const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
     const body_asset_id = computeBodyAsset();
 
-    // We store it by hitting a lightweight "profile save" endpoint.
-    // If your backend does not have it yet, we show a clean message.
     const res = await fetch(`${API_URL}/profile/vessel`, {
       method: "POST",
       headers: {"Content-Type":"application/json"},
@@ -400,12 +421,12 @@ async function saveVessel(){
     });
 
     const data = await res.json();
-    if (data.status === "ok") {
-      ME.body_asset_id = body_asset_id;
+    if (data.status === "ok" && data.user) {
+      ME = data.user;
       document.getElementById("vessel-msg").innerText = "Vessel saved.";
       renderMe(ME);
     } else {
-      document.getElementById("vessel-msg").innerText = "Backend missing /profile/vessel. Tell me and I’ll add it (full main.py).";
+      document.getElementById("vessel-msg").innerText = data.msg || "Save failed.";
     }
   }catch(e){
     document.getElementById("vessel-msg").innerText = "Save failed.";
@@ -414,19 +435,12 @@ async function saveVessel(){
   }
 }
 
-/** ======================
- * CAMERA / BIOLOCK
- * ====================== */
 async function openCamera(){
-  if (isIOS && isTelegram) {
-    logCamDebug("iOS + Telegram detected → using capture fallback.");
-    return openCameraFallback();
-  }
+  if (isIOS && isTelegram) return openCameraFallback();
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     alert("Camera API not supported.");
     return;
   }
-
   const videoEl = document.getElementById("video");
   try{
     showLoader(true, "ACCESSING CAMERA...");
@@ -443,10 +457,10 @@ async function openCamera(){
     await videoEl.play();
 
     document.getElementById("camera-box").classList.remove("hidden");
-    logCamDebug("Camera started.");
+    document.getElementById("cam-debug").textContent = "Camera started.";
   }catch(err){
     alert("Camera permission denied / unsupported.");
-    logCamDebug("Error: " + (err.name || err));
+    document.getElementById("cam-debug").textContent = "Error: " + (err.name || err);
   }finally{
     showLoader(false);
   }
@@ -457,13 +471,8 @@ function openCameraFallback(){
   input.onchange = async () => {
     const file = input.files && input.files[0];
     if (!file) return;
-    try{
-      showLoader(true, "UPLOADING BIO-LOCK...");
-      await uploadBioBlob(file);
-    }finally{
-      showLoader(false);
-      input.value = "";
-    }
+    showLoader(true, "UPLOADING BIO-LOCK...");
+    try{ await uploadBioBlob(file); } finally { showLoader(false); input.value = ""; }
   };
   input.click();
 }
@@ -471,11 +480,7 @@ function openCameraFallback(){
 function capturePhoto(){
   const video = document.getElementById("video");
   const canvas = document.getElementById("canvas");
-
-  if (!video.videoWidth) {
-    alert("Camera not ready.");
-    return;
-  }
+  if (!video.videoWidth) { alert("Camera not ready."); return; }
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   canvas.getContext("2d").drawImage(video, 0, 0);
@@ -484,11 +489,7 @@ function capturePhoto(){
     if (!blob) { alert("Capture failed."); return; }
     stopCamera();
     showLoader(true, "UPLOADING BIO-LOCK...");
-    try{
-      await uploadBioBlob(blob);
-    }finally{
-      showLoader(false);
-    }
+    try{ await uploadBioBlob(blob); } finally { showLoader(false); }
   }, "image/jpeg", 0.92);
 }
 
@@ -497,10 +498,7 @@ function stopCamera(){
     const videoEl = document.getElementById("video");
     if (videoEl) { videoEl.pause(); videoEl.srcObject = null; }
   }catch(e){}
-  if (cameraStream) {
-    cameraStream.getTracks().forEach(t => t.stop());
-    cameraStream = null;
-  }
+  if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
   document.getElementById("camera-box").classList.add("hidden");
 }
 
@@ -517,20 +515,10 @@ async function uploadBioBlob(blobOrFile){
     alert(data.msg || "Bio-Lock failed.");
     return;
   }
-
-  // Refresh user state
   await init();
   logStatus("BIO-LOCK COMPLETE.");
 }
 
-function logCamDebug(msg){
-  const el = document.getElementById("cam-debug");
-  if (el) el.textContent = String(msg);
-}
-
-/** ======================
- * RESET
- * ====================== */
 async function resetIdentity(){
   if (!confirm("RESET IDENTITY?")) return;
   showLoader(true, "WIPING...");
@@ -549,73 +537,12 @@ async function resetIdentity(){
   }
 }
 
-/** ======================
- * RENDER USER
- * ====================== */
-function setTag(el, text, kind=null){
-  el.classList.remove("neon","pink","red");
-  if (kind) el.classList.add(kind);
-  el.textContent = text;
-}
-
-function renderMe(user){
-  // ENTRY screen
-  document.getElementById("me-id").innerText = user.user_id ?? user.tg_id ?? "—";
-  document.getElementById("me-name").innerText = user.username || "AGENT";
-  document.getElementById("me-ap").innerText = user.ap ?? 0;
-
-  const img = user.bio_lock_url || "";
-  document.getElementById("me-img").src = img;
-
-  setTag(document.getElementById("role-tag"), (user.role || "CITIZEN"), (user.role === "PIONEER" ? "neon" : null));
-  setTag(document.getElementById("verif-tag"), (user.verification_status || "PENDING"),
-         (user.verification_status === "VERIFIED" ? "neon" : (user.verification_status === "REJECTED" ? "red" : "pink")));
-
-  const pioneer = (user.role === "PIONEER");
-  document.getElementById("pioneer-badge").classList.toggle("hidden", !pioneer);
-  document.getElementById("title").classList.toggle("pioneer-glitch", pioneer);
-
-  // Referral status + link
-  const refStatus = user.referral_status || "NONE";
-  setTag(document.getElementById("ref-status"), refStatus,
-    refStatus === "PAID" ? "neon" : (refStatus === "PENDING" ? "pink" : (refStatus === "BROKEN" ? "red" : null))
-  );
-  document.getElementById("ref-link").innerText = buildReferralLink(user.user_id ?? user.tg_id ?? 0);
-
-  // Gate status
-  const gate = user.bio_lock_url ? "UNLOCKED" : "LOCKED";
-  setTag(document.getElementById("gate-status"), gate, gate === "UNLOCKED" ? "neon" : "red");
-
-  // HOME screen
-  document.getElementById("home-id").innerText = user.user_id ?? user.tg_id ?? "—";
-  document.getElementById("home-name").innerText = user.username || "AGENT";
-  document.getElementById("home-ap").innerText = user.ap ?? 0;
-  document.getElementById("home-img").src = img;
-  document.getElementById("home-body").innerText = user.body_asset_id || "—";
-
-  setTag(document.getElementById("home-role"), (user.role || "CITIZEN"), (user.role === "PIONEER" ? "neon" : null));
-  setTag(document.getElementById("home-verif"), (user.verification_status || "PENDING"),
-         (user.verification_status === "VERIFIED" ? "neon" : (user.verification_status === "REJECTED" ? "red" : "pink")));
-
-  document.getElementById("home-pioneer-badge").classList.toggle("hidden", !pioneer);
-  document.getElementById("home-title").classList.toggle("pioneer-glitch", pioneer);
-
-  // Sliders preload if body_asset_id exists (best-effort)
-  // We don't reverse-map asset_id to sliders. Prompt 1 keeps it simple.
-}
-
-/** ======================
- * INIT (Prompt 1)
- * ====================== */
 async function init(){
   showLoader(true, "CONNECTING...");
   try{
     const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
-
-    // Optional: capture Telegram start_param
     const start_param = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) ? tg.initDataUnsafe.start_param : "";
 
-    // Send to backend. Backend supports start_param inside initData; this also helps if you later parse it.
     const res = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       headers: {"Content-Type":"application/json"},
@@ -623,29 +550,18 @@ async function init(){
     });
 
     const data = await res.json();
-    if (data.status !== "ok" || !data.user) {
-      throw new Error(data.msg || "Login failed");
-    }
+    if (data.status !== "ok" || !data.user) throw new Error(data.msg || "Login failed");
 
     ME = data.user;
     renderMe(ME);
-
-    // Gate: if bio_lock_url exists, go to home; else stay entry
-    if (ME.bio_lock_url) showScreen("screen-home");
-    else showScreen("screen-entry");
-
     logStatus("CONNECTED.");
   }catch(e){
-    showScreen("screen-entry");
     logStatus("BACKEND ERROR.");
   }finally{
     showLoader(false);
   }
 }
 
-/** ======================
- * BOOT
- * ====================== */
 onSlider();
 init();
 </script>
