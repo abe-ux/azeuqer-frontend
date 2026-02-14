@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>AZEUQER: TITANIUM — PROMPT 1.1 + 1.2</title>
+<title>AZEUQER: TITANIUM — PROMPT 1.4 VESSEL</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -18,7 +18,7 @@
   @keyframes shake{0%{transform:translate(0,0);}2%{transform:translate(1px,0);}4%{transform:translate(0,0);}}
   .pioneer-glitch{color:#fff;text-shadow:0 0 6px var(--neon),0 0 12px var(--pink),0 0 20px var(--neon);animation:pglow 1.4s infinite alternate;}
   @keyframes pglow{from{filter:brightness(1);}to{filter:brightness(1.35);} }
-  .card{width:360px;max-width:96%;margin:14px auto;padding:14px;border:1px solid #333;background:rgba(255,255,255,0.03);border-radius:12px;text-align:left;}
+  .card{width:380px;max-width:96%;margin:14px auto;padding:14px;border:1px solid #333;background:rgba(255,255,255,0.03);border-radius:12px;text-align:left;}
   .row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
   .tag{display:inline-block;padding:6px 10px;border:1px solid #333;border-radius:999px;color:#bbb;font-size:0.75rem;}
   .tag.neon{border-color:var(--neon);color:var(--neon);}
@@ -38,8 +38,12 @@
   .avatar{width:120px;height:120px;margin:0 auto;border:2px solid var(--neon);border-radius:14px;overflow:hidden;background:#000;position:relative;}
   .avatar img{width:100%;height:100%;object-fit:cover;}
   .badge{position:absolute;bottom:-10px;right:-10px;background:#000;border:1px solid var(--neon);color:var(--neon);padding:6px 8px;font-size:0.7rem;font-weight:bold;border-radius:10px;}
-  .copybox{width:100%;padding:12px;border:1px solid #333;border-radius:10px;background:rgba(0,0,0,0.4);color:#ccc;display:flex;align-items:center;justify-content:space-between;gap:10px;}
-  .copybox code{color:#ddd;word-break:break-all;font-size:0.8rem;}
+  .slider-wrap{margin-top:10px;}
+  .slider{width:100%;accent-color:var(--neon);}
+  .slider-label{display:flex;justify-content:space-between;align-items:center;margin-top:10px;color:#bbb;}
+  .slider-label b{color:#fff;}
+  .preview-box{width:340px;max-width:96%;margin:0 auto;border:1px solid #333;border-radius:12px;overflow:hidden;background:#000;}
+  canvas{display:block;width:100%;height:auto;}
 </style>
 </head>
 
@@ -53,24 +57,12 @@
 
 <div id="ui-layer">
   <div id="screen-entry" class="screen">
-    <h1 id="title" class="glitch" style="margin-top:26px;">AZEUQER</h1>
-    <p class="muted" style="margin:6px 0 0;">// PROMPT 1.1 + 1.2: REFERRAL + PIONEER</p>
+    <h1 id="title" class="glitch" style="margin-top:24px;">AZEUQER</h1>
+    <p class="muted" style="margin:6px 0 0;">// PROMPT 1.4: VESSEL</p>
 
     <div class="card">
       <div class="row">
-        <span class="tag neon">GATE</span>
-        <span id="gate-status" class="tag red">LOCKED</span>
-      </div>
-      <div class="divider"></div>
-      <div class="small">
-        <div><b>Bio-Lock is mandatory.</b> Exactly one clear face.</div>
-      </div>
-      <div id="biolock-error" class="small" style="margin-top:10px;color:#ff7777;"></div>
-    </div>
-
-    <div class="card">
-      <div class="row">
-        <span class="tag pink">IDENTITY</span>
+        <span class="tag neon">IDENTITY</span>
         <span id="role-tag" class="tag">CITIZEN</span>
         <span id="verif-tag" class="tag">PENDING</span>
       </div>
@@ -84,45 +76,42 @@
       <h2 id="me-name" style="margin:12px 0 0;">AGENT</h2>
       <div class="small muted">User ID: <span id="me-id">—</span></div>
       <div class="small muted">AP: <span id="me-ap">0</span></div>
-
-      <div class="divider"></div>
-      <div class="small muted">BioLock: <span id="me-biolock">GATE</span> | Attempts: <span id="me-attempts">0</span></div>
-      <div id="pending-note" class="small" style="margin-top:8px;color:#ffaa66;display:none;">
-        You are <b>PENDING</b>. Tribunal will be added in Prompt 5. (Pioneers are instant VERIFIED.)
-      </div>
+      <div class="small muted">BioLock: <span id="me-biolock">GATE</span></div>
+      <div class="small muted">Body Asset: <span id="me-body">body_mid_mid_mid_mid.png</span></div>
     </div>
 
     <div class="card">
       <div class="row">
-        <span class="tag neon">REFERRAL</span>
-        <span id="ref-status" class="tag">NONE</span>
+        <span class="tag pink">VESSEL</span>
+        <span id="vessel-band" class="tag">MID</span>
       </div>
       <div class="divider"></div>
 
-      <div class="small">
-        Invite others. Reward pays out <b>only after</b> the invitee passes Bio-Lock.
+      <div class="slider-wrap">
+        <div class="slider-label"><span>WORK</span><b id="workVal">50</b></div>
+        <input id="work" class="slider" type="range" min="0" max="100" value="50" />
+        <div class="slider-label"><span>PACE</span><b id="paceVal">50</b></div>
+        <input id="pace" class="slider" type="range" min="0" max="100" value="50" />
+        <div class="slider-label"><span>MIND</span><b id="mindVal">50</b></div>
+        <input id="mind" class="slider" type="range" min="0" max="100" value="50" />
+        <div class="slider-label"><span>VIBE</span><b id="vibeVal">50</b></div>
+        <input id="vibe" class="slider" type="range" min="0" max="100" value="50" />
       </div>
 
-      <div class="copybox" style="margin-top:10px;">
-        <code id="ref-link">https://t.me/AzeuqerBot?start=ref_0</code>
-        <button class="btn btn-small" onclick="copyReferral()">COPY</button>
-        <button class="btn btn-small" onclick="shareReferral()">SHARE</button>
+      <button class="btn" onclick="saveVessel()">SAVE VESSEL</button>
+      <div id="vessel-msg" class="small muted" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="tag neon">PREVIEW</span>
+        <span class="tag muted">Face riding vehicle</span>
       </div>
-
-      <div id="ref-debug" class="small muted" style="margin-top:10px;"></div>
+      <div class="divider"></div>
+      <div class="preview-box">
+        <canvas id="preview" width="900" height="600"></canvas>
+      </div>
     </div>
-
-    <button class="camera-label" onclick="openCamera()">📸 SCAN FACE (SELFIE)</button>
-
-    <div id="camera-box" class="hidden">
-      <video id="video" autoplay playsinline muted></video>
-      <button class="btn" onclick="capturePhoto()">📸 CAPTURE & VERIFY</button>
-      <button class="btn btn-red" onclick="stopCamera()">✖ CLOSE</button>
-      <small id="cam-debug" style="display:block;margin-top:8px;color:#555;"></small>
-    </div>
-
-    <input id="cameraFallback" class="hidden" type="file" accept="image/*" capture="user" />
-    <canvas id="canvas" class="hidden"></canvas>
 
     <div id="status-log" class="small muted" style="margin-top:14px;">SYSTEM READY</div>
   </div>
@@ -133,11 +122,7 @@ const API_URL = "https://azeuqer-backend.onrender.com";
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
 try { if (tg) { tg.ready(); tg.expand(); } } catch (e) {}
 
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-const isTelegram = !!tg;
-
 let ME = null;
-let cameraStream = null;
 
 function showLoader(v, msg=""){
   const l = document.getElementById("loader");
@@ -151,79 +136,169 @@ function setTag(el, text, kind=null){
   el.textContent = text;
 }
 
-function buildReferralLink(userId){
-  const BOT = "AzeuqerBot";
-  return `https://t.me/${BOT}?start=ref_${userId}`;
+function band(v){
+  if(v<=33) return "LOW";
+  if(v<=66) return "MID";
+  return "HIGH";
+}
+function bodyAsset(work,pace,mind,vibe){
+  const b=(x)=> (x<=33?"low":(x<=66?"mid":"high"));
+  return `body_${b(work)}_${b(pace)}_${b(mind)}_${b(vibe)}.png`;
 }
 
-async function copyReferral(){
-  const txt = document.getElementById("ref-link").innerText;
-  try{ await navigator.clipboard.writeText(txt); document.getElementById("ref-debug").innerText="Copied."; }
-  catch(e){
-    const ta=document.createElement("textarea"); ta.value=txt; document.body.appendChild(ta);
-    ta.select(); document.execCommand("copy"); document.body.removeChild(ta);
-    document.getElementById("ref-debug").innerText="Copied (fallback).";
+function hookSliders(){
+  const ids=["work","pace","mind","vibe"];
+  ids.forEach(id=>{
+    document.getElementById(id).addEventListener("input", ()=>{
+      document.getElementById(id+"Val").textContent = document.getElementById(id).value;
+      updateVesselLabel();
+      drawPreview();
+    });
+  });
+}
+
+function updateVesselLabel(){
+  const w=+document.getElementById("work").value;
+  const p=+document.getElementById("pace").value;
+  const m=+document.getElementById("mind").value;
+  const v=+document.getElementById("vibe").value;
+  const avg=Math.round((w+p+m+v)/4);
+  document.getElementById("vessel-band").textContent = band(avg);
+  document.getElementById("me-body").textContent = bodyAsset(w,p,m,v);
+}
+
+function hashHue(seed){
+  let h=7;
+  for(const ch of seed) h=(h*31 + ch.charCodeAt(0))>>>0;
+  return h%360;
+}
+
+async function loadImage(url){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.crossOrigin="anonymous";
+    img.onload=()=>resolve(img);
+    img.onerror=()=>reject(new Error("IMG_FAIL"));
+    img.src=url;
+  });
+}
+
+async function drawPreview(){
+  const canvas=document.getElementById("preview");
+  const ctx=canvas.getContext("2d");
+
+  const w=+document.getElementById("work").value;
+  const p=+document.getElementById("pace").value;
+  const m=+document.getElementById("mind").value;
+  const v=+document.getElementById("vibe").value;
+
+  const asset = bodyAsset(w,p,m,v);
+  const hue = hashHue(asset);
+
+  // bg
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const grad=ctx.createLinearGradient(0,0,canvas.width,canvas.height);
+  grad.addColorStop(0, `hsl(${hue} 70% 8%)`);
+  grad.addColorStop(1, `hsl(${(hue+160)%360} 70% 10%)`);
+  ctx.fillStyle=grad;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // aura
+  const rg=ctx.createRadialGradient(canvas.width*0.5, canvas.height*0.35, 20, canvas.width*0.5, canvas.height*0.35, 420);
+  rg.addColorStop(0, `hsla(${(hue+260)%360} 90% 70% / 0.35)`);
+  rg.addColorStop(1, `hsla(${(hue+260)%360} 90% 70% / 0)`);
+  ctx.fillStyle=rg;
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // "vehicle" (procedural hoverboard/cloud)
+  ctx.save();
+  ctx.translate(canvas.width/2, canvas.height*0.74);
+  ctx.shadowColor=`hsla(${(hue+180)%360} 90% 60% / 0.7)`;
+  ctx.shadowBlur=35;
+  ctx.fillStyle=`hsla(${(hue+180)%360} 90% 55% / 0.18)`;
+  ctx.strokeStyle=`hsla(${(hue+180)%360} 90% 65% / 0.75)`;
+  ctx.lineWidth=6;
+  ctx.beginPath();
+  ctx.moveTo(-260, 0);
+  ctx.bezierCurveTo(-180,-70,-40,-70,0,-25);
+  ctx.bezierCurveTo(40,20,190,20,260,-10);
+  ctx.bezierCurveTo(270,40,200,80,90,70);
+  ctx.bezierCurveTo(-20,60,-160,80,-250,40);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  ctx.restore();
+
+  // ground shadow
+  ctx.fillStyle="rgba(0,0,0,0.55)";
+  ctx.beginPath();
+  ctx.ellipse(canvas.width/2, canvas.height*0.90, 280, 50, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // face (circle) if available
+  const faceUrl = ME && ME.bio_lock_url ? ME.bio_lock_url : null;
+  if(faceUrl){
+    try{
+      const img = await loadImage(faceUrl);
+      const cx=canvas.width/2, cy=canvas.height*0.38, r=160;
+
+      // crop circle
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.closePath();
+      ctx.clip();
+      ctx.drawImage(img, cx-r, cy-r, r*2, r*2);
+      ctx.restore();
+
+      // ring glow
+      ctx.strokeStyle=`hsla(${(hue+180)%360} 90% 65% / 0.95)`;
+      ctx.lineWidth=10;
+      ctx.shadowColor=`hsla(${(hue+180)%360} 90% 65% / 0.8)`;
+      ctx.shadowBlur=25;
+      ctx.beginPath(); ctx.arc(cx,cy,r+8,0,Math.PI*2); ctx.stroke();
+      ctx.shadowBlur=0;
+
+    }catch(e){
+      // ignore preview errors
+    }
+  } else {
+    ctx.fillStyle="rgba(255,255,255,0.08)";
+    ctx.font="28px Courier New, monospace";
+    ctx.textAlign="center";
+    ctx.fillText("Scan Face to preview your Rider", canvas.width/2, canvas.height*0.40);
   }
+
+  // label
+  ctx.fillStyle="rgba(255,255,255,0.65)";
+  ctx.font="22px Courier New, monospace";
+  ctx.textAlign="left";
+  ctx.fillText(asset, 24, 40);
 }
 
-function shareReferral(){
-  const link = document.getElementById("ref-link").innerText;
-  const text = encodeURIComponent("Join AZEUQER. Bio-Lock required. Enter via my link:");
-  const url  = encodeURIComponent(link);
-  const share = `https://t.me/share/url?url=${url}&text=${text}`;
+async function saveVessel(){
+  const work=+document.getElementById("work").value;
+  const pace=+document.getElementById("pace").value;
+  const mind=+document.getElementById("mind").value;
+  const vibe=+document.getElementById("vibe").value;
 
-  // Works inside Telegram (opens share)
-  try {
-    if (tg && tg.openTelegramLink) tg.openTelegramLink(share);
-    else window.open(share, "_blank");
-  } catch(e) {
-    window.open(share, "_blank");
+  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+  showLoader(true,"SAVING VESSEL...");
+  try{
+    const res = await fetch(`${API_URL}/profile/vessel`,{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({initData, work, pace, mind, vibe})
+    });
+    const data = await res.json();
+    if(data.status!=="ok") throw new Error(data.msg||"SAVE_FAIL");
+    ME = data.user;
+    document.getElementById("vessel-msg").textContent = "Saved.";
+    document.getElementById("me-body").textContent = ME.body_asset_id || bodyAsset(work,pace,mind,vibe);
+    drawPreview();
+  }catch(e){
+    document.getElementById("vessel-msg").textContent = "Save failed: "+(e.message||e);
+  }finally{
+    showLoader(false);
   }
-}
-
-function showBiolockError(code){
-  const el = document.getElementById("biolock-error");
-  const map = {
-    "NO_FACE": "NO FACE DETECTED. Center your face and try again.",
-    "MULTI_FACE": "MULTIPLE FACES DETECTED. Only one person allowed.",
-    "LOW_CONF": "LOW CONFIDENCE. Improve lighting and focus.",
-    "FACE_TOO_SMALL": "FACE TOO SMALL. Move closer to the camera.",
-    "TOO_SMALL": "IMAGE TOO SMALL. Use a clearer camera feed.",
-    "BAD_IMAGE": "BAD IMAGE. Try again.",
-    "BUCKET_FAIL": "STORAGE ERROR. Try again later."
-  };
-  el.textContent = map[code] ? map[code] : ("BIO-LOCK FAIL: " + code);
-}
-
-function renderMe(user){
-  document.getElementById("me-id").innerText = user.user_id ?? user.tg_id ?? "—";
-  document.getElementById("me-name").innerText = user.username || "AGENT";
-  document.getElementById("me-ap").innerText = user.ap ?? 0;
-
-  setTag(document.getElementById("role-tag"), (user.role||"CITIZEN"), (user.role==="PIONEER"?"neon":null));
-  setTag(document.getElementById("verif-tag"), (user.verification_status||"PENDING"),
-    (user.verification_status==="VERIFIED"?"neon":(user.verification_status==="REJECTED"?"red":"pink")));
-
-  const pioneer=(user.role==="PIONEER");
-  document.getElementById("pioneer-badge").classList.toggle("hidden", !pioneer);
-  document.getElementById("title").classList.toggle("pioneer-glitch", pioneer);
-
-  const gate = user.bio_lock_url ? "UNLOCKED" : "LOCKED";
-  setTag(document.getElementById("gate-status"), gate, gate==="UNLOCKED"?"neon":"red");
-
-  document.getElementById("me-img").src = user.bio_lock_url || "";
-  document.getElementById("me-biolock").innerText = user.biolock_status || "GATE";
-  document.getElementById("me-attempts").innerText = user.biolock_attempts || 0;
-
-  setTag(document.getElementById("ref-status"), (user.referral_status||"NONE"),
-    (user.referral_status==="PAID"?"neon":(user.referral_status==="PENDING"?"pink":(user.referral_status==="BROKEN"?"red":null)))
-  );
-
-  document.getElementById("ref-link").innerText = buildReferralLink(user.user_id ?? user.tg_id ?? 0);
-
-  // show pending notice for non-pioneers
-  const pending = (user.verification_status === "PENDING");
-  document.getElementById("pending-note").style.display = pending ? "block" : "none";
 }
 
 async function init(){
@@ -236,9 +311,39 @@ async function init(){
       body:JSON.stringify({initData, start_param})
     });
     const data = await res.json();
-    if(data.status!=="ok" || !data.user) throw new Error(data.msg||"Login failed");
+    if(data.status!=="ok" || !data.user) throw new Error(data.msg||"LOGIN_FAIL");
     ME=data.user;
-    renderMe(ME);
+
+    // identity
+    document.getElementById("me-id").textContent = ME.user_id ?? ME.tg_id ?? "—";
+    document.getElementById("me-name").textContent = ME.username || "AGENT";
+    document.getElementById("me-ap").textContent = ME.ap ?? 0;
+    document.getElementById("me-biolock").textContent = ME.biolock_status || "GATE";
+    document.getElementById("me-img").src = ME.bio_lock_url || "";
+
+    const pioneer = (ME.role==="PIONEER");
+    document.getElementById("pioneer-badge").classList.toggle("hidden", !pioneer);
+    document.getElementById("title").classList.toggle("pioneer-glitch", pioneer);
+
+    setTag(document.getElementById("role-tag"), (ME.role||"CITIZEN"), pioneer?"neon":null);
+    setTag(document.getElementById("verif-tag"), (ME.verification_status||"PENDING"),
+      (ME.verification_status==="VERIFIED"?"neon":(ME.verification_status==="REJECTED"?"red":"pink"))
+    );
+
+    // preload sliders from DB if present
+    const w = (ME.vessel_work ?? 50);
+    const p = (ME.vessel_pace ?? 50);
+    const m = (ME.vessel_mind ?? 50);
+    const v = (ME.vessel_vibe ?? 50);
+
+    document.getElementById("work").value = w; document.getElementById("workVal").textContent = w;
+    document.getElementById("pace").value = p; document.getElementById("paceVal").textContent = p;
+    document.getElementById("mind").value = m; document.getElementById("mindVal").textContent = m;
+    document.getElementById("vibe").value = v; document.getElementById("vibeVal").textContent = v;
+
+    updateVesselLabel();
+    await drawPreview();
+
     logStatus("CONNECTED.");
   }catch(e){
     logStatus("BACKEND ERROR.");
@@ -247,82 +352,7 @@ async function init(){
   }
 }
 
-async function openCamera(){
-  if (isIOS && isTelegram) return openCameraFallback();
-  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ alert("Camera not supported."); return; }
-  const videoEl=document.getElementById("video");
-  try{
-    showLoader(true,"ACCESSING CAMERA...");
-    cameraStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"user"}},audio:false});
-    videoEl.srcObject=cameraStream;
-    await new Promise(r=>videoEl.onloadedmetadata=()=>r());
-    await videoEl.play();
-    document.getElementById("camera-box").classList.remove("hidden");
-    document.getElementById("cam-debug").textContent="Camera started.";
-  }catch(err){
-    alert("Camera denied.");
-    document.getElementById("cam-debug").textContent = "Error: "+(err.name||err);
-  }finally{
-    showLoader(false);
-  }
-}
-
-function openCameraFallback(){
-  const input=document.getElementById("cameraFallback");
-  input.onchange=async()=>{
-    const f=input.files && input.files[0];
-    if(!f) return;
-    await uploadBioBlob(f);
-    input.value="";
-  };
-  input.click();
-}
-
-function capturePhoto(){
-  const v=document.getElementById("video");
-  const c=document.getElementById("canvas");
-  if(!v.videoWidth){alert("Wait...");return;}
-  c.width=v.videoWidth; c.height=v.videoHeight;
-  c.getContext("2d").drawImage(v,0,0);
-  c.toBlob(async(b)=>{
-    if(!b){alert("Capture failed.");return;}
-    stopCamera();
-    await uploadBioBlob(b);
-  },"image/jpeg",0.92);
-}
-
-function stopCamera(){
-  try{
-    const v=document.getElementById("video");
-    v.pause(); v.srcObject=null;
-  }catch(e){}
-  if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}
-  document.getElementById("camera-box").classList.add("hidden");
-}
-
-async function uploadBioBlob(blobOrFile){
-  document.getElementById("biolock-error").textContent="";
-  showLoader(true,"VERIFYING...");
-  try{
-    const fd=new FormData();
-    fd.append("initData",(tg && tg.initData)?tg.initData:"debug_mode");
-    fd.append("file",blobOrFile,"face.jpg");
-    const res=await fetch(`${API_URL}/auth/biolock`,{method:"POST",body:fd});
-    const data=await res.json();
-    if(data.status!=="success"){
-      showBiolockError(data.msg || "FAIL");
-      await init();
-      return;
-    }
-    await init();
-    logStatus("BIO-LOCK PASS.");
-  }catch(e){
-    showBiolockError("FAIL");
-  }finally{
-    showLoader(false);
-  }
-}
-
+hookSliders();
 init();
 </script>
 </body>
