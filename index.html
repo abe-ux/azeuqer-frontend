@@ -58,10 +58,9 @@
             <h1 class="glitch" style="margin-top:50px;">AZEUQER</h1>
             <p style="color:#888;">// REALITY EXTRACTION</p>
             
-            <label class="camera-label">
-                📸 SCAN FACE
-                <input type="file" id="cam" accept="image/*" capture="user" style="display:none" onchange="uploadBio()">
-            </label>
+           <button class="camera-label" onclick="openCamera()">📸 SCAN FACE</button>
+<video id="video" autoplay playsinline style="width:100%; margin-top:20px;"></video>
+
             <div id="status-log" style="margin-top:20px; color:#555;">SYSTEM READY</div>
         </div>
 
