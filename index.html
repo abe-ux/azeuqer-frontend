@@ -3,45 +3,78 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>AZEUQER: TITANIUM 12.0</title>
+<title>AZEUQER: TITANIUM 13.1</title>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-:root { --bg:#050505; --neon:#00ffcc; --pink:#ff00ff; }
-body { background:var(--bg); color:#fff; font-family:'Courier New', monospace; margin:0; overflow:hidden; }
-.hidden{display:none!important;}
+  :root { --bg:#050505; --neon:#00ffcc; --pink:#ff00ff; --red:#ff3333; }
+  body { background:var(--bg); color:#fff; font-family:'Courier New', monospace; margin:0; overflow:hidden; }
+  .hidden{display:none!important;}
 
-#game-layer{position:fixed;inset:0;z-index:1;}
-#ui-layer{position:fixed;inset:0;z-index:10;pointer-events:none;}
-.screen{pointer-events:auto;padding:20px;text-align:center;height:100vh;overflow-y:auto;box-sizing:border-box;background:rgba(0,0,0,0.85);}
-.screen.transparent{background:none;}
+  /* LAYERS */
+  #game-layer { position:fixed; inset:0; z-index:1; }
+  #ui-layer { position:fixed; inset:0; z-index:10; pointer-events:none; }
 
-.camera-label{
-  display:block;width:100%;padding:30px;margin-top:40px;
-  background:#111;border:2px dashed var(--neon);
-  color:var(--neon);font-size:1.2rem;font-weight:bold;cursor:pointer;
-  text-transform:uppercase;
-}
+  /* SCREENS */
+  .screen {
+    pointer-events:auto; padding:20px; text-align:center;
+    height:100vh; overflow-y:auto; box-sizing:border-box;
+    background:rgba(0,0,0,0.85);
+    transition: opacity 0.3s;
+  }
+  .screen.transparent { background:none; }
 
-.btn{width:100%;padding:15px;background:#111;border:1px solid var(--neon);color:var(--neon);margin-top:15px;font-weight:bold;cursor:pointer;}
-.btn-red{border-color:var(--pink);color:var(--pink);}
-.btn-small{width:auto;font-size:0.8rem;padding:5px 10px;margin-top:5px;}
+  /* JUICE */
+  .scanlines {
+    position:fixed; inset:0; pointer-events:none; z-index:50;
+    background:
+      linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%),
+      linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06));
+    background-size:100% 2px, 3px 100%;
+  }
+  .glitch { animation:shake 2s infinite; color:var(--neon); font-size:2rem; font-weight:bold; text-shadow: 2px 0 var(--pink); }
+  @keyframes shake{0%{transform:translate(0,0);}2%{transform:translate(1px,0);}4%{transform:translate(0,0);}}
 
-.glitch{animation:shake 2s infinite;color:var(--neon);font-size:2rem;font-weight:bold;}
-@keyframes shake{0%{transform:translate(0,0);}2%{transform:translate(1px,0);}4%{transform:translate(0,0);}}
+  /* UI */
+  .camera-label{
+    display:block; width:100%; padding:30px; margin-top:40px;
+    background:rgba(17,17,17,0.9); border:2px dashed var(--neon);
+    color:var(--neon); font-size:1.2rem; font-weight:bold; cursor:pointer;
+    text-transform:uppercase;
+  }
+  .btn{
+    width:100%; padding:15px; background:#111;
+    border:1px solid var(--neon); color:var(--neon);
+    margin-top:15px; font-weight:bold; cursor:pointer;
+    pointer-events:auto;
+  }
+  .btn:active{ transform:scale(0.98); background:var(--neon); color:#000; }
+  .btn-red{ border-color:var(--red); color:var(--red); }
+  .btn-red:active{ background:var(--red); color:#000; }
+  .btn-small{ width:auto; font-size:0.8rem; padding:5px 10px; margin-top:5px; }
 
-.card{width:300px;height:400px;margin:20px auto;border:1px solid #333;position:relative;}
-.card img{width:100%;height:100%;object-fit:cover;}
+  /* CARD */
+  .card{ width:300px; height:400px; margin:20px auto; border:1px solid #333; position:relative; background:#000; overflow:hidden; }
+  .card img{ width:100%; height:100%; object-fit:cover; }
+  .card-overlay{
+    position:absolute; bottom:0; width:100%;
+    background:linear-gradient(to top, #000, transparent);
+    padding:20px; box-sizing:border-box; text-align:left;
+  }
 
-#loader{position:fixed;inset:0;background:#000;z-index:100;display:flex;align-items:center;justify-content:center;flex-direction:column;}
-video{width:100%;border:2px solid var(--neon);margin-top:20px;}
-small{color:#666;}
+  /* VIDEO */
+  video{ width:100%; border:2px solid var(--neon); margin-top:20px; }
+
+  /* LOADER */
+  #loader{ position:fixed; inset:0; background:#000; z-index:100; display:flex; align-items:center; justify-content:center; flex-direction:column; }
 </style>
 </head>
 
 <body>
+
+<div class="scanlines"></div>
 
 <div id="loader" class="hidden">
   <div class="glitch">CONNECTING...</div>
@@ -52,111 +85,199 @@ small{color:#666;}
 
 <div id="ui-layer">
 
+  <!-- ENTRY -->
   <div id="screen-entry" class="screen">
     <h1 class="glitch" style="margin-top:50px;">AZEUQER</h1>
-    <p style="color:#888;">// REALITY EXTRACTION</p>
+    <p style="color:#888;">// GAMIFIED PROTOCOL v13.1</p>
 
     <button class="camera-label" onclick="openCamera()">📸 SCAN FACE</button>
 
     <div id="camera-box" class="hidden">
-      <!-- IMPORTANT: muted helps autoplay in mobile webviews -->
       <video id="video" autoplay playsinline muted></video>
       <button class="btn" onclick="capturePhoto()">📸 CAPTURE</button>
-      <button class="btn btn-red" onclick="stopCamera()">✖ CLOSE CAMERA</button>
-      <small id="cam-debug"></small>
+      <button class="btn btn-red" onclick="stopCamera()">✖ CLOSE</button>
+      <small id="cam-debug" style="display:block; margin-top:5px; color:#555;"></small>
     </div>
 
-    <!-- iOS Telegram fallback: file capture -->
+    <!-- iOS Telegram fallback -->
     <input id="cameraFallback" class="hidden" type="file" accept="image/*" capture="user" />
-
     <canvas id="canvas" class="hidden"></canvas>
 
     <div id="status-log" style="margin-top:20px;color:#555;">SYSTEM READY</div>
   </div>
 
+  <!-- FEED -->
   <div id="screen-feed" class="screen hidden">
-    <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;">
-      <span style="color:var(--neon);">AP: <span id="hud-ap">0</span></span>
-      <button class="btn btn-red btn-small" onclick="nukeIdentity()">⚠ RESET IDENTITY</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+      <span style="color:var(--neon); font-weight:bold; font-size:1.2rem;">AP: <span id="hud-ap">0</span></span>
+      <button class="btn btn-red btn-small" onclick="nukeIdentity()">⚠ RESET</button>
     </div>
+
     <div id="feed-container"></div>
+
+    <div style="position:fixed; bottom:30px; width:90%; left:5%; display:flex; gap:15px;">
+      <button class="btn btn-red" onclick="swipe('SPITE')">💀 SPITE</button>
+      <button class="btn" onclick="swipe('LIGHT')">⚡ LIGHT</button>
+    </div>
+  </div>
+
+  <!-- COMBAT -->
+  <div id="screen-combat" class="screen hidden transparent">
+    <h1 class="glitch" style="color:var(--red); margin-top:20px;">AMBUSH</h1>
+
+    <!-- Spacer so DOM buttons are below the boss -->
+    <div style="margin-top: 350px;"></div>
+
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button class="btn btn-red" onclick="gameCombatAction('ATTACK')">⚔ ATTACK</button>
+      <button class="btn" style="border-color:#fff; color:#fff;" onclick="gameCombatAction('POTION_HP')">💉 HEAL</button>
+    </div>
+
+    <button class="btn btn-small" style="margin-top:12px;border-color:#777;color:#777;" onclick="exitCombat()">↩ BACK</button>
   </div>
 
 </div>
 
 <script>
 /** ======================
- *  CONFIG
- *  ====================== */
-const API_URL = "https://azeuqer-backend.onrender.com";
+ * PHASER: Combat visuals
+ * ====================== */
+let game;
 
-const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+class CombatScene extends Phaser.Scene {
+  constructor(){ super({ key:'Combat' }); }
 
-// Telegram safe init
-try {
-  if (tg) {
-    tg.ready();
-    tg.expand();
+  preload(){
+    const g = this.make.graphics({x:0,y:0,add:false});
+
+    // Boss texture
+    g.fillStyle(0xff0000, 1); g.fillRect(0,0,160,160);
+    g.fillStyle(0x000000, 1);
+    g.fillRect(30,40,30,30); g.fillRect(100,40,30,30);
+    g.generateTexture('boss', 160, 160);
+
+    // Particle texture
+    g.clear();
+    g.fillStyle(0xffffff, 1); g.fillCircle(4,4,4);
+    g.generateTexture('spark', 8, 8);
   }
-} catch (e) { /* ignore */ }
 
-let cameraStream = null;
+  create(){
+    this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
+
+    this.boss = this.add.sprite(this.scale.width/2, 300, 'boss').setAlpha(0);
+
+    this.tweens.add({
+      targets:this.boss, scaleY:1.05, y:305, duration:1500, yoyo:true, repeat:-1
+    });
+
+    this.particles = this.add.particles(0,0,'spark',{
+      speed:{min:100,max:400},
+      scale:{start:1,end:0},
+      lifespan:600,
+      gravityY:500,
+      quantity:20,
+      emitting:false
+    });
+
+    this.hpText = null;
+  }
+
+  showBoss(hp){
+    this.boss.setAlpha(1).setY(-100).setScale(1);
+    this.tweens.add({ targets:this.boss, y:300, duration:800, ease:'Bounce' });
+
+    if(this.hpText) this.hpText.destroy();
+    this.hpText = this.add.text(this.scale.width/2, 180, `HP: ${hp}`, {
+      fontSize:'28px', fontStyle:'bold', color:'#ff0000', stroke:'#000', strokeThickness:4
+    }).setOrigin(0.5);
+  }
+
+  hit(damage){
+    this.cameras.main.shake(150, 0.02);
+
+    this.boss.setTint(0xffffff);
+    this.time.delayedCall(100, ()=>this.boss.clearTint());
+
+    this.particles.emitParticleAt(this.boss.x, this.boss.y);
+
+    const t = this.add.text(this.boss.x, this.boss.y, `-${damage}`, {
+      fontSize:'48px', color:'#fff', stroke:'#f00', strokeThickness:6, fontStyle:'bold'
+    }).setOrigin(0.5);
+
+    this.tweens.add({
+      targets:t, y:this.boss.y - 120, alpha:0, duration:1000, ease:'Power1',
+      onComplete:()=>t.destroy()
+    });
+  }
+
+  updateHP(hp){
+    if(this.hpText) this.hpText.setText(`HP: ${hp}`);
+  }
+
+  die(){
+    this.tweens.add({ targets:this.boss, scale:0, rotation:5, duration:500 });
+    this.particles.emitParticleAt(this.boss.x, this.boss.y, 50);
+  }
+}
+
+// Phaser init
+const phaserConfig = {
+  type: Phaser.AUTO,
+  parent: 'game-layer',
+  width: window.innerWidth,
+  height: window.innerHeight,
+  transparent: true,
+  scene: [CombatScene]
+};
+
+game = new Phaser.Game(phaserConfig);
 
 /** ======================
- *  DEVICE / WEBVIEW DETECT
- *  ====================== */
+ * APP CONFIG
+ * ====================== */
+const API_URL = "https://azeuqer-backend.onrender.com";
+const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+try { if (tg) { tg.ready(); tg.expand(); } } catch(e) {}
+
+let cameraStream = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 const isTelegram = !!tg;
 
+// State
+let feed = [];
+let currentBossHP = 0;
+
 /** ======================
- *  CAMERA SYSTEM
- *  ====================== */
+ * CAMERA
+ * ====================== */
 async function openCamera(){
-  // If iOS inside Telegram: use fallback immediately (avoids black stream issue)
   if (isIOS && isTelegram) {
     logCamDebug("iOS + Telegram detected → using capture fallback.");
     return openCameraFallback();
   }
-
-  // Otherwise: normal getUserMedia
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    alert("Camera API not supported in this browser/webview.");
-    return;
+    alert("Camera API not supported."); return;
   }
 
   const videoEl = document.getElementById("video");
-
   try{
     showLoader(true,"ACCESSING CAMERA...");
-
-    // Ensure autoplay works in mobile webviews
     videoEl.setAttribute("playsinline", "");
     videoEl.muted = true;
 
-    // Prefer front camera but keep constraints light (too strict can fail)
-    const constraints = {
-      video: {
-        facingMode: { ideal: "user" }
-      },
-      audio: false
-    };
-
+    const constraints = { video: { facingMode: { ideal: "user" } }, audio:false };
     cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
 
     videoEl.srcObject = cameraStream;
-
-    // Wait for metadata then play (prevents "black but streaming" issue)
-    await new Promise((resolve) => {
-      videoEl.onloadedmetadata = () => resolve();
-    });
-
+    await new Promise(resolve => { videoEl.onloadedmetadata = () => resolve(); });
     await videoEl.play();
 
     document.getElementById("camera-box").classList.remove("hidden");
     logCamDebug("Camera started.");
   }catch(err){
     console.error(err);
-    alert("Camera permission denied / unsupported / blocked by WebView.");
+    alert("Camera permission denied / unsupported.");
     logCamDebug("Error: " + (err && err.name ? err.name : String(err)));
   }finally{
     showLoader(false);
@@ -169,72 +290,56 @@ function openCameraFallback(){
     const file = input.files && input.files[0];
     if (!file) return;
     showLoader(true,"UPLOADING...");
-    try {
-      await uploadBioBlob(file);
-    } finally {
-      showLoader(false);
-      input.value = "";
-    }
+    try { await uploadBioBlob(file); }
+    finally { showLoader(false); input.value = ""; }
   };
   input.click();
 }
 
 function capturePhoto(){
-  const video=document.getElementById("video");
-  const canvas=document.getElementById("canvas");
+  const video = document.getElementById("video");
+  const canvas = document.getElementById("canvas");
+  if (!video.videoWidth || !video.videoHeight) { alert("Camera not ready."); return; }
 
-  if (!video.videoWidth || !video.videoHeight) {
-    alert("Camera not ready yet. Try again.");
-    return;
-  }
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext("2d").drawImage(video,0,0);
 
-  canvas.width=video.videoWidth;
-  canvas.height=video.videoHeight;
-
-  const ctx=canvas.getContext("2d");
-  ctx.drawImage(video,0,0);
-
-  canvas.toBlob(async(blob)=>{
+  canvas.toBlob(async (blob) => {
     if (!blob) { alert("Capture failed."); return; }
     stopCamera();
     await uploadBioBlob(blob);
-  },"image/jpeg",0.9);
+  }, "image/jpeg", 0.9);
 }
 
 function stopCamera(){
   try{
     const videoEl = document.getElementById("video");
-    if (videoEl) {
-      videoEl.pause();
-      videoEl.srcObject = null;
-    }
+    if(videoEl){ videoEl.pause(); videoEl.srcObject = null; }
   }catch(e){}
 
   if(cameraStream){
-    cameraStream.getTracks().forEach(track=>track.stop());
-    cameraStream=null;
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
   }
   document.getElementById("camera-box").classList.add("hidden");
-  logCamDebug("Camera stopped.");
 }
 
 async function uploadBioBlob(blobOrFile){
-  showLoader(true,"UPLOADING...");
-
-  const fd=new FormData();
+  showLoader(true,"UPLOADING BIOMETRICS...");
+  const fd = new FormData();
   fd.append("initData", (tg && tg.initData) ? tg.initData : "debug_mode");
   fd.append("file", blobOrFile, "face.jpg");
 
   try{
-    const res=await fetch(`${API_URL}/auth/biolock`,{method:"POST",body:fd});
+    const res = await fetch(`${API_URL}/auth/biolock`, { method:"POST", body: fd });
     if(!res.ok) throw new Error("Upload failed");
+    const data = await res.json();
 
-    const data=await res.json();
-
-    if(data.status==="success"){
+    if(data.status === "success"){
       location.reload();
     }else{
-      alert("Error: "+(data.msg || "Unknown error"));
+      alert("Error: " + (data.msg || "Unknown"));
     }
   }catch(e){
     console.error(e);
@@ -245,28 +350,28 @@ async function uploadBioBlob(blobOrFile){
 }
 
 /** ======================
- *  APP INIT
- *  ====================== */
+ * INIT / AUTH
+ * ====================== */
 async function init(){
-  showLoader(true,"Connecting...");
+  showLoader(true,"CONNECTING...");
   try{
-    const res=await fetch(`${API_URL}/auth/login`,{
+    const res = await fetch(`${API_URL}/auth/login`,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({initData:(tg && tg.initData) ? tg.initData : "debug_mode"})
+      body:JSON.stringify({ initData:(tg && tg.initData) ? tg.initData : "debug_mode" })
     });
 
-    const data=await res.json();
+    const data = await res.json();
 
     if(data.user && data.user.bio_lock_url){
+      document.getElementById('hud-ap').innerText = data.user.ap || 0;
       showScreen('screen-feed');
-      loadFeed();
+      await loadFeed();
     }else{
       showScreen('screen-entry');
     }
   }catch(e){
     console.error(e);
-    alert("Server Error");
     showScreen('screen-entry');
   }finally{
     showLoader(false);
@@ -274,13 +379,13 @@ async function init(){
 }
 
 async function nukeIdentity(){
-  if(!confirm("RESET IDENTITY?")) return;
+  if(!confirm("RESET IDENTITY? This deletes your profile link.")) return;
   showLoader(true,"WIPING DATA...");
   try{
     await fetch(`${API_URL}/auth/reset`,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({initData:(tg && tg.initData) ? tg.initData : "debug_mode"})
+      body:JSON.stringify({ initData:(tg && tg.initData) ? tg.initData : "debug_mode" })
     });
     location.reload();
   }catch(e){
@@ -292,48 +397,201 @@ async function nukeIdentity(){
 }
 
 /** ======================
- *  FEED
- *  ====================== */
-let feed=[];
+ * FEED
+ * ====================== */
 async function loadFeed(){
   try{
-    const res=await fetch(`${API_URL}/game/feed`,{
+    const res = await fetch(`${API_URL}/game/feed`,{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({initData:(tg && tg.initData) ? tg.initData : "debug_mode"})
+      body:JSON.stringify({ initData:(tg && tg.initData) ? tg.initData : "debug_mode" })
     });
-    const data=await res.json();
-    feed=data.feed||[];
+    const data = await res.json();
+    feed = data.feed || [];
     renderCard();
   }catch(e){
     console.error(e);
-    document.getElementById('feed-container').innerHTML="FEED ERROR";
+    document.getElementById('feed-container').innerHTML = "FEED ERROR";
   }
 }
 
 function renderCard(){
-  const c=document.getElementById('feed-container');
-  if(feed.length===0){ c.innerHTML="NO TARGETS"; return; }
-  const u=feed[0];
+  const c = document.getElementById('feed-container');
+  if(feed.length === 0){ c.innerHTML = "NO TARGETS"; return; }
+
+  const u = feed[0];
   c.innerHTML = `
-    <div class="card"><img src="${u.bio_lock_url}" alt="target"></div>
-    <div style="margin-top:10px;font-weight:bold;">${escapeHtml(u.username || "UNKNOWN")}</div>
+    <div class="card">
+      <img src="${u.bio_lock_url}" alt="target">
+      <div class="card-overlay">
+        <h2 class="glitch" style="margin:0;font-size:1.5rem;">${escapeHtml(u.username || "UNKNOWN")}</h2>
+      </div>
+    </div>
   `;
 }
 
 /** ======================
- *  UTILS
- *  ====================== */
+ * SWIPE + AMBUSH
+ * ====================== */
+async function swipe(dir){
+  if(feed.length === 0) return;
+
+  const card = document.querySelector('.card');
+  if(!card) return;
+
+  // 20% ambush chance
+  if(Math.random() < 0.2){
+    await triggerAmbush();
+    return;
+  }
+
+  const x = dir === 'LIGHT' ? 200 : -200;
+  const rot = dir === 'LIGHT' ? 20 : -20;
+  card.style.transition = "transform 0.3s ease-out";
+  card.style.transform = `translateX(${x}px) rotate(${rot}deg)`;
+
+  try{
+    const target = feed[0];
+    const res = await fetch(`${API_URL}/game/swipe`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        initData:(tg && tg.initData) ? tg.initData : "debug_mode",
+        target_id: target.user_id,
+        direction: dir
+      })
+    });
+
+    const data = await res.json();
+
+    // Prefer server AP if provided
+    const apEl = document.getElementById('hud-ap');
+    if(typeof data.new_ap === "number") apEl.innerText = data.new_ap;
+    else apEl.innerText = (parseInt(apEl.innerText) || 0) + 1;
+
+    feed.shift();
+
+    setTimeout(() => {
+      renderCard();
+    }, 220);
+  }catch(e){
+    console.error(e);
+  }
+}
+
+/** ======================
+ * COMBAT
+ * ====================== */
+async function triggerAmbush(){
+  showScreen('screen-combat');
+
+  try{
+    const res = await fetch(`${API_URL}/game/combat/info`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ initData:(tg && tg.initData) ? tg.initData : "debug_mode" })
+    });
+    const data = await res.json();
+
+    currentBossHP = (data && data.boss && typeof data.boss.hp === "number") ? data.boss.hp : 25;
+
+    const scene = game.scene.getScene('Combat');
+    scene.showBoss(currentBossHP);
+  }catch(e){
+    console.error(e);
+    // fallback if backend missing
+    currentBossHP = 25;
+    const scene = game.scene.getScene('Combat');
+    scene.showBoss(currentBossHP);
+  }
+}
+
+async function gameCombatAction(action){
+  const scene = game.scene.getScene('Combat');
+
+  try{
+    const res = await fetch(`${API_URL}/game/combat/turn`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        initData:(tg && tg.initData) ? tg.initData : "debug_mode",
+        action,
+        boss_hp_current: currentBossHP
+      })
+    });
+
+    const data = await res.json();
+
+    if(action === 'ATTACK'){
+      const nextHP = typeof data.new_boss_hp === "number" ? data.new_boss_hp : currentBossHP;
+      const dmg = Math.max(0, currentBossHP - nextHP);
+      if(dmg > 0) scene.hit(dmg);
+    }
+
+    if(data.status === "VICTORY"){
+      scene.die();
+      setTimeout(() => {
+        alert(`VICTORY! Loot: ${data.loot || "???"}`);
+        showScreen('screen-feed');
+        loadFeed();
+      }, 1200);
+      return;
+    }
+
+    if(typeof data.new_boss_hp === "number"){
+      currentBossHP = data.new_boss_hp;
+      scene.updateHP(currentBossHP);
+    }
+  }catch(e){
+    console.error(e);
+
+    // Offline prototype: local combat if backend not ready
+    if(action === 'ATTACK'){
+      const dmg = Math.floor(3 + Math.random()*6);
+      currentBossHP = Math.max(0, currentBossHP - dmg);
+      scene.hit(dmg);
+      scene.updateHP(currentBossHP);
+      if(currentBossHP === 0){
+        scene.die();
+        setTimeout(() => {
+          alert("VICTORY! Loot: ???");
+          showScreen('screen-feed');
+          loadFeed();
+        }, 1000);
+      }
+    }
+  }
+}
+
+function exitCombat(){
+  showScreen('screen-feed');
+}
+
+/** ======================
+ * UTILS
+ * ====================== */
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
   document.getElementById(id).classList.remove('hidden');
+
+  // Show/hide Phaser + pause/resume scene
+  const gameLayer = document.getElementById('game-layer');
+  const scene = game.scene.getScene('Combat');
+
+  if(id === 'screen-combat'){
+    gameLayer.style.display = 'block';
+    scene.scene.resume();
+  }else{
+    gameLayer.style.display = 'none';
+    scene.scene.pause();
+  }
 }
 
 function showLoader(v,msg=""){
-  const l=document.getElementById('loader');
+  const l = document.getElementById('loader');
   if(v){
     l.classList.remove('hidden');
-    document.getElementById('loader-msg').innerText=msg;
+    document.getElementById('loader-msg').innerText = msg;
   }else{
     l.classList.add('hidden');
   }
@@ -341,7 +599,7 @@ function showLoader(v,msg=""){
 
 function logCamDebug(msg){
   const el = document.getElementById("cam-debug");
-  if (el) el.textContent = msg;
+  if(el) el.textContent = msg;
 }
 
 function escapeHtml(str){
@@ -352,6 +610,10 @@ function escapeHtml(str){
     .replaceAll('"',"&quot;")
     .replaceAll("'","&#039;");
 }
+
+// Start with Phaser paused/hidden until combat
+document.getElementById('game-layer').style.display = 'none';
+try { game.scene.getScene('Combat').scene.pause(); } catch(e){}
 
 init();
 </script>
