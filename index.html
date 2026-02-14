@@ -3,59 +3,37 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>AZEUQER: TITANIUM — PROMPT 2 POLISH LAYER 2 (Audio + Dopamine)</title>
+<title>AZEUQER: TITANIUM — PROMPT 2 POLISH + TOP IMAGES + EMAIL</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
   :root{
-    --bg:#050505;
-    --panel:rgba(0,0,0,0.86);
-    --neon:#00ffcc;
-    --pink:#ff00ff;
-    --red:#ff3333;
-    --muted:#777;
-    --card:#0b0b0b;
-    --gold:#ffd166;
+    --bg:#050505; --panel:rgba(0,0,0,0.86);
+    --neon:#00ffcc; --pink:#ff00ff; --red:#ff3333; --gold:#ffd166; --muted:#777;
   }
-
   body{background:var(--bg);color:#fff;font-family:'Courier New',monospace;margin:0;overflow:hidden;}
   .hidden{display:none!important;}
-
-  /* Ambient scanlines */
   .scanlines{position:fixed;inset:0;pointer-events:none;z-index:50;background:
     linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%),
     linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06));
-    background-size:100% 2px, 3px 100%;
-    mix-blend-mode:screen;
-    opacity:0.22;
+    background-size:100% 2px, 3px 100%; opacity:0.22;
   }
-
-  /* Gentle vignette + breathing haze (feed only) */
-  .vignette{
-    position:fixed;inset:-20px;pointer-events:none;z-index:4;
-    background:radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.62) 85%);
-    opacity:0.9;
-  }
-  .haze{
-    position:fixed;inset:-40px;pointer-events:none;z-index:3;
+  .haze{position:fixed;inset:-40px;pointer-events:none;z-index:3;
     background:radial-gradient(circle at 30% 20%, rgba(0,255,204,0.08), rgba(0,0,0,0) 55%),
                radial-gradient(circle at 80% 75%, rgba(255,0,255,0.06), rgba(0,0,0,0) 55%),
                radial-gradient(circle at 40% 85%, rgba(255,209,102,0.05), rgba(0,0,0,0) 60%);
-    filter: blur(18px);
-    animation: hazeBreath 6.5s ease-in-out infinite alternate;
-    opacity:0.55;
+    filter: blur(18px); animation: hazeBreath 6.5s ease-in-out infinite alternate; opacity:0.55;
   }
   @keyframes hazeBreath{ from{transform:translate3d(0,0,0) scale(1);} to{transform:translate3d(0,-8px,0) scale(1.03);} }
+  .vignette{position:fixed;inset:-20px;pointer-events:none;z-index:4;background:
+    radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.62) 85%);
+  }
 
   #ui-layer{position:fixed;inset:0;z-index:10;pointer-events:none;}
   .screen{pointer-events:auto;padding:20px;text-align:center;height:100vh;overflow-y:auto;box-sizing:border-box;background:var(--panel);}
-
   .glitch{animation:shake 2s infinite;color:var(--neon);font-size:2rem;font-weight:bold;text-shadow:2px 0 var(--pink);}
   @keyframes shake{0%{transform:translate(0,0);}2%{transform:translate(1px,0);}4%{transform:translate(0,0);}}
-  .pioneer-glitch{color:#fff;text-shadow:0 0 6px var(--neon),0 0 12px var(--pink),0 0 20px var(--neon);animation:pglow 1.4s infinite alternate;}
-  @keyframes pglow{from{filter:brightness(1);}to{filter:brightness(1.35);} }
-
   .card{width:380px;max-width:96%;margin:14px auto;padding:14px;border:1px solid #333;background:rgba(255,255,255,0.03);border-radius:12px;text-align:left;}
   .row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
   .tag{display:inline-block;padding:6px 10px;border:1px solid #333;border-radius:999px;color:#bbb;font-size:0.75rem;}
@@ -66,7 +44,6 @@
   .small{font-size:0.82rem;color:#bbb;line-height:1.25rem;}
   .muted{color:var(--muted);}
   .divider{height:1px;background:#222;margin:14px 0;}
-
   .btn{width:100%;padding:14px;background:#111;border:1px solid var(--neon);color:var(--neon);margin-top:12px;font-weight:bold;cursor:pointer;pointer-events:auto;border-radius:10px;}
   .btn:active{transform:scale(0.99);background:var(--neon);color:#000;}
   .btn-red{border-color:var(--red);color:var(--red);}
@@ -82,11 +59,12 @@
   video{width:100%;border:2px solid var(--neon);margin-top:12px;border-radius:12px;background:#000;}
   #loader{position:fixed;inset:0;background:#000;z-index:100;display:flex;align-items:center;justify-content:center;flex-direction:column;}
 
-  .avatar{width:120px;height:120px;margin:0 auto;border:2px solid var(--neon);border-radius:14px;overflow:hidden;background:#000;position:relative;}
-  .avatar img{width:100%;height:100%;object-fit:cover;}
-  .badge{position:absolute;bottom:-10px;right:-10px;background:#000;border:1px solid var(--neon);color:var(--neon);
-    padding:6px 8px;font-size:0.7rem;font-weight:bold;border-radius:10px;
-  }
+  .topgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px;}
+  .topbox{border:1px solid #333;border-radius:14px;overflow:hidden;background:#0b0b0b;}
+  .topimg{width:100%;height:210px;object-fit:cover;display:block;background:#000;}
+  .topmeta{padding:10px;}
+  .topmeta b{display:block;font-size:0.95rem;}
+  .topmeta span{font-size:0.78rem;color:#aaa;}
 
   /* FEED STACK */
   .hud{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin:0 auto;width:380px;max-width:96%;}
@@ -94,122 +72,36 @@
   .hud-right{display:flex;gap:10px;align-items:center;}
 
   .stagewrap{width:380px;max-width:96%;margin:14px auto 0;position:relative;}
-  .stage{
-    position:relative;height:520px;border-radius:18px;
-    transition: box-shadow 220ms ease-out, transform 220ms ease-out;
-  }
-
-  /* Ghost Protocol Aura (subtle, addictive “alive” feeling) */
-  .aura{
-    position:absolute;inset:-18px;border-radius:26px;pointer-events:none;z-index:-1;
+  .aura{position:absolute;inset:-18px;border-radius:26px;pointer-events:none;z-index:-1;
     background:
       radial-gradient(circle at 30% 30%, rgba(0,255,204,0.16), rgba(0,0,0,0) 55%),
       radial-gradient(circle at 70% 60%, rgba(255,0,255,0.12), rgba(0,0,0,0) 60%),
       radial-gradient(circle at 50% 100%, rgba(255,209,102,0.10), rgba(0,0,0,0) 55%);
-    filter: blur(18px);
-    opacity:0.0;
-    transition: opacity 280ms ease-out;
-    animation: auraDrift 7.2s ease-in-out infinite alternate;
+    filter: blur(18px); opacity:0.62; animation: auraDrift 7.2s ease-in-out infinite alternate;
   }
   @keyframes auraDrift{from{transform:translate3d(0,0,0) scale(1);}to{transform:translate3d(0,-10px,0) scale(1.05);} }
-  .stagewrap.live .aura{opacity:0.55;}
-  .stagewrap.streak1 .aura{opacity:0.62;}
-  .stagewrap.streak2 .aura{opacity:0.70;}
-  .stagewrap.streak3 .aura{opacity:0.78;}
-  .stagewrap.streak4 .aura{opacity:0.86;}
-  .stagewrap.streak5 .aura{opacity:0.92;}
-  .stagewrap.streak6 .aura{opacity:1.0;}
-
-  .stack-card{
-    position:absolute;left:0;right:0;top:0;
-    border:1px solid #333;border-radius:16px;overflow:hidden;background:var(--card);
-    box-shadow: 0 10px 40px rgba(0,0,0,0.45);
-    touch-action:none;
-    user-select:none;
-    transform: translate3d(0,0,0);
+  .stage{position:relative;height:520px;border-radius:18px;}
+  .stack-card{position:absolute;left:0;right:0;top:0;border:1px solid #333;border-radius:16px;overflow:hidden;background:#0b0b0b;
+    box-shadow:0 10px 40px rgba(0,0,0,0.45); touch-action:none; user-select:none;
   }
   .stack-card img{width:100%;height:520px;object-fit:cover;display:block;background:#000;}
-  .overlay{
-    position:absolute;left:0;right:0;bottom:0;padding:16px;
-    background:linear-gradient(to top, rgba(0,0,0,0.96), rgba(0,0,0,0));
-  }
+  .overlay{position:absolute;left:0;right:0;bottom:0;padding:16px;background:linear-gradient(to top, rgba(0,0,0,0.96), rgba(0,0,0,0));}
   .big-name{font-size:1.35rem;font-weight:bold;margin:0;}
   .meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
   .meta .pill{padding:6px 10px;border:1px solid #333;border-radius:999px;font-size:0.75rem;color:#ccc;background:rgba(255,255,255,0.04);}
 
-  /* Swipebar */
   .swipebar{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);width:92%;max-width:520px;display:flex;gap:12px;z-index:30;}
-  .pulse{animation:pulse 0.9s infinite alternate;}
-  @keyframes pulse{from{box-shadow:0 0 0 rgba(0,255,204,0);}to{box-shadow:0 0 28px rgba(0,255,204,0.35);} }
-
-  /* Impact FX */
   .impact{position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0;transition:opacity 170ms;}
   .impact.on{opacity:1;}
-  .impact.light{background:
-    radial-gradient(circle at 50% 55%, rgba(0,255,204,0.28), rgba(0,0,0,0) 55%),
-    radial-gradient(circle at 50% 55%, rgba(255,209,102,0.10), rgba(0,0,0,0) 60%);
-  }
+  .impact.light{background:radial-gradient(circle at 50% 55%, rgba(0,255,204,0.28), rgba(0,0,0,0) 55%);}
   .impact.spite{background:radial-gradient(circle at 50% 55%, rgba(255,51,51,0.30), rgba(0,0,0,0) 55%);}
 
-  /* Micro sparkle particles */
-  .spark{
-    position:fixed; width:6px; height:6px; border-radius:50%;
-    background:rgba(255,255,255,0.9);
-    box-shadow: 0 0 10px rgba(255,255,255,0.6);
-    pointer-events:none;
-    z-index:45;
-    animation: sparkFly 520ms ease-out forwards;
-  }
-  @keyframes sparkFly{
-    from{transform:translate3d(0,0,0) scale(1); opacity:1;}
-    to{transform:translate3d(var(--dx), var(--dy), 0) scale(0.2); opacity:0;}
-  }
+  .spark{position:fixed;width:6px;height:6px;border-radius:50%;pointer-events:none;z-index:45;animation:sparkFly 520ms ease-out forwards;}
+  @keyframes sparkFly{from{transform:translate3d(0,0,0) scale(1);opacity:1;}to{transform:translate3d(var(--dx), var(--dy), 0) scale(0.2);opacity:0;}}
 
-  /* Combo/Streak meter */
-  .streakbar{
-    width:380px;max-width:96%;margin:10px auto 0;
-    display:flex;align-items:center;justify-content:space-between;gap:10px;
-  }
-  .streakmeter{
-    flex:1;height:10px;border-radius:999px;border:1px solid #222;background:rgba(255,255,255,0.04);overflow:hidden;
-  }
-  .streakfill{
-    height:100%;
-    width:0%;
-    background:linear-gradient(90deg, rgba(0,255,204,0.9), rgba(255,0,255,0.55), rgba(255,209,102,0.65));
-    transition: width 260ms ease-out;
-  }
-
-  /* Sponsor watermark slot */
-  .sponsor{
-    position:fixed;top:16px;right:16px;z-index:25;
-    width:120px;height:34px;border-radius:12px;
-    border:1px solid rgba(255,255,255,0.10);
-    background:rgba(255,255,255,0.03);
-    display:flex;align-items:center;justify-content:center;
-    font-size:0.7rem;color:#bbb;
-    backdrop-filter: blur(8px);
-    opacity:0.85;
-  }
-  .sponsor b{color:var(--gold);}
-
-  /* Debug */
-  .debugbox{width:380px;max-width:96%;margin:16px auto;padding:12px;border:1px dashed #333;border-radius:12px;background:rgba(255,255,255,0.02);text-align:left;}
-
-  /* Audio chip */
-  .chip{
-    display:inline-flex;align-items:center;gap:8px;
-    padding:7px 10px;border-radius:999px;border:1px solid #333;
-    background:rgba(255,255,255,0.03);
-    color:#bbb;font-size:0.75rem;
-  }
-  .toggle{
-    width:34px;height:18px;border-radius:999px;border:1px solid #444;background:#111;position:relative;cursor:pointer;
-  }
-  .toggle::after{
-    content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
-    background:#666;transition:all 180ms ease-out;
-  }
+  .chip{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;border:1px solid #333;background:rgba(255,255,255,0.03);color:#bbb;font-size:0.75rem;}
+  .toggle{width:34px;height:18px;border-radius:999px;border:1px solid #444;background:#111;position:relative;cursor:pointer;}
+  .toggle::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#666;transition:all 180ms ease-out;}
   .toggle.on{border-color:rgba(0,255,204,0.7);}
   .toggle.on::after{left:18px;background:var(--neon);}
 </style>
@@ -218,12 +110,8 @@
 <body>
 <div class="scanlines"></div>
 <div id="impact" class="impact"></div>
-
-<!-- Feed-only ambience layers (toggled via JS) -->
 <div id="haze" class="haze hidden"></div>
 <div id="vignette" class="vignette hidden"></div>
-
-<div class="sponsor hidden" id="sponsorMark">SPONSORED <b>///</b></div>
 
 <div id="loader" class="hidden">
   <div class="glitch">CONNECTING...</div>
@@ -231,50 +119,61 @@
 </div>
 
 <div id="ui-layer">
+
   <!-- GATE -->
   <div id="screen-gate" class="screen">
-    <h1 id="title" class="glitch" style="margin-top:22px;">AZEUQER</h1>
-    <p class="muted" style="margin:6px 0 0;">// POLISH LAYER 2: AURA + COMBO + SUBTLE AUDIO</p>
+    <h1 class="glitch" style="margin-top:22px;">AZEUQER</h1>
+    <p class="muted" style="margin:6px 0 0;">// GATE + TOP ORDER/CHAOS + EMAIL</p>
 
     <div class="card">
       <div class="row">
-        <span class="tag neon">IDENTITY</span>
-        <span id="role-tag" class="tag">CITIZEN</span>
-        <span id="verif-tag" class="tag">PENDING</span>
+        <span class="tag neon">LIVE TOP</span>
+        <span class="tag gold">ORDER vs CHAOS</span>
       </div>
+
+      <div class="topgrid">
+        <div class="topbox">
+          <img id="topEImg" class="topimg" src="" alt="Top Euphoria"/>
+          <div class="topmeta">
+            <b>TOP EUPHORIA</b>
+            <span id="topEName">…</span>
+          </div>
+        </div>
+        <div class="topbox">
+          <img id="topDImg" class="topimg" src="" alt="Top Dissonance"/>
+          <div class="topmeta">
+            <b>TOP DISSONANCE</b>
+            <span id="topDName">…</span>
+          </div>
+        </div>
+      </div>
+
       <div class="divider"></div>
-
-      <div class="avatar">
-        <img id="me-img" src="" alt="me" />
-        <div id="pioneer-badge" class="badge hidden">PIONEER</div>
-      </div>
-
-      <h2 id="me-name" style="margin:12px 0 0;">AGENT</h2>
-      <div class="small muted">User ID: <span id="me-id">—</span></div>
-      <div class="small muted">AP: <span id="me-ap">0</span></div>
-      <div class="small muted">BioLock: <span id="me-biolock">GATE</span></div>
-      <div class="small muted">Energy: <span id="me-energy">0</span> | Vis: <span id="me-vis">0</span></div>
+      <div class="small muted">Boss gallery (dev):</div>
+      <div id="bossRow" class="row" style="justify-content:flex-start;gap:8px;margin-top:8px;flex-wrap:wrap;"></div>
     </div>
 
     <div class="card">
       <div class="row">
-        <span class="tag pink">GATE</span>
-        <span id="gate-msg" class="tag red">LOCKED</span>
+        <span class="tag pink">PROFILE</span>
+        <span id="gateState" class="tag red">LOCKED</span>
       </div>
       <div class="divider"></div>
 
-      <div class="row">
-        <div class="chip">
-          <span>Sound</span>
-          <div id="audioToggleGate" class="toggle"></div>
-        </div>
-        <span class="small muted">Audio unlocks after first tap.</span>
+      <div class="small muted">User: <b id="meName">AGENT</b> (#<span id="meId">—</span>)</div>
+      <div class="small muted">AP: <b id="meAP">0</b> | Energy: <b id="meEnergy">30</b> | Vis: <b id="meVis">10</b></div>
+      <div class="small muted">BioLock: <b id="meBio">GATE</b></div>
+
+      <div id="emailBlock" style="margin-top:12px;">
+        <div class="small muted" style="margin-bottom:6px;">Email (for recovery & rewards):</div>
+        <input id="emailInput" type="email" placeholder="you@email.com"
+          style="width:100%;padding:12px;border-radius:10px;border:1px solid #333;background:#0b0b0b;color:#fff;box-sizing:border-box;">
+        <button class="btn" onclick="submitEmail()">SAVE EMAIL</button>
+        <div id="emailMsg" class="small muted" style="margin-top:8px;"></div>
       </div>
 
-      <div class="small muted" id="gate-detail" style="margin-top:10px;">Scan face to enter. (Exactly one face.)</div>
       <div id="biolock-error" class="small" style="margin-top:10px;color:#ff7777;"></div>
-
-      <button class="camera-label pulse" onclick="openCamera()">📸 SCAN FACE</button>
+      <button class="camera-label" onclick="openCamera()">📸 SCAN FACE</button>
 
       <div id="camera-box" class="hidden">
         <video id="video" autoplay playsinline muted></video>
@@ -285,6 +184,13 @@
 
       <input id="cameraFallback" class="hidden" type="file" accept="image/*" capture="user" />
       <canvas id="canvas" class="hidden"></canvas>
+
+      <div class="divider"></div>
+      <div class="row">
+        <div class="chip"><span>Sound</span><div id="audioToggle" class="toggle"></div></div>
+        <button class="btn btn-small btn-red" onclick="resetMe()">RESET</button>
+      </div>
+      <div class="small muted" style="margin-top:10px;">Audio unlocks after first tap.</div>
     </div>
 
     <div id="status-log" class="small muted" style="margin-top:14px;">SYSTEM READY</div>
@@ -294,76 +200,60 @@
   <div id="screen-feed" class="screen hidden">
     <div class="hud">
       <div class="hud-left">
-        <span class="tag neon">AP: <b id="hud-ap">0</b></span>
-        <span class="tag pink">Energy: <b id="hud-energy">0</b></span>
-        <span class="tag">Swipes: <b id="hud-swipes">0</b></span>
-        <span class="tag">Vis: <b id="hud-vis">0</b></span>
+        <span class="tag neon">AP: <b id="hudAP">0</b></span>
+        <span class="tag pink">Energy: <b id="hudEnergy">30</b></span>
+        <span class="tag">Swipes: <b id="hudSwipes">0</b></span>
+        <span class="tag">Vis: <b id="hudVis">10</b></span>
       </div>
       <div class="hud-right">
-        <div class="chip">
-          <span>Sound</span>
-          <div id="audioToggle" class="toggle"></div>
-        </div>
-        <button class="btn btn-small btn-ghost" onclick="toggleSponsor()">SPONSOR</button>
-        <button class="btn btn-small btn-red" onclick="resetMe()">RESET</button>
+        <div class="chip"><span>Sound</span><div id="audioToggleFeed" class="toggle"></div></div>
+        <button class="btn btn-small btn-ghost" onclick="backToGate()">TOP</button>
       </div>
     </div>
 
-    <div class="streakbar">
-      <span class="tag gold">STREAK: <b id="streakNum">0</b></span>
-      <div class="streakmeter"><div id="streakFill" class="streakfill"></div></div>
-      <span class="tag">AURA</span>
-    </div>
-
-    <div class="stagewrap live" id="stagewrap">
+    <div class="stagewrap">
       <div class="aura"></div>
-
-      <div class="stage" id="stage">
-        <!-- Front card -->
+      <div class="stage">
         <div class="stack-card" id="card-front">
-          <img id="img-front" src="" alt="front"/>
+          <img id="imgFront" src="" alt="front"/>
           <div class="overlay">
-            <p class="big-name" id="name-front">LOADING...</p>
+            <p class="big-name" id="nameFront">LOADING…</p>
             <div class="meta">
-              <div class="pill">Body: <span id="body-front">—</span></div>
-              <div class="pill">Mode: <span id="mode-pill">5m</span></div>
-              <div class="pill">Signal: <span id="signal-pill">LIVE</span></div>
+              <div class="pill">Body: <span id="bodyFront">—</span></div>
+              <div class="pill">Rule: <span id="ruleMode">5m</span></div>
+              <div class="pill">Signal: <span id="signalMode">LIVE</span></div>
             </div>
           </div>
         </div>
 
-        <!-- Next card behind -->
         <div class="stack-card" id="card-next" style="transform:scale(0.98) translateY(10px); opacity:0.65;">
-          <img id="img-next" src="" alt="next"/>
+          <img id="imgNext" src="" alt="next"/>
           <div class="overlay">
-            <p class="big-name" id="name-next">...</p>
+            <p class="big-name" id="nameNext">…</p>
             <div class="meta">
-              <div class="pill">Body: <span id="body-next">—</span></div>
+              <div class="pill">Body: <span id="bodyNext">—</span></div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="small muted" id="feed-msg" style="margin-top:12px;">Fetching targets...</div>
-
-    <div id="debug" class="debugbox hidden">
-      <div class="small muted" style="margin-bottom:6px;"><b>FEED DEBUG</b> (why empty)</div>
-      <div class="small muted" id="debug-lines"></div>
-    </div>
+    <div class="small muted" id="feedMsg" style="margin-top:12px;">Fetching targets…</div>
 
     <div class="swipebar">
-      <button class="btn btn-red" onclick="swipeButton('SPITE')">💀 SPITE</button>
-      <button class="btn" onclick="swipeButton('LIGHT')">⚡ LIGHT</button>
+      <button class="btn btn-red" onclick="swipeBtn('SPITE')">💀 SPITE</button>
+      <button class="btn" onclick="swipeBtn('LIGHT')">⚡ LIGHT</button>
     </div>
   </div>
+
 </div>
 
 <script>
-/* ---------------------------
+/* =========================
    CONFIG
-----------------------------*/
+========================= */
 const API_URL = "https://azeuqer-backend.onrender.com";
+
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
 try { if (tg) { tg.ready(); tg.expand(); } } catch (e) {}
 
@@ -375,581 +265,389 @@ let FEED = [];
 let FALLBACK_USED = false;
 let cameraStream = null;
 
-/* Alive polish state */
-let STREAK = 0;          // increases on successful swipes
-let STREAK_MAX = 10;     // meter cap
-let sponsorOn = false;
-
-/* ---------------------------
-   DOM HELPERS
-----------------------------*/
+/* =========================
+   HELPERS
+========================= */
 const el = (id)=>document.getElementById(id);
-
-function showLoader(v, msg=""){
-  const l = el("loader");
-  if(v){ l.classList.remove("hidden"); el("loader-msg").innerText=msg; }
-  else { l.classList.add("hidden"); }
-}
+function showLoader(v,msg=""){const l=el("loader"); if(v){l.classList.remove("hidden"); el("loader-msg").innerText=msg;} else l.classList.add("hidden");}
 function logStatus(msg){ el("status-log").textContent = msg; }
-function setTag(node, text, kind=null){
-  node.classList.remove("neon","pink","red","gold");
-  if(kind) node.classList.add(kind);
-  node.textContent = text;
-}
 function showScreen(id){
   el("screen-gate").classList.add("hidden");
   el("screen-feed").classList.add("hidden");
   el(id).classList.remove("hidden");
-
-  // ambience layers
-  const feedOn = (id === "screen-feed");
+  const feedOn = (id==="screen-feed");
   el("haze").classList.toggle("hidden", !feedOn);
   el("vignette").classList.toggle("hidden", !feedOn);
 }
-function escapeHtml(str){
-  return String(str||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+function escapeHtml(str){return String(str||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");}
+function absUrl(u){
+  if(!u) return "";
+  if(u.startsWith("http")) return u;
+  if(u.startsWith("/")) return API_URL + u;
+  return u;
 }
 
-/* ---------------------------
-   HAPTICS + VISUAL FX
-----------------------------*/
-function haptic(type="light"){
-  try{
-    if(tg && tg.HapticFeedback){
-      if(type==="light") tg.HapticFeedback.impactOccurred("light");
-      else if(type==="medium") tg.HapticFeedback.impactOccurred("medium");
-      else if(type==="heavy") tg.HapticFeedback.impactOccurred("heavy");
-      else if(type==="success") tg.HapticFeedback.notificationOccurred("success");
-      else if(type==="error") tg.HapticFeedback.notificationOccurred("error");
-    }
-  }catch(e){}
-}
-
-function impact(kind){
-  const box = el("impact");
-  box.className = "impact on " + (kind==="LIGHT" ? "light" : "spite");
-  setTimeout(()=>{ box.className="impact"; }, 170);
-}
-
-function sparkleBurst(kind){
-  // small, non-annoying micro-sparks near center
-  const count = 10;
-  for(let i=0;i<count;i++){
-    const s = document.createElement("div");
-    s.className = "spark";
-    const x = window.innerWidth * 0.5 + (Math.random()*40-20);
-    const y = window.innerHeight * 0.55 + (Math.random()*30-15);
-    s.style.left = x + "px";
-    s.style.top = y + "px";
-    const dx = (Math.random()*160-80) + "px";
-    const dy = (Math.random()*220-40) + "px";
-    s.style.setProperty("--dx", dx);
-    s.style.setProperty("--dy", dy);
-    if(kind==="LIGHT"){
-      s.style.background = "rgba(0,255,204,0.95)";
-      s.style.boxShadow = "0 0 10px rgba(0,255,204,0.55)";
-    } else {
-      s.style.background = "rgba(255,51,51,0.92)";
-      s.style.boxShadow = "0 0 10px rgba(255,51,51,0.55)";
-    }
-    document.body.appendChild(s);
-    setTimeout(()=>s.remove(), 600);
-  }
-}
-
-/* ---------------------------
-   STREAK / AURA
-----------------------------*/
-function setStreak(n){
-  STREAK = Math.max(0, n);
-  el("streakNum").textContent = STREAK;
-  const pct = Math.min(100, Math.round((STREAK / STREAK_MAX) * 100));
-  el("streakFill").style.width = pct + "%";
-
-  const wrap = el("stagewrap");
-  wrap.classList.remove("streak1","streak2","streak3","streak4","streak5","streak6");
-  if(STREAK >= 2) wrap.classList.add("streak1");
-  if(STREAK >= 4) wrap.classList.add("streak2");
-  if(STREAK >= 6) wrap.classList.add("streak3");
-  if(STREAK >= 8) wrap.classList.add("streak4");
-  if(STREAK >= 10) wrap.classList.add("streak5");
-  if(STREAK >= 14) wrap.classList.add("streak6");
-}
-
-function onSwipeSuccess(kind){
-  setStreak(STREAK + 1);
-  // Slightly different signal text
-  el("signal-pill").textContent = (STREAK >= 6) ? "HOT" : "LIVE";
-  el("signal-pill").style.color = (STREAK >= 6) ? "var(--gold)" : "#ccc";
-}
-
-function onSwipeBlocked(){
-  setStreak(0);
-  el("signal-pill").textContent = "COOLDOWN";
-  el("signal-pill").style.color = "var(--muted)";
-}
-
-/* ---------------------------
-   SUBTLE AUDIO ENGINE
-   - Pure WebAudio (no external files)
-   - Sounds are very short, soft, and non-annoying
-   - Audio can only start after a user gesture (browser rule)
-----------------------------*/
+/* =========================
+   Subtle Audio (WebAudio)
+========================= */
 const AudioFX = (() => {
-  let ctx = null;
-  let enabled = false;
-  let unlocked = false;
-  let master = null;
-
+  let ctx=null, enabled=false, unlocked=false, master=null;
   function ensure(){
     if(ctx) return ctx;
     const AC = window.AudioContext || window.webkitAudioContext;
     if(!AC) return null;
     ctx = new AC();
-    master = ctx.createGain();
-    master.gain.value = 0.16; // subtle master volume
+    master = ctx.createGain(); master.gain.value = 0.16;
     master.connect(ctx.destination);
     return ctx;
   }
-
   async function unlock(){
     if(unlocked) return true;
-    const c = ensure();
-    if(!c) return false;
+    const c=ensure(); if(!c) return false;
     try{
       await c.resume();
-      // tiny silent tick to prime
-      const o = c.createOscillator();
-      const g = c.createGain();
-      g.gain.value = 0.00001;
-      o.connect(g); g.connect(master);
-      o.frequency.value = 440;
-      o.start();
-      o.stop(c.currentTime + 0.01);
-      unlocked = true;
-      return true;
-    }catch(e){
-      return false;
-    }
+      const o=c.createOscillator(), g=c.createGain();
+      g.gain.value=0.00001; o.connect(g); g.connect(master);
+      o.frequency.value=440; o.start(); o.stop(c.currentTime+0.01);
+      unlocked=true; return true;
+    }catch(e){ return false; }
   }
-
-  function setEnabled(v){
-    enabled = !!v;
-    // keep it subtle; do not auto-play anything
-    updateTogglesUI();
+  function setEnabled(v){ enabled=!!v; syncUI(); }
+  function syncUI(){
+    el("audioToggle")?.classList.toggle("on", enabled);
+    el("audioToggleFeed")?.classList.toggle("on", enabled);
   }
-
-  function updateTogglesUI(){
-    const t1 = el("audioToggle");
-    const t2 = el("audioToggleGate");
-    if(t1) t1.classList.toggle("on", enabled);
-    if(t2) t2.classList.toggle("on", enabled);
-  }
-
-  function ping(){ // tiny UI blip for “alive”
-    if(!enabled || !unlocked) return;
-    const c = ensure(); if(!c) return;
-    const o = c.createOscillator();
-    const g = c.createGain();
-    const f = 220 + Math.random()*40;
-    o.type = "sine";
-    o.frequency.setValueAtTime(f, c.currentTime);
-    g.gain.setValueAtTime(0.00001, c.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.04, c.currentTime + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.00001, c.currentTime + 0.09);
-    o.connect(g); g.connect(master);
-    o.start();
-    o.stop(c.currentTime + 0.11);
-  }
-
   function clickSoft(){
     if(!enabled || !unlocked) return;
-    const c = ensure(); if(!c) return;
-    // noise click
-    const bufferSize = 0.03 * c.sampleRate;
-    const buffer = c.createBuffer(1, bufferSize, c.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) data[i] = (Math.random()*2-1) * (1 - i/bufferSize);
-    const noise = c.createBufferSource();
-    noise.buffer = buffer;
-    const g = c.createGain();
-    g.gain.setValueAtTime(0.00001, c.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.08, c.currentTime + 0.005);
-    g.gain.exponentialRampToValueAtTime(0.00001, c.currentTime + 0.03);
+    const c=ensure(); if(!c) return;
+    const bufferSize=0.03*c.sampleRate;
+    const buffer=c.createBuffer(1, bufferSize, c.sampleRate);
+    const data=buffer.getChannelData(0);
+    for(let i=0;i<bufferSize;i++) data[i]=(Math.random()*2-1)*(1-i/bufferSize);
+    const noise=c.createBufferSource(); noise.buffer=buffer;
+    const g=c.createGain();
+    g.gain.setValueAtTime(0.00001,c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.08,c.currentTime+0.005);
+    g.gain.exponentialRampToValueAtTime(0.00001,c.currentTime+0.03);
     noise.connect(g); g.connect(master);
-    noise.start();
-    noise.stop(c.currentTime + 0.035);
+    noise.start(); noise.stop(c.currentTime+0.035);
   }
-
   function success(kind="LIGHT"){
     if(!enabled || !unlocked) return;
-    const c = ensure(); if(!c) return;
-
-    // soft “dopamine” chord: 2 quick sines + a tiny shimmer
+    const c=ensure(); if(!c) return;
     const base = (kind==="LIGHT") ? 620 : 310;
-    const o1 = c.createOscillator();
-    const o2 = c.createOscillator();
-    const g = c.createGain();
-    const filter = c.createBiquadFilter();
-    filter.type = "lowpass";
-    filter.frequency.value = 1600;
-
-    o1.type = "sine"; o2.type = "triangle";
-    o1.frequency.setValueAtTime(base, c.currentTime);
-    o2.frequency.setValueAtTime(base * 1.5, c.currentTime);
-
-    g.gain.setValueAtTime(0.00001, c.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.10, c.currentTime + 0.012);
-    g.gain.exponentialRampToValueAtTime(0.00001, c.currentTime + 0.16);
-
-    o1.connect(filter); o2.connect(filter);
-    filter.connect(g); g.connect(master);
-
-    o1.start(); o2.start();
-    o1.stop(c.currentTime + 0.18);
-    o2.stop(c.currentTime + 0.18);
-
-    // shimmer (very subtle)
-    const sh = c.createOscillator();
-    const sg = c.createGain();
-    sh.type = "sine";
-    sh.frequency.setValueAtTime(base * 2.6, c.currentTime);
-    sg.gain.setValueAtTime(0.00001, c.currentTime);
-    sg.gain.exponentialRampToValueAtTime(0.035, c.currentTime + 0.01);
-    sg.gain.exponentialRampToValueAtTime(0.00001, c.currentTime + 0.09);
-    sh.connect(sg); sg.connect(master);
-    sh.start(); sh.stop(c.currentTime + 0.1);
+    const o1=c.createOscillator(), o2=c.createOscillator();
+    const g=c.createGain(), filter=c.createBiquadFilter();
+    filter.type="lowpass"; filter.frequency.value=1600;
+    o1.type="sine"; o2.type="triangle";
+    o1.frequency.setValueAtTime(base,c.currentTime);
+    o2.frequency.setValueAtTime(base*1.5,c.currentTime);
+    g.gain.setValueAtTime(0.00001,c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.10,c.currentTime+0.012);
+    g.gain.exponentialRampToValueAtTime(0.00001,c.currentTime+0.16);
+    o1.connect(filter); o2.connect(filter); filter.connect(g); g.connect(master);
+    o1.start(); o2.start(); o1.stop(c.currentTime+0.18); o2.stop(c.currentTime+0.18);
   }
-
   function error(){
     if(!enabled || !unlocked) return;
-    const c = ensure(); if(!c) return;
-    // low short thud
-    const o = c.createOscillator();
-    const g = c.createGain();
-    o.type = "sine";
-    o.frequency.setValueAtTime(140, c.currentTime);
-    o.frequency.exponentialRampToValueAtTime(90, c.currentTime + 0.08);
-    g.gain.setValueAtTime(0.00001, c.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.12, c.currentTime + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.00001, c.currentTime + 0.1);
-    o.connect(g); g.connect(master);
-    o.start(); o.stop(c.currentTime + 0.12);
+    const c=ensure(); if(!c) return;
+    const o=c.createOscillator(), g=c.createGain();
+    o.type="sine";
+    o.frequency.setValueAtTime(140,c.currentTime);
+    o.frequency.exponentialRampToValueAtTime(90,c.currentTime+0.08);
+    g.gain.setValueAtTime(0.00001,c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.12,c.currentTime+0.01);
+    g.gain.exponentialRampToValueAtTime(0.00001,c.currentTime+0.1);
+    o.connect(g); g.connect(master); o.start(); o.stop(c.currentTime+0.12);
   }
-
-  return { unlock, setEnabled, ping, clickSoft, success, error, get enabled(){return enabled;}, get unlocked(){return unlocked;} };
+  return { unlock, setEnabled, clickSoft, success, error, get enabled(){return enabled;}, get unlocked(){return unlocked;} };
 })();
 
-/* Audio toggles */
-function wireAudioToggles(){
-  const tGate = el("audioToggleGate");
-  const tFeed = el("audioToggle");
-
+function wireAudio(){
   const handler = async ()=>{
-    // Must unlock from a user gesture
     await AudioFX.unlock();
     AudioFX.setEnabled(!AudioFX.enabled);
     AudioFX.clickSoft();
   };
-
-  if(tGate) tGate.addEventListener("click", handler);
-  if(tFeed) tFeed.addEventListener("click", handler);
-
-  // Also: any first click anywhere can unlock (without enabling)
-  window.addEventListener("pointerdown", async ()=>{
-    if(!AudioFX.unlocked) await AudioFX.unlock();
-  }, { once:false, passive:true });
+  el("audioToggle")?.addEventListener("click", handler);
+  el("audioToggleFeed")?.addEventListener("click", handler);
+  window.addEventListener("pointerdown", async ()=>{ if(!AudioFX.unlocked) await AudioFX.unlock(); }, {passive:true});
 }
 
-/* ---------------------------
+/* =========================
+   FX
+========================= */
+function impact(kind){
+  const box=el("impact");
+  box.className="impact on " + (kind==="LIGHT" ? "light":"spite");
+  setTimeout(()=>box.className="impact",170);
+}
+function sparkle(kind){
+  for(let i=0;i<10;i++){
+    const s=document.createElement("div");
+    s.className="spark";
+    const x=window.innerWidth*0.5+(Math.random()*40-20);
+    const y=window.innerHeight*0.55+(Math.random()*30-15);
+    s.style.left=x+"px"; s.style.top=y+"px";
+    s.style.setProperty("--dx",(Math.random()*160-80)+"px");
+    s.style.setProperty("--dy",(Math.random()*220-40)+"px");
+    if(kind==="LIGHT"){ s.style.background="rgba(0,255,204,0.95)"; }
+    else{ s.style.background="rgba(255,51,51,0.92)"; }
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(),600);
+  }
+}
+
+/* =========================
    API
-----------------------------*/
-async function apiLogin(){
-  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
-  const start_param = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) ? tg.initDataUnsafe.start_param : "";
-  const res = await fetch(`${API_URL}/auth/login`,{
-    method:"POST", headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({initData, start_param})
+========================= */
+async function api(path, body){
+  const res = await fetch(API_URL + path, {
+    method:"POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify(body || {})
   });
   return await res.json();
 }
 
-async function ping(){
-  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+async function init(){
+  showLoader(true,"CONNECTING...");
   try{
-    await fetch(`${API_URL}/game/ping`,{
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({initData})
-    });
-  }catch(e){}
+    wireAudio();
+
+    const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+    const login = await api("/auth/login", { initData });
+    if(login.status !== "ok") throw new Error(login.msg||"LOGIN_FAIL");
+    ME = login.user;
+
+    renderGate();
+    await loadTopImages();
+
+    if(ME.email){
+      el("emailBlock").style.display="none";
+    } else {
+      el("emailBlock").style.display="block";
+    }
+
+    // if user has bio-lock, proceed to feed
+    if(ME.bio_lock_url){
+      el("gateState").className="tag neon";
+      el("gateState").textContent="READY";
+      showScreen("screen-feed");
+      await loadFeed();
+      await pingLoop();
+    } else {
+      el("gateState").className="tag red";
+      el("gateState").textContent="LOCKED";
+      showScreen("screen-gate");
+    }
+  }catch(e){
+    logStatus("BACKEND ERROR");
+    AudioFX.error();
+    showScreen("screen-gate");
+  }finally{
+    showLoader(false);
+  }
 }
 
+function renderGate(){
+  el("meName").textContent = ME.username || "AGENT";
+  el("meId").textContent = ME.user_id || "—";
+  el("meAP").textContent = ME.ap ?? 0;
+  el("meEnergy").textContent = ME.energy ?? 30;
+  el("meVis").textContent = ME.visibility_credits ?? 10;
+  el("meBio").textContent = ME.bio_lock_url ? "PASS":"GATE";
+}
+
+async function submitEmail(){
+  const email = (el("emailInput").value||"").trim();
+  el("emailMsg").textContent="";
+  if(!email){ el("emailMsg").textContent="Enter email."; return; }
+  showLoader(true,"SAVING EMAIL...");
+  try{
+    const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+    const r = await api("/auth/email", { initData, email });
+    if(r.status !== "ok"){
+      el("emailMsg").textContent = "Error: " + (r.msg||"FAIL");
+      AudioFX.error();
+      return;
+    }
+    el("emailMsg").textContent = "Saved.";
+    AudioFX.success("LIGHT");
+    el("emailBlock").style.display="none";
+  }finally{
+    showLoader(false);
+  }
+}
+
+async function loadTopImages(){
+  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+  const r = await api("/game/top_images", { initData });
+  if(r.status !== "ok") return;
+
+  const e = r.top_euphoria;
+  const d = r.top_dissonance;
+
+  el("topEImg").src = absUrl(e.bio_lock_url);
+  el("topDImg").src = absUrl(d.bio_lock_url);
+
+  el("topEName").textContent = (e.username||"UNKNOWN") + ` (Light: ${e.votes_light||0})`;
+  el("topDName").textContent = (d.username||"UNKNOWN") + ` (Spite: ${d.votes_spite||0})`;
+
+  // boss thumbnails
+  const row = el("bossRow");
+  row.innerHTML = "";
+  (r.bosses||[]).slice(0,6).forEach(b=>{
+    const img=document.createElement("img");
+    img.src = absUrl(b.image_url);
+    img.style.width="56px";
+    img.style.height="56px";
+    img.style.border="1px solid #333";
+    img.style.borderRadius="12px";
+    img.style.background="#000";
+    img.title = b.name;
+    row.appendChild(img);
+  });
+}
+
+async function pingLoop(){
+  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+  try{ await api("/game/ping", { initData }); }catch(e){}
+}
+setInterval(pingLoop, 30000);
+
+/* =========================
+   FEED
+========================= */
 async function loadFeed(){
   const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
-  const res = await fetch(`${API_URL}/game/feed`,{
-    method:"POST", headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({initData})
-  });
-  const data = await res.json();
-  if(data.status !== "ok"){
-    el("feed-msg").textContent = "Feed error: " + (data.msg||"UNKNOWN");
-    FEED = [];
-    await showDebug();
-    renderStageEmpty();
-    onSwipeBlocked();
-    AudioFX.error();
-    return;
+  el("feedMsg").textContent="Fetching targets…";
+  const r = await api("/game/feed", { initData });
+  if(r.status !== "ok"){ el("feedMsg").textContent="Feed error."; return; }
+  FEED = r.feed || [];
+  FALLBACK_USED = !!r.fallback;
+
+  el("ruleMode").textContent = FALLBACK_USED ? "1h":"5m";
+  renderHUD(0);
+  renderCards();
+  attachDrag();
+}
+
+function renderHUD(swipes){
+  el("hudAP").textContent = ME.ap ?? 0;
+  el("hudEnergy").textContent = ME.energy ?? 30;
+  el("hudVis").textContent = ME.visibility_credits ?? 10;
+  el("hudSwipes").textContent = swipes ?? 0;
+}
+
+function setCard(which, data){
+  if(which==="front"){
+    el("imgFront").src = absUrl(data?.bio_lock_url||"");
+    el("nameFront").textContent = escapeHtml(data?.username||"NO TARGETS");
+    el("bodyFront").textContent = data?.body_asset_id || "—";
+  } else {
+    el("imgNext").src = absUrl(data?.bio_lock_url||"");
+    el("nameNext").textContent = escapeHtml(data?.username||"…");
+    el("bodyNext").textContent = data?.body_asset_id || "—";
   }
-  FALLBACK_USED = !!data.fallback;
-  FEED = data.feed || [];
+}
 
-  // update UI signal
-  el("mode-pill").textContent = FALLBACK_USED ? "1h" : "5m";
-
-  // Preload first two images before showing
-  const a = FEED[0]; const b = FEED[1];
-  await preloadImage(a?.bio_lock_url);
-  await preloadImage(b?.bio_lock_url);
-
-  renderStage();
+function renderCards(){
   if(FEED.length===0){
-    await showDebug();
-  } else {
-    hideDebug();
-  }
-}
-
-async function showDebug(){
-  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
-  try{
-    const res = await fetch(`${API_URL}/game/feed_debug`,{
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({initData})
-    });
-    const d = await res.json();
-    if(d.status!=="ok") return;
-    el("debug").classList.remove("hidden");
-
-    const five = d.cutoff_5m;
-    const oneh = d.cutoff_1h;
-    el("debug-lines").innerHTML = `
-      <div class="small muted">Your swipes today: <b>${d.your_swipes_today}</b></div>
-      <div class="divider"></div>
-      <div class="small muted"><b>5m rule:</b></div>
-      <div class="small muted">verified+pass: <b>${five.total_verified_pass}</b></div>
-      <div class="small muted">active: <b>${five.active_cutoff}</b></div>
-      <div class="small muted">active + vis&gt;0: <b>${five.active_and_vis_gt0}</b></div>
-      <div class="small muted">after swiped-filter: <b>${five.after_swiped_today_filter}</b></div>
-      <div class="divider"></div>
-      <div class="small muted"><b>1h fallback:</b></div>
-      <div class="small muted">verified+pass: <b>${oneh.total_verified_pass}</b></div>
-      <div class="small muted">active: <b>${oneh.active_cutoff}</b></div>
-      <div class="small muted">active + vis&gt;0: <b>${oneh.active_and_vis_gt0}</b></div>
-      <div class="small muted">after swiped-filter: <b>${oneh.after_swiped_today_filter}</b></div>
-    `;
-  }catch(e){}
-}
-function hideDebug(){ el("debug").classList.add("hidden"); }
-
-async function swipeApi(direction){
-  if(FEED.length===0) return {status:"error", msg:"NO_TARGETS"};
-  const t = FEED[0];
-  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
-  const res = await fetch(`${API_URL}/game/swipe`,{
-    method:"POST", headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({initData, target_id: t.user_id, direction})
-  });
-  return await res.json();
-}
-
-/* ---------------------------
-   RENDER
-----------------------------*/
-function renderMeGate(){
-  el("me-id").textContent = ME.user_id ?? ME.tg_id ?? "—";
-  el("me-name").textContent = ME.username || "AGENT";
-  el("me-ap").textContent = ME.ap ?? 0;
-  el("me-biolock").textContent = ME.biolock_status || "GATE";
-  el("me-energy").textContent = ME.energy ?? 0;
-  el("me-vis").textContent = ME.visibility_credits ?? 0;
-  el("me-img").src = ME.bio_lock_url || "";
-
-  const pioneer = (ME.role==="PIONEER");
-  el("pioneer-badge").classList.toggle("hidden", !pioneer);
-  el("title").classList.toggle("pioneer-glitch", pioneer);
-
-  setTag(el("role-tag"), (ME.role||"CITIZEN"), pioneer?"neon":null);
-  setTag(el("verif-tag"), (ME.verification_status||"PENDING"),
-    (ME.verification_status==="VERIFIED"?"neon":(ME.verification_status==="REJECTED"?"red":"pink"))
-  );
-
-  if(ME.biolock_status==="PASS" && ME.bio_lock_url){
-    setTag(el("gate-msg"), "BIOLOCK OK", "neon");
-    el("gate-detail").textContent =
-      (ME.verification_status==="VERIFIED")
-        ? "Entering feed..."
-        : "Not VERIFIED yet. PIONEERS auto-verify. Tribunal later.";
-  } else {
-    setTag(el("gate-msg"), "LOCKED", "red");
-    el("gate-detail").textContent = "Scan face to enter.";
-  }
-}
-
-function renderHUD(swipesToday="?"){
-  el("hud-ap").textContent = ME.ap ?? 0;
-  el("hud-energy").textContent = ME.energy ?? 0;
-  el("hud-vis").textContent = ME.visibility_credits ?? 0;
-  el("hud-swipes").textContent = swipesToday;
-}
-
-function preloadImage(url){
-  return new Promise((resolve)=>{
-    if(!url) return resolve(false);
-    const img = new Image();
-    img.crossOrigin="anonymous";
-    img.onload=()=>resolve(true);
-    img.onerror=()=>resolve(false);
-    img.src=url;
-  });
-}
-
-function setCard(frontOrNext, data){
-  if(frontOrNext==="front"){
-    el("img-front").src = data?.bio_lock_url || "";
-    el("name-front").textContent = escapeHtml(data?.username || "UNKNOWN");
-    el("body-front").textContent = data?.body_asset_id || "—";
-    el("mode-pill").textContent = FALLBACK_USED ? "1h" : "5m";
-  } else {
-    el("img-next").src = data?.bio_lock_url || "";
-    el("name-next").textContent = escapeHtml(data?.username || "...");
-    el("body-next").textContent = data?.body_asset_id || "—";
-  }
-}
-
-function renderStageEmpty(){
-  setCard("front", {username:"NO TARGETS", body_asset_id:"—", bio_lock_url:""});
-  setCard("next", {username:"...", body_asset_id:"—", bio_lock_url:""});
-  el("feed-msg").textContent = "No targets match rules. Retrying...";
-  onSwipeBlocked();
-}
-
-function renderStage(){
-  if(FEED.length===0){
-    renderStageEmpty();
+    setCard("front",{username:"NO TARGETS",bio_lock_url:"",body_asset_id:"—"});
+    setCard("next",{username:"…",bio_lock_url:"",body_asset_id:"—"});
+    el("feedMsg").textContent="No targets. Retrying…";
     return;
   }
   setCard("front", FEED[0]);
-  setCard("next", FEED[1] || {username:"...", body_asset_id:"—", bio_lock_url:""});
-  el("feed-msg").textContent = "Drag to swipe (flick) or tap buttons.";
+  setCard("next", FEED[1] || {username:"…",bio_lock_url:"",body_asset_id:"—"});
+  el("feedMsg").textContent="Drag to swipe or tap buttons.";
 }
 
-/* ---------------------------
-   SWIPE PHYSICS
-----------------------------*/
-let dragging=false, startX=0, startY=0;
-
-function resetFrontTransform(){
-  const card = el("card-front");
-  card.style.transition = "transform 220ms ease-out";
-  card.style.transform = "translate3d(0,0,0) rotate(0deg)";
-  setTimeout(()=>{ card.style.transition=""; }, 240);
+async function swipeBtn(dir){
+  if(FEED.length===0) return;
+  await commitSwipe(dir);
 }
 
 async function commitSwipe(direction){
-  if(FEED.length===0) return;
-
-  // FX
   impact(direction);
-  sparkleBurst(direction);
-  haptic(direction==="LIGHT" ? "success" : "medium");
+  sparkle(direction);
   AudioFX.success(direction);
 
+  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+  const target = FEED[0];
   const card = el("card-front");
-  card.style.transition = "transform 260ms ease-out";
+  card.style.transition="transform 260ms ease-out";
   const outX = direction==="LIGHT" ? 520 : -520;
   const rot = direction==="LIGHT" ? 18 : -18;
   card.style.transform = `translate3d(${outX}px, -20px, 0) rotate(${rot}deg)`;
 
-  const data = await swipeApi(direction);
+  const r = await api("/game/swipe", {
+    initData, target_id: target.user_id, direction
+  });
 
-  if(data.status !== "ok"){
-    haptic("error");
+  if(r.status !== "ok"){
+    el("feedMsg").textContent = "Blocked: " + (r.msg||"FAIL");
     AudioFX.error();
-    el("feed-msg").textContent = "Swipe blocked: " + (data.msg||"UNKNOWN");
-    resetFrontTransform();
-    onSwipeBlocked();
+    card.style.transition="transform 220ms ease-out";
+    card.style.transform="translate3d(0,0,0) rotate(0deg)";
     return;
   }
 
-  // update ME HUD
-  ME.ap = data.new_ap;
-  ME.energy = data.new_energy;
-  ME.visibility_credits = data.new_visibility_credits;
-  renderHUD(data.swipes_today ?? "?");
-  onSwipeSuccess(direction);
+  ME.ap = r.new_ap;
+  ME.energy = r.new_energy;
+  ME.visibility_credits = r.new_visibility_credits;
 
-  // shift feed
+  renderHUD(r.swipes_today);
+
   FEED.shift();
 
-  // preload next-next
-  preloadImage(FEED[1]?.bio_lock_url);
-
-  // snap back and render new cards
   setTimeout(()=>{
-    card.style.transition = "none";
-    card.style.transform = "translate3d(0,0,0) rotate(0deg)";
-    renderStage();
-
-    // subtle alive ping after swipe
-    setTimeout(()=>AudioFX.ping(), 180);
-
+    card.style.transition="none";
+    card.style.transform="translate3d(0,0,0) rotate(0deg)";
+    renderCards();
     if(FEED.length < 3) loadFeed();
   }, 280);
 }
 
-function swipeButton(direction){
-  if(FEED.length===0) return;
-  commitSwipe(direction);
-}
-
+/* =========================
+   DRAG SWIPE
+========================= */
+let dragging=false,startX=0,startY=0;
 function attachDrag(){
   const card = el("card-front");
+  if(card.dataset.bound==="1") return;
+  card.dataset.bound="1";
 
-  const onDown = (e)=>{
+  const onDown=(e)=>{
     if(FEED.length===0) return;
     dragging=true;
-    const p = (e.touches && e.touches[0]) ? e.touches[0] : e;
+    const p=(e.touches&&e.touches[0])?e.touches[0]:e;
     startX=p.clientX; startY=p.clientY;
     card.style.transition="none";
     AudioFX.clickSoft();
   };
-
-  const onMove = (e)=>{
+  const onMove=(e)=>{
     if(!dragging) return;
-    const p = (e.touches && e.touches[0]) ? e.touches[0] : e;
-    const dx = p.clientX - startX;
-    const dy = p.clientY - startY;
-    const rot = dx / 18;
-    card.style.transform = `translate3d(${dx}px, ${dy}px, 0) rotate(${rot}deg)`;
-
-    // micro “alive” guidance text
-    if(dx > 80){ el("feed-msg").textContent="RELEASE: LIGHT"; }
-    else if(dx < -80){ el("feed-msg").textContent="RELEASE: SPITE"; }
-    else { el("feed-msg").textContent="Drag to swipe (flick) or tap buttons."; }
+    const p=(e.touches&&e.touches[0])?e.touches[0]:e;
+    const dx=p.clientX-startX, dy=p.clientY-startY;
+    const rot=dx/18;
+    card.style.transform=`translate3d(${dx}px, ${dy}px, 0) rotate(${rot}deg)`;
+    if(dx>80) el("feedMsg").textContent="RELEASE: LIGHT";
+    else if(dx<-80) el("feedMsg").textContent="RELEASE: SPITE";
+    else el("feedMsg").textContent="Drag to swipe or tap buttons.";
   };
-
-  const onUp = async ()=>{
+  const onUp=async()=>{
     if(!dragging) return;
     dragging=false;
-
-    const tr = card.style.transform || "";
-    let dx = 0;
-    const m = tr.match(/translate3d\(([-0-9.]+)px/);
-    if(m) dx = parseFloat(m[1] || "0");
-
-    if(dx > 140) return commitSwipe("LIGHT");
-    if(dx < -140) return commitSwipe("SPITE");
-    resetFrontTransform();
+    const tr=card.style.transform||"";
+    let dx=0;
+    const m=tr.match(/translate3d\(([-0-9.]+)px/);
+    if(m) dx=parseFloat(m[1]||"0");
+    if(dx>140) return commitSwipe("LIGHT");
+    if(dx<-140) return commitSwipe("SPITE");
+    card.style.transition="transform 220ms ease-out";
+    card.style.transform="translate3d(0,0,0) rotate(0deg)";
   };
 
   card.addEventListener("pointerdown", onDown);
@@ -961,22 +659,9 @@ function attachDrag(){
   window.addEventListener("touchend", onUp, {passive:true});
 }
 
-/* ---------------------------
-   CAMERA + BIOLOCK
-----------------------------*/
-function showBiolockError(code){
-  const map = {
-    "NO_FACE":"NO FACE. Center your face.",
-    "MULTI_FACE":"MULTIPLE FACES. Only one allowed.",
-    "LOW_CONF":"LOW CONFIDENCE. Better light.",
-    "FACE_TOO_SMALL":"FACE TOO SMALL. Move closer.",
-    "TOO_SMALL":"IMAGE TOO SMALL.",
-    "BAD_IMAGE":"BAD IMAGE.",
-    "BUCKET_FAIL":"STORAGE ERROR."
-  };
-  el("biolock-error").textContent = map[code] ? map[code] : ("BIOLOCK FAIL: "+code);
-  AudioFX.error();
-}
+/* =========================
+   CAMERA / BIOLOCK
+========================= */
 async function openCamera(){
   if (isIOS && isTelegram) return openCameraFallback();
   if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ alert("Camera not supported."); return; }
@@ -994,9 +679,7 @@ async function openCamera(){
     alert("Camera denied.");
     el("cam-debug").textContent="Error: "+(err.name||err);
     AudioFX.error();
-  }finally{
-    showLoader(false);
-  }
+  }finally{ showLoader(false); }
 }
 function openCameraFallback(){
   const input=el("cameraFallback");
@@ -1009,8 +692,7 @@ function openCameraFallback(){
   input.click();
 }
 function capturePhoto(){
-  const v=el("video");
-  const c=el("canvas");
+  const v=el("video"), c=el("canvas");
   if(!v.videoWidth){alert("Wait...");return;}
   c.width=v.videoWidth; c.height=v.videoHeight;
   c.getContext("2d").drawImage(v,0,0);
@@ -1021,10 +703,7 @@ function capturePhoto(){
   },"image/jpeg",0.92);
 }
 function stopCamera(){
-  try{
-    const v=el("video");
-    v.pause(); v.srcObject=null;
-  }catch(e){}
+  try{ const v=el("video"); v.pause(); v.srcObject=null; }catch(e){}
   if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}
   el("camera-box").classList.add("hidden");
 }
@@ -1032,108 +711,43 @@ async function uploadBioBlob(blobOrFile){
   el("biolock-error").textContent="";
   showLoader(true,"VERIFYING...");
   try{
-    await AudioFX.unlock(); // user likely tapped by now; harmless
+    await AudioFX.unlock();
     const fd=new FormData();
     fd.append("initData",(tg && tg.initData)?tg.initData:"debug_mode");
     fd.append("file",blobOrFile,"face.jpg");
     const res=await fetch(`${API_URL}/auth/biolock`,{method:"POST",body:fd});
     const data=await res.json();
     if(data.status!=="success"){
-      haptic("error");
-      showBiolockError(data.msg || "FAIL");
+      el("biolock-error").textContent = "BIOLOCK FAIL: " + (data.msg||"FAIL");
+      AudioFX.error();
       await init();
       return;
     }
-    haptic("success");
     AudioFX.success("LIGHT");
     await init();
   }catch(e){
-    haptic("error");
-    showBiolockError("FAIL");
+    el("biolock-error").textContent = "BIOLOCK FAIL";
+    AudioFX.error();
   }finally{
     showLoader(false);
   }
 }
 
-/* ---------------------------
-   RESET + SPONSOR
-----------------------------*/
+/* =========================
+   NAV
+========================= */
+function backToGate(){ showScreen("screen-gate"); }
 async function resetMe(){
   const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
   if(!confirm("RESET?")) return;
   showLoader(true,"RESETTING...");
-  AudioFX.clickSoft();
   try{
-    await fetch(`${API_URL}/auth/reset`,{
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({initData})
-    });
+    await api("/auth/reset",{initData});
     location.reload();
   }catch(e){
-    showLoader(false);
     AudioFX.error();
-  }
+  }finally{ showLoader(false); }
 }
-function toggleSponsor(){
-  sponsorOn = !sponsorOn;
-  el("sponsorMark").classList.toggle("hidden", !sponsorOn);
-  AudioFX.clickSoft();
-}
-
-/* ---------------------------
-   INIT
-----------------------------*/
-async function init(){
-  showLoader(true,"CONNECTING...");
-  try{
-    const data = await apiLogin();
-    if(data.status!=="ok" || !data.user) throw new Error(data.msg||"LOGIN_FAIL");
-    ME = data.user;
-    renderMeGate();
-
-    wireAudioToggles();
-
-    if(ME.biolock_status==="PASS" && ME.bio_lock_url && ME.verification_status==="VERIFIED"){
-      showScreen("screen-feed");
-      renderHUD("?");
-      attachDrag();
-      setStreak(0);
-      await loadFeed();
-      await ping();
-      el("feed-msg").textContent = "Locked & loaded.";
-      // subtle alive ping
-      setTimeout(()=>AudioFX.ping(), 220);
-    } else {
-      showScreen("screen-gate");
-      logStatus("AT GATE.");
-    }
-  }catch(e){
-    showScreen("screen-gate");
-    logStatus("BACKEND ERROR.");
-    AudioFX.error();
-  }finally{
-    showLoader(false);
-  }
-}
-
-/* ---------------------------
-   ALIVE LOOPS
-----------------------------*/
-setInterval(ping, 30000);
-
-// auto refill feed attempts if empty
-setInterval(async ()=>{
-  if(!el("screen-feed").classList.contains("hidden") && FEED.length===0){
-    await loadFeed();
-  }
-}, 7000);
-
-// micro “alive” ping while browsing feed (very subtle)
-setInterval(()=>{
-  if(!el("screen-feed").classList.contains("hidden") && FEED.length>0){
-    AudioFX.ping();
-  }
-}, 12000);
 
 init();
 </script>
