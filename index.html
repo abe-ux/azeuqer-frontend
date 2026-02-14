@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
 <title>AZEUQER: TITANIUM 12.0</title>
 
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
@@ -19,10 +19,10 @@ body { background:var(--bg); color:#fff; font-family:'Courier New', monospace; m
 .screen.transparent{background:none;}
 
 .camera-label{
-display:block;width:100%;padding:30px;margin-top:40px;
-background:#111;border:2px dashed var(--neon);
-color:var(--neon);font-size:1.2rem;font-weight:bold;cursor:pointer;
-text-transform:uppercase;
+  display:block;width:100%;padding:30px;margin-top:40px;
+  background:#111;border:2px dashed var(--neon);
+  color:var(--neon);font-size:1.2rem;font-weight:bold;cursor:pointer;
+  text-transform:uppercase;
 }
 
 .btn{width:100%;padding:15px;background:#111;border:1px solid var(--neon);color:var(--neon);margin-top:15px;font-weight:bold;cursor:pointer;}
@@ -37,206 +37,320 @@ text-transform:uppercase;
 
 #loader{position:fixed;inset:0;background:#000;z-index:100;display:flex;align-items:center;justify-content:center;flex-direction:column;}
 video{width:100%;border:2px solid var(--neon);margin-top:20px;}
+small{color:#666;}
 </style>
 </head>
 
 <body>
 
 <div id="loader" class="hidden">
-<div class="glitch">CONNECTING...</div>
-<div id="loader-msg" style="color:#666;font-size:0.8rem;margin-top:10px;"></div>
+  <div class="glitch">CONNECTING...</div>
+  <div id="loader-msg" style="color:#666;font-size:0.8rem;margin-top:10px;"></div>
 </div>
 
 <div id="game-layer"></div>
 
 <div id="ui-layer">
 
-<div id="screen-entry" class="screen">
-<h1 class="glitch" style="margin-top:50px;">AZEUQER</h1>
-<p style="color:#888;">// REALITY EXTRACTION</p>
+  <div id="screen-entry" class="screen">
+    <h1 class="glitch" style="margin-top:50px;">AZEUQER</h1>
+    <p style="color:#888;">// REALITY EXTRACTION</p>
 
-<button class="camera-label" onclick="openCamera()">📸 SCAN FACE</button>
+    <button class="camera-label" onclick="openCamera()">📸 SCAN FACE</button>
 
-<div id="camera-box" class="hidden">
-<video id="video" autoplay playsinline></video>
-<button class="btn" onclick="capturePhoto()">📸 CAPTURE</button>
-</div>
+    <div id="camera-box" class="hidden">
+      <!-- IMPORTANT: muted helps autoplay in mobile webviews -->
+      <video id="video" autoplay playsinline muted></video>
+      <button class="btn" onclick="capturePhoto()">📸 CAPTURE</button>
+      <button class="btn btn-red" onclick="stopCamera()">✖ CLOSE CAMERA</button>
+      <small id="cam-debug"></small>
+    </div>
 
-<canvas id="canvas" class="hidden"></canvas>
+    <!-- iOS Telegram fallback: file capture -->
+    <input id="cameraFallback" class="hidden" type="file" accept="image/*" capture="user" />
 
-<div id="status-log" style="margin-top:20px;color:#555;">SYSTEM READY</div>
-</div>
+    <canvas id="canvas" class="hidden"></canvas>
 
-<div id="screen-feed" class="screen hidden">
-<div style="display:flex;justify-content:space-between;">
-<span style="color:var(--neon);">AP: <span id="hud-ap">0</span></span>
-<button class="btn btn-red btn-small" onclick="nukeIdentity()">⚠ RESET IDENTITY</button>
-</div>
-<div id="feed-container"></div>
-</div>
+    <div id="status-log" style="margin-top:20px;color:#555;">SYSTEM READY</div>
+  </div>
+
+  <div id="screen-feed" class="screen hidden">
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;">
+      <span style="color:var(--neon);">AP: <span id="hud-ap">0</span></span>
+      <button class="btn btn-red btn-small" onclick="nukeIdentity()">⚠ RESET IDENTITY</button>
+    </div>
+    <div id="feed-container"></div>
+  </div>
 
 </div>
 
 <script>
+/** ======================
+ *  CONFIG
+ *  ====================== */
 const API_URL = "https://azeuqer-backend.onrender.com";
-const tg = window.Telegram.WebApp;
 
-tg.ready();
-tg.expand();
+const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+
+// Telegram safe init
+try {
+  if (tg) {
+    tg.ready();
+    tg.expand();
+  }
+} catch (e) { /* ignore */ }
 
 let cameraStream = null;
-let currentBossHP = 0;
 
-/* =======================
-   CAMERA SYSTEM
-======================= */
+/** ======================
+ *  DEVICE / WEBVIEW DETECT
+ *  ====================== */
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+const isTelegram = !!tg;
 
+/** ======================
+ *  CAMERA SYSTEM
+ *  ====================== */
 async function openCamera(){
-try{
-showLoader(true,"ACCESSING CAMERA...");
+  // If iOS inside Telegram: use fallback immediately (avoids black stream issue)
+  if (isIOS && isTelegram) {
+    logCamDebug("iOS + Telegram detected → using capture fallback.");
+    return openCameraFallback();
+  }
 
-cameraStream = await navigator.mediaDevices.getUserMedia({
-video:{facingMode:"user",width:{ideal:720},height:{ideal:1280}},
-audio:false
-});
+  // Otherwise: normal getUserMedia
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert("Camera API not supported in this browser/webview.");
+    return;
+  }
 
-document.getElementById("video").srcObject = cameraStream;
-document.getElementById("camera-box").classList.remove("hidden");
+  const videoEl = document.getElementById("video");
 
-}catch(err){
-alert("Camera permission denied or unsupported.");
-console.error(err);
+  try{
+    showLoader(true,"ACCESSING CAMERA...");
+
+    // Ensure autoplay works in mobile webviews
+    videoEl.setAttribute("playsinline", "");
+    videoEl.muted = true;
+
+    // Prefer front camera but keep constraints light (too strict can fail)
+    const constraints = {
+      video: {
+        facingMode: { ideal: "user" }
+      },
+      audio: false
+    };
+
+    cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+    videoEl.srcObject = cameraStream;
+
+    // Wait for metadata then play (prevents "black but streaming" issue)
+    await new Promise((resolve) => {
+      videoEl.onloadedmetadata = () => resolve();
+    });
+
+    await videoEl.play();
+
+    document.getElementById("camera-box").classList.remove("hidden");
+    logCamDebug("Camera started.");
+  }catch(err){
+    console.error(err);
+    alert("Camera permission denied / unsupported / blocked by WebView.");
+    logCamDebug("Error: " + (err && err.name ? err.name : String(err)));
+  }finally{
+    showLoader(false);
+  }
 }
-showLoader(false);
+
+function openCameraFallback(){
+  const input = document.getElementById("cameraFallback");
+  input.onchange = async () => {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    showLoader(true,"UPLOADING...");
+    try {
+      await uploadBioBlob(file);
+    } finally {
+      showLoader(false);
+      input.value = "";
+    }
+  };
+  input.click();
 }
 
 function capturePhoto(){
-const video=document.getElementById("video");
-const canvas=document.getElementById("canvas");
+  const video=document.getElementById("video");
+  const canvas=document.getElementById("canvas");
 
-canvas.width=video.videoWidth;
-canvas.height=video.videoHeight;
+  if (!video.videoWidth || !video.videoHeight) {
+    alert("Camera not ready yet. Try again.");
+    return;
+  }
 
-const ctx=canvas.getContext("2d");
-ctx.drawImage(video,0,0);
+  canvas.width=video.videoWidth;
+  canvas.height=video.videoHeight;
 
-canvas.toBlob(async(blob)=>{
-stopCamera();
-await uploadBioBlob(blob);
-},"image/jpeg",0.9);
+  const ctx=canvas.getContext("2d");
+  ctx.drawImage(video,0,0);
+
+  canvas.toBlob(async(blob)=>{
+    if (!blob) { alert("Capture failed."); return; }
+    stopCamera();
+    await uploadBioBlob(blob);
+  },"image/jpeg",0.9);
 }
 
 function stopCamera(){
-if(cameraStream){
-cameraStream.getTracks().forEach(track=>track.stop());
-cameraStream=null;
-}
-document.getElementById("camera-box").classList.add("hidden");
-}
+  try{
+    const videoEl = document.getElementById("video");
+    if (videoEl) {
+      videoEl.pause();
+      videoEl.srcObject = null;
+    }
+  }catch(e){}
 
-async function uploadBioBlob(blob){
-showLoader(true,"UPLOADING...");
-
-const fd=new FormData();
-fd.append("initData",tg.initData||"debug_mode");
-fd.append("file",blob,"face.jpg");
-
-try{
-const res=await fetch(`${API_URL}/auth/biolock`,{method:"POST",body:fd});
-if(!res.ok)throw new Error("Upload failed");
-
-const data=await res.json();
-
-if(data.status==="success"){
-location.reload();
-}else{
-alert("Error: "+data.msg);
-}
-}catch(e){
-alert("Upload failed");
-console.error(e);
-}
-showLoader(false);
+  if(cameraStream){
+    cameraStream.getTracks().forEach(track=>track.stop());
+    cameraStream=null;
+  }
+  document.getElementById("camera-box").classList.add("hidden");
+  logCamDebug("Camera stopped.");
 }
 
-/* =======================
-   APP INIT
-======================= */
+async function uploadBioBlob(blobOrFile){
+  showLoader(true,"UPLOADING...");
 
+  const fd=new FormData();
+  fd.append("initData", (tg && tg.initData) ? tg.initData : "debug_mode");
+  fd.append("file", blobOrFile, "face.jpg");
+
+  try{
+    const res=await fetch(`${API_URL}/auth/biolock`,{method:"POST",body:fd});
+    if(!res.ok) throw new Error("Upload failed");
+
+    const data=await res.json();
+
+    if(data.status==="success"){
+      location.reload();
+    }else{
+      alert("Error: "+(data.msg || "Unknown error"));
+    }
+  }catch(e){
+    console.error(e);
+    alert("Upload failed");
+  }finally{
+    showLoader(false);
+  }
+}
+
+/** ======================
+ *  APP INIT
+ *  ====================== */
 async function init(){
-showLoader(true,"Connecting...");
-try{
-const res=await fetch(`${API_URL}/auth/login`,{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({initData:tg.initData||"debug_mode"})
-});
-const data=await res.json();
+  showLoader(true,"Connecting...");
+  try{
+    const res=await fetch(`${API_URL}/auth/login`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({initData:(tg && tg.initData) ? tg.initData : "debug_mode"})
+    });
 
-if(data.user && data.user.bio_lock_url){
-showScreen('screen-feed');
-loadFeed();
-}else{
-showScreen('screen-entry');
-}
-}catch(e){alert("Server Error");}
-showLoader(false);
+    const data=await res.json();
+
+    if(data.user && data.user.bio_lock_url){
+      showScreen('screen-feed');
+      loadFeed();
+    }else{
+      showScreen('screen-entry');
+    }
+  }catch(e){
+    console.error(e);
+    alert("Server Error");
+    showScreen('screen-entry');
+  }finally{
+    showLoader(false);
+  }
 }
 
 async function nukeIdentity(){
-if(!confirm("RESET IDENTITY?"))return;
-showLoader(true,"WIPING DATA...");
-try{
-await fetch(`${API_URL}/auth/reset`,{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({initData:tg.initData||"debug_mode"})
-});
-location.reload();
-}catch(e){alert("Reset Failed");}
+  if(!confirm("RESET IDENTITY?")) return;
+  showLoader(true,"WIPING DATA...");
+  try{
+    await fetch(`${API_URL}/auth/reset`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({initData:(tg && tg.initData) ? tg.initData : "debug_mode"})
+    });
+    location.reload();
+  }catch(e){
+    console.error(e);
+    alert("Reset Failed");
+  }finally{
+    showLoader(false);
+  }
 }
 
-/* =======================
-   FEED
-======================= */
-
+/** ======================
+ *  FEED
+ *  ====================== */
 let feed=[];
 async function loadFeed(){
-const res=await fetch(`${API_URL}/game/feed`,{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({initData:tg.initData||"debug_mode"})
-});
-const data=await res.json();
-feed=data.feed||[];
-renderCard();
+  try{
+    const res=await fetch(`${API_URL}/game/feed`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({initData:(tg && tg.initData) ? tg.initData : "debug_mode"})
+    });
+    const data=await res.json();
+    feed=data.feed||[];
+    renderCard();
+  }catch(e){
+    console.error(e);
+    document.getElementById('feed-container').innerHTML="FEED ERROR";
+  }
 }
 
 function renderCard(){
-const c=document.getElementById('feed-container');
-if(feed.length===0){c.innerHTML="NO TARGETS";return;}
-const u=feed[0];
-c.innerHTML=`<div class="card"><img src="${u.bio_lock_url}"></div>
-<div style="margin-top:10px;font-weight:bold;">${u.username}</div>`;
+  const c=document.getElementById('feed-container');
+  if(feed.length===0){ c.innerHTML="NO TARGETS"; return; }
+  const u=feed[0];
+  c.innerHTML = `
+    <div class="card"><img src="${u.bio_lock_url}" alt="target"></div>
+    <div style="margin-top:10px;font-weight:bold;">${escapeHtml(u.username || "UNKNOWN")}</div>
+  `;
 }
 
-/* =======================
-   UTILS
-======================= */
-
+/** ======================
+ *  UTILS
+ *  ====================== */
 function showScreen(id){
-document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
-document.getElementById(id).classList.remove('hidden');
+  document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
 }
 
 function showLoader(v,msg=""){
-const l=document.getElementById('loader');
-if(v){
-l.classList.remove('hidden');
-document.getElementById('loader-msg').innerText=msg;
-}else{
-l.classList.add('hidden');
+  const l=document.getElementById('loader');
+  if(v){
+    l.classList.remove('hidden');
+    document.getElementById('loader-msg').innerText=msg;
+  }else{
+    l.classList.add('hidden');
+  }
 }
+
+function logCamDebug(msg){
+  const el = document.getElementById("cam-debug");
+  if (el) el.textContent = msg;
+}
+
+function escapeHtml(str){
+  return String(str)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
 }
 
 init();
