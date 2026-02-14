@@ -3,52 +3,227 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>AZEUQER: TITANIUM — PROMPT 1.4 VESSEL</title>
+<title>AZEUQER: TITANIUM — PROMPT 2 POLISH LAYER 2 (Audio + Dopamine)</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-  :root{ --bg:#050505; --panel:rgba(0,0,0,0.85); --neon:#00ffcc; --pink:#ff00ff; --red:#ff3333; --muted:#777; }
+  :root{
+    --bg:#050505;
+    --panel:rgba(0,0,0,0.86);
+    --neon:#00ffcc;
+    --pink:#ff00ff;
+    --red:#ff3333;
+    --muted:#777;
+    --card:#0b0b0b;
+    --gold:#ffd166;
+  }
+
   body{background:var(--bg);color:#fff;font-family:'Courier New',monospace;margin:0;overflow:hidden;}
   .hidden{display:none!important;}
-  .scanlines{position:fixed;inset:0;pointer-events:none;z-index:50;background:linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%),linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06));background-size:100% 2px, 3px 100%;}
+
+  /* Ambient scanlines */
+  .scanlines{position:fixed;inset:0;pointer-events:none;z-index:50;background:
+    linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%),
+    linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06));
+    background-size:100% 2px, 3px 100%;
+    mix-blend-mode:screen;
+    opacity:0.22;
+  }
+
+  /* Gentle vignette + breathing haze (feed only) */
+  .vignette{
+    position:fixed;inset:-20px;pointer-events:none;z-index:4;
+    background:radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.62) 85%);
+    opacity:0.9;
+  }
+  .haze{
+    position:fixed;inset:-40px;pointer-events:none;z-index:3;
+    background:radial-gradient(circle at 30% 20%, rgba(0,255,204,0.08), rgba(0,0,0,0) 55%),
+               radial-gradient(circle at 80% 75%, rgba(255,0,255,0.06), rgba(0,0,0,0) 55%),
+               radial-gradient(circle at 40% 85%, rgba(255,209,102,0.05), rgba(0,0,0,0) 60%);
+    filter: blur(18px);
+    animation: hazeBreath 6.5s ease-in-out infinite alternate;
+    opacity:0.55;
+  }
+  @keyframes hazeBreath{ from{transform:translate3d(0,0,0) scale(1);} to{transform:translate3d(0,-8px,0) scale(1.03);} }
+
   #ui-layer{position:fixed;inset:0;z-index:10;pointer-events:none;}
   .screen{pointer-events:auto;padding:20px;text-align:center;height:100vh;overflow-y:auto;box-sizing:border-box;background:var(--panel);}
+
   .glitch{animation:shake 2s infinite;color:var(--neon);font-size:2rem;font-weight:bold;text-shadow:2px 0 var(--pink);}
   @keyframes shake{0%{transform:translate(0,0);}2%{transform:translate(1px,0);}4%{transform:translate(0,0);}}
   .pioneer-glitch{color:#fff;text-shadow:0 0 6px var(--neon),0 0 12px var(--pink),0 0 20px var(--neon);animation:pglow 1.4s infinite alternate;}
   @keyframes pglow{from{filter:brightness(1);}to{filter:brightness(1.35);} }
+
   .card{width:380px;max-width:96%;margin:14px auto;padding:14px;border:1px solid #333;background:rgba(255,255,255,0.03);border-radius:12px;text-align:left;}
   .row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
   .tag{display:inline-block;padding:6px 10px;border:1px solid #333;border-radius:999px;color:#bbb;font-size:0.75rem;}
   .tag.neon{border-color:var(--neon);color:var(--neon);}
   .tag.pink{border-color:var(--pink);color:var(--pink);}
   .tag.red{border-color:var(--red);color:var(--red);}
+  .tag.gold{border-color:var(--gold);color:var(--gold);}
   .small{font-size:0.82rem;color:#bbb;line-height:1.25rem;}
   .muted{color:var(--muted);}
   .divider{height:1px;background:#222;margin:14px 0;}
+
   .btn{width:100%;padding:14px;background:#111;border:1px solid var(--neon);color:var(--neon);margin-top:12px;font-weight:bold;cursor:pointer;pointer-events:auto;border-radius:10px;}
   .btn:active{transform:scale(0.99);background:var(--neon);color:#000;}
   .btn-red{border-color:var(--red);color:var(--red);}
   .btn-red:active{background:var(--red);color:#000;}
   .btn-small{width:auto;padding:8px 10px;font-size:0.8rem;margin-top:0;border-radius:10px;}
-  .camera-label{display:block;width:100%;padding:18px;margin-top:12px;background:rgba(17,17,17,0.9);border:2px dashed var(--neon);color:var(--neon);font-size:1.05rem;font-weight:bold;cursor:pointer;text-transform:uppercase;border-radius:12px;}
+  .btn-ghost{border-color:#444;color:#bbb;background:rgba(255,255,255,0.03);}
+  .btn-ghost:active{background:#222;color:#fff;}
+
+  .camera-label{display:block;width:100%;padding:18px;margin-top:12px;background:rgba(17,17,17,0.9);
+    border:2px dashed var(--neon);color:var(--neon);font-size:1.05rem;font-weight:bold;cursor:pointer;
+    text-transform:uppercase;border-radius:12px;
+  }
   video{width:100%;border:2px solid var(--neon);margin-top:12px;border-radius:12px;background:#000;}
   #loader{position:fixed;inset:0;background:#000;z-index:100;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+
   .avatar{width:120px;height:120px;margin:0 auto;border:2px solid var(--neon);border-radius:14px;overflow:hidden;background:#000;position:relative;}
   .avatar img{width:100%;height:100%;object-fit:cover;}
-  .badge{position:absolute;bottom:-10px;right:-10px;background:#000;border:1px solid var(--neon);color:var(--neon);padding:6px 8px;font-size:0.7rem;font-weight:bold;border-radius:10px;}
-  .slider-wrap{margin-top:10px;}
-  .slider{width:100%;accent-color:var(--neon);}
-  .slider-label{display:flex;justify-content:space-between;align-items:center;margin-top:10px;color:#bbb;}
-  .slider-label b{color:#fff;}
-  .preview-box{width:340px;max-width:96%;margin:0 auto;border:1px solid #333;border-radius:12px;overflow:hidden;background:#000;}
-  canvas{display:block;width:100%;height:auto;}
+  .badge{position:absolute;bottom:-10px;right:-10px;background:#000;border:1px solid var(--neon);color:var(--neon);
+    padding:6px 8px;font-size:0.7rem;font-weight:bold;border-radius:10px;
+  }
+
+  /* FEED STACK */
+  .hud{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin:0 auto;width:380px;max-width:96%;}
+  .hud-left{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .hud-right{display:flex;gap:10px;align-items:center;}
+
+  .stagewrap{width:380px;max-width:96%;margin:14px auto 0;position:relative;}
+  .stage{
+    position:relative;height:520px;border-radius:18px;
+    transition: box-shadow 220ms ease-out, transform 220ms ease-out;
+  }
+
+  /* Ghost Protocol Aura (subtle, addictive “alive” feeling) */
+  .aura{
+    position:absolute;inset:-18px;border-radius:26px;pointer-events:none;z-index:-1;
+    background:
+      radial-gradient(circle at 30% 30%, rgba(0,255,204,0.16), rgba(0,0,0,0) 55%),
+      radial-gradient(circle at 70% 60%, rgba(255,0,255,0.12), rgba(0,0,0,0) 60%),
+      radial-gradient(circle at 50% 100%, rgba(255,209,102,0.10), rgba(0,0,0,0) 55%);
+    filter: blur(18px);
+    opacity:0.0;
+    transition: opacity 280ms ease-out;
+    animation: auraDrift 7.2s ease-in-out infinite alternate;
+  }
+  @keyframes auraDrift{from{transform:translate3d(0,0,0) scale(1);}to{transform:translate3d(0,-10px,0) scale(1.05);} }
+  .stagewrap.live .aura{opacity:0.55;}
+  .stagewrap.streak1 .aura{opacity:0.62;}
+  .stagewrap.streak2 .aura{opacity:0.70;}
+  .stagewrap.streak3 .aura{opacity:0.78;}
+  .stagewrap.streak4 .aura{opacity:0.86;}
+  .stagewrap.streak5 .aura{opacity:0.92;}
+  .stagewrap.streak6 .aura{opacity:1.0;}
+
+  .stack-card{
+    position:absolute;left:0;right:0;top:0;
+    border:1px solid #333;border-radius:16px;overflow:hidden;background:var(--card);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.45);
+    touch-action:none;
+    user-select:none;
+    transform: translate3d(0,0,0);
+  }
+  .stack-card img{width:100%;height:520px;object-fit:cover;display:block;background:#000;}
+  .overlay{
+    position:absolute;left:0;right:0;bottom:0;padding:16px;
+    background:linear-gradient(to top, rgba(0,0,0,0.96), rgba(0,0,0,0));
+  }
+  .big-name{font-size:1.35rem;font-weight:bold;margin:0;}
+  .meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;}
+  .meta .pill{padding:6px 10px;border:1px solid #333;border-radius:999px;font-size:0.75rem;color:#ccc;background:rgba(255,255,255,0.04);}
+
+  /* Swipebar */
+  .swipebar{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);width:92%;max-width:520px;display:flex;gap:12px;z-index:30;}
+  .pulse{animation:pulse 0.9s infinite alternate;}
+  @keyframes pulse{from{box-shadow:0 0 0 rgba(0,255,204,0);}to{box-shadow:0 0 28px rgba(0,255,204,0.35);} }
+
+  /* Impact FX */
+  .impact{position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0;transition:opacity 170ms;}
+  .impact.on{opacity:1;}
+  .impact.light{background:
+    radial-gradient(circle at 50% 55%, rgba(0,255,204,0.28), rgba(0,0,0,0) 55%),
+    radial-gradient(circle at 50% 55%, rgba(255,209,102,0.10), rgba(0,0,0,0) 60%);
+  }
+  .impact.spite{background:radial-gradient(circle at 50% 55%, rgba(255,51,51,0.30), rgba(0,0,0,0) 55%);}
+
+  /* Micro sparkle particles */
+  .spark{
+    position:fixed; width:6px; height:6px; border-radius:50%;
+    background:rgba(255,255,255,0.9);
+    box-shadow: 0 0 10px rgba(255,255,255,0.6);
+    pointer-events:none;
+    z-index:45;
+    animation: sparkFly 520ms ease-out forwards;
+  }
+  @keyframes sparkFly{
+    from{transform:translate3d(0,0,0) scale(1); opacity:1;}
+    to{transform:translate3d(var(--dx), var(--dy), 0) scale(0.2); opacity:0;}
+  }
+
+  /* Combo/Streak meter */
+  .streakbar{
+    width:380px;max-width:96%;margin:10px auto 0;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+  }
+  .streakmeter{
+    flex:1;height:10px;border-radius:999px;border:1px solid #222;background:rgba(255,255,255,0.04);overflow:hidden;
+  }
+  .streakfill{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg, rgba(0,255,204,0.9), rgba(255,0,255,0.55), rgba(255,209,102,0.65));
+    transition: width 260ms ease-out;
+  }
+
+  /* Sponsor watermark slot */
+  .sponsor{
+    position:fixed;top:16px;right:16px;z-index:25;
+    width:120px;height:34px;border-radius:12px;
+    border:1px solid rgba(255,255,255,0.10);
+    background:rgba(255,255,255,0.03);
+    display:flex;align-items:center;justify-content:center;
+    font-size:0.7rem;color:#bbb;
+    backdrop-filter: blur(8px);
+    opacity:0.85;
+  }
+  .sponsor b{color:var(--gold);}
+
+  /* Debug */
+  .debugbox{width:380px;max-width:96%;margin:16px auto;padding:12px;border:1px dashed #333;border-radius:12px;background:rgba(255,255,255,0.02);text-align:left;}
+
+  /* Audio chip */
+  .chip{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:7px 10px;border-radius:999px;border:1px solid #333;
+    background:rgba(255,255,255,0.03);
+    color:#bbb;font-size:0.75rem;
+  }
+  .toggle{
+    width:34px;height:18px;border-radius:999px;border:1px solid #444;background:#111;position:relative;cursor:pointer;
+  }
+  .toggle::after{
+    content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;
+    background:#666;transition:all 180ms ease-out;
+  }
+  .toggle.on{border-color:rgba(0,255,204,0.7);}
+  .toggle.on::after{left:18px;background:var(--neon);}
 </style>
 </head>
 
 <body>
 <div class="scanlines"></div>
+<div id="impact" class="impact"></div>
+
+<!-- Feed-only ambience layers (toggled via JS) -->
+<div id="haze" class="haze hidden"></div>
+<div id="vignette" class="vignette hidden"></div>
+
+<div class="sponsor hidden" id="sponsorMark">SPONSORED <b>///</b></div>
 
 <div id="loader" class="hidden">
   <div class="glitch">CONNECTING...</div>
@@ -56,9 +231,10 @@
 </div>
 
 <div id="ui-layer">
-  <div id="screen-entry" class="screen">
-    <h1 id="title" class="glitch" style="margin-top:24px;">AZEUQER</h1>
-    <p class="muted" style="margin:6px 0 0;">// PROMPT 1.4: VESSEL</p>
+  <!-- GATE -->
+  <div id="screen-gate" class="screen">
+    <h1 id="title" class="glitch" style="margin-top:22px;">AZEUQER</h1>
+    <p class="muted" style="margin:6px 0 0;">// POLISH LAYER 2: AURA + COMBO + SUBTLE AUDIO</p>
 
     <div class="card">
       <div class="row">
@@ -77,282 +253,888 @@
       <div class="small muted">User ID: <span id="me-id">—</span></div>
       <div class="small muted">AP: <span id="me-ap">0</span></div>
       <div class="small muted">BioLock: <span id="me-biolock">GATE</span></div>
-      <div class="small muted">Body Asset: <span id="me-body">body_mid_mid_mid_mid.png</span></div>
+      <div class="small muted">Energy: <span id="me-energy">0</span> | Vis: <span id="me-vis">0</span></div>
     </div>
 
     <div class="card">
       <div class="row">
-        <span class="tag pink">VESSEL</span>
-        <span id="vessel-band" class="tag">MID</span>
+        <span class="tag pink">GATE</span>
+        <span id="gate-msg" class="tag red">LOCKED</span>
       </div>
       <div class="divider"></div>
 
-      <div class="slider-wrap">
-        <div class="slider-label"><span>WORK</span><b id="workVal">50</b></div>
-        <input id="work" class="slider" type="range" min="0" max="100" value="50" />
-        <div class="slider-label"><span>PACE</span><b id="paceVal">50</b></div>
-        <input id="pace" class="slider" type="range" min="0" max="100" value="50" />
-        <div class="slider-label"><span>MIND</span><b id="mindVal">50</b></div>
-        <input id="mind" class="slider" type="range" min="0" max="100" value="50" />
-        <div class="slider-label"><span>VIBE</span><b id="vibeVal">50</b></div>
-        <input id="vibe" class="slider" type="range" min="0" max="100" value="50" />
-      </div>
-
-      <button class="btn" onclick="saveVessel()">SAVE VESSEL</button>
-      <div id="vessel-msg" class="small muted" style="margin-top:10px;"></div>
-    </div>
-
-    <div class="card">
       <div class="row">
-        <span class="tag neon">PREVIEW</span>
-        <span class="tag muted">Face riding vehicle</span>
+        <div class="chip">
+          <span>Sound</span>
+          <div id="audioToggleGate" class="toggle"></div>
+        </div>
+        <span class="small muted">Audio unlocks after first tap.</span>
       </div>
-      <div class="divider"></div>
-      <div class="preview-box">
-        <canvas id="preview" width="900" height="600"></canvas>
+
+      <div class="small muted" id="gate-detail" style="margin-top:10px;">Scan face to enter. (Exactly one face.)</div>
+      <div id="biolock-error" class="small" style="margin-top:10px;color:#ff7777;"></div>
+
+      <button class="camera-label pulse" onclick="openCamera()">📸 SCAN FACE</button>
+
+      <div id="camera-box" class="hidden">
+        <video id="video" autoplay playsinline muted></video>
+        <button class="btn" onclick="capturePhoto()">📸 CAPTURE & VERIFY</button>
+        <button class="btn btn-red" onclick="stopCamera()">✖ CLOSE</button>
+        <small id="cam-debug" style="display:block;margin-top:8px;color:#555;"></small>
       </div>
+
+      <input id="cameraFallback" class="hidden" type="file" accept="image/*" capture="user" />
+      <canvas id="canvas" class="hidden"></canvas>
     </div>
 
     <div id="status-log" class="small muted" style="margin-top:14px;">SYSTEM READY</div>
   </div>
+
+  <!-- FEED -->
+  <div id="screen-feed" class="screen hidden">
+    <div class="hud">
+      <div class="hud-left">
+        <span class="tag neon">AP: <b id="hud-ap">0</b></span>
+        <span class="tag pink">Energy: <b id="hud-energy">0</b></span>
+        <span class="tag">Swipes: <b id="hud-swipes">0</b></span>
+        <span class="tag">Vis: <b id="hud-vis">0</b></span>
+      </div>
+      <div class="hud-right">
+        <div class="chip">
+          <span>Sound</span>
+          <div id="audioToggle" class="toggle"></div>
+        </div>
+        <button class="btn btn-small btn-ghost" onclick="toggleSponsor()">SPONSOR</button>
+        <button class="btn btn-small btn-red" onclick="resetMe()">RESET</button>
+      </div>
+    </div>
+
+    <div class="streakbar">
+      <span class="tag gold">STREAK: <b id="streakNum">0</b></span>
+      <div class="streakmeter"><div id="streakFill" class="streakfill"></div></div>
+      <span class="tag">AURA</span>
+    </div>
+
+    <div class="stagewrap live" id="stagewrap">
+      <div class="aura"></div>
+
+      <div class="stage" id="stage">
+        <!-- Front card -->
+        <div class="stack-card" id="card-front">
+          <img id="img-front" src="" alt="front"/>
+          <div class="overlay">
+            <p class="big-name" id="name-front">LOADING...</p>
+            <div class="meta">
+              <div class="pill">Body: <span id="body-front">—</span></div>
+              <div class="pill">Mode: <span id="mode-pill">5m</span></div>
+              <div class="pill">Signal: <span id="signal-pill">LIVE</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Next card behind -->
+        <div class="stack-card" id="card-next" style="transform:scale(0.98) translateY(10px); opacity:0.65;">
+          <img id="img-next" src="" alt="next"/>
+          <div class="overlay">
+            <p class="big-name" id="name-next">...</p>
+            <div class="meta">
+              <div class="pill">Body: <span id="body-next">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="small muted" id="feed-msg" style="margin-top:12px;">Fetching targets...</div>
+
+    <div id="debug" class="debugbox hidden">
+      <div class="small muted" style="margin-bottom:6px;"><b>FEED DEBUG</b> (why empty)</div>
+      <div class="small muted" id="debug-lines"></div>
+    </div>
+
+    <div class="swipebar">
+      <button class="btn btn-red" onclick="swipeButton('SPITE')">💀 SPITE</button>
+      <button class="btn" onclick="swipeButton('LIGHT')">⚡ LIGHT</button>
+    </div>
+  </div>
 </div>
 
 <script>
+/* ---------------------------
+   CONFIG
+----------------------------*/
 const API_URL = "https://azeuqer-backend.onrender.com";
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
 try { if (tg) { tg.ready(); tg.expand(); } } catch (e) {}
 
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+const isTelegram = !!tg;
+
 let ME = null;
+let FEED = [];
+let FALLBACK_USED = false;
+let cameraStream = null;
+
+/* Alive polish state */
+let STREAK = 0;          // increases on successful swipes
+let STREAK_MAX = 10;     // meter cap
+let sponsorOn = false;
+
+/* ---------------------------
+   DOM HELPERS
+----------------------------*/
+const el = (id)=>document.getElementById(id);
 
 function showLoader(v, msg=""){
-  const l = document.getElementById("loader");
-  if (v){ l.classList.remove("hidden"); document.getElementById("loader-msg").innerText = msg; }
+  const l = el("loader");
+  if(v){ l.classList.remove("hidden"); el("loader-msg").innerText=msg; }
   else { l.classList.add("hidden"); }
 }
-function logStatus(msg){ document.getElementById("status-log").textContent = msg; }
-function setTag(el, text, kind=null){
-  el.classList.remove("neon","pink","red");
-  if (kind) el.classList.add(kind);
-  el.textContent = text;
+function logStatus(msg){ el("status-log").textContent = msg; }
+function setTag(node, text, kind=null){
+  node.classList.remove("neon","pink","red","gold");
+  if(kind) node.classList.add(kind);
+  node.textContent = text;
+}
+function showScreen(id){
+  el("screen-gate").classList.add("hidden");
+  el("screen-feed").classList.add("hidden");
+  el(id).classList.remove("hidden");
+
+  // ambience layers
+  const feedOn = (id === "screen-feed");
+  el("haze").classList.toggle("hidden", !feedOn);
+  el("vignette").classList.toggle("hidden", !feedOn);
+}
+function escapeHtml(str){
+  return String(str||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
 }
 
-function band(v){
-  if(v<=33) return "LOW";
-  if(v<=66) return "MID";
-  return "HIGH";
-}
-function bodyAsset(work,pace,mind,vibe){
-  const b=(x)=> (x<=33?"low":(x<=66?"mid":"high"));
-  return `body_${b(work)}_${b(pace)}_${b(mind)}_${b(vibe)}.png`;
+/* ---------------------------
+   HAPTICS + VISUAL FX
+----------------------------*/
+function haptic(type="light"){
+  try{
+    if(tg && tg.HapticFeedback){
+      if(type==="light") tg.HapticFeedback.impactOccurred("light");
+      else if(type==="medium") tg.HapticFeedback.impactOccurred("medium");
+      else if(type==="heavy") tg.HapticFeedback.impactOccurred("heavy");
+      else if(type==="success") tg.HapticFeedback.notificationOccurred("success");
+      else if(type==="error") tg.HapticFeedback.notificationOccurred("error");
+    }
+  }catch(e){}
 }
 
-function hookSliders(){
-  const ids=["work","pace","mind","vibe"];
-  ids.forEach(id=>{
-    document.getElementById(id).addEventListener("input", ()=>{
-      document.getElementById(id+"Val").textContent = document.getElementById(id).value;
-      updateVesselLabel();
-      drawPreview();
-    });
+function impact(kind){
+  const box = el("impact");
+  box.className = "impact on " + (kind==="LIGHT" ? "light" : "spite");
+  setTimeout(()=>{ box.className="impact"; }, 170);
+}
+
+function sparkleBurst(kind){
+  // small, non-annoying micro-sparks near center
+  const count = 10;
+  for(let i=0;i<count;i++){
+    const s = document.createElement("div");
+    s.className = "spark";
+    const x = window.innerWidth * 0.5 + (Math.random()*40-20);
+    const y = window.innerHeight * 0.55 + (Math.random()*30-15);
+    s.style.left = x + "px";
+    s.style.top = y + "px";
+    const dx = (Math.random()*160-80) + "px";
+    const dy = (Math.random()*220-40) + "px";
+    s.style.setProperty("--dx", dx);
+    s.style.setProperty("--dy", dy);
+    if(kind==="LIGHT"){
+      s.style.background = "rgba(0,255,204,0.95)";
+      s.style.boxShadow = "0 0 10px rgba(0,255,204,0.55)";
+    } else {
+      s.style.background = "rgba(255,51,51,0.92)";
+      s.style.boxShadow = "0 0 10px rgba(255,51,51,0.55)";
+    }
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(), 600);
+  }
+}
+
+/* ---------------------------
+   STREAK / AURA
+----------------------------*/
+function setStreak(n){
+  STREAK = Math.max(0, n);
+  el("streakNum").textContent = STREAK;
+  const pct = Math.min(100, Math.round((STREAK / STREAK_MAX) * 100));
+  el("streakFill").style.width = pct + "%";
+
+  const wrap = el("stagewrap");
+  wrap.classList.remove("streak1","streak2","streak3","streak4","streak5","streak6");
+  if(STREAK >= 2) wrap.classList.add("streak1");
+  if(STREAK >= 4) wrap.classList.add("streak2");
+  if(STREAK >= 6) wrap.classList.add("streak3");
+  if(STREAK >= 8) wrap.classList.add("streak4");
+  if(STREAK >= 10) wrap.classList.add("streak5");
+  if(STREAK >= 14) wrap.classList.add("streak6");
+}
+
+function onSwipeSuccess(kind){
+  setStreak(STREAK + 1);
+  // Slightly different signal text
+  el("signal-pill").textContent = (STREAK >= 6) ? "HOT" : "LIVE";
+  el("signal-pill").style.color = (STREAK >= 6) ? "var(--gold)" : "#ccc";
+}
+
+function onSwipeBlocked(){
+  setStreak(0);
+  el("signal-pill").textContent = "COOLDOWN";
+  el("signal-pill").style.color = "var(--muted)";
+}
+
+/* ---------------------------
+   SUBTLE AUDIO ENGINE
+   - Pure WebAudio (no external files)
+   - Sounds are very short, soft, and non-annoying
+   - Audio can only start after a user gesture (browser rule)
+----------------------------*/
+const AudioFX = (() => {
+  let ctx = null;
+  let enabled = false;
+  let unlocked = false;
+  let master = null;
+
+  function ensure(){
+    if(ctx) return ctx;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return null;
+    ctx = new AC();
+    master = ctx.createGain();
+    master.gain.value = 0.16; // subtle master volume
+    master.connect(ctx.destination);
+    return ctx;
+  }
+
+  async function unlock(){
+    if(unlocked) return true;
+    const c = ensure();
+    if(!c) return false;
+    try{
+      await c.resume();
+      // tiny silent tick to prime
+      const o = c.createOscillator();
+      const g = c.createGain();
+      g.gain.value = 0.00001;
+      o.connect(g); g.connect(master);
+      o.frequency.value = 440;
+      o.start();
+      o.stop(c.currentTime + 0.01);
+      unlocked = true;
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+
+  function setEnabled(v){
+    enabled = !!v;
+    // keep it subtle; do not auto-play anything
+    updateTogglesUI();
+  }
+
+  function updateTogglesUI(){
+    const t1 = el("audioToggle");
+    const t2 = el("audioToggleGate");
+    if(t1) t1.classList.toggle("on", enabled);
+    if(t2) t2.classList.toggle("on", enabled);
+  }
+
+  function ping(){ // tiny UI blip for “alive”
+    if(!enabled || !unlocked) return;
+    const c = ensure(); if(!c) return;
+    const o = c.createOscillator();
+    const g = c.createGain();
+    const f = 220 + Math.random()*40;
+    o.type = "sine";
+    o.frequency.setValueAtTime(f, c.currentTime);
+    g.gain.setValueAtTime(0.00001, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.04, c.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.00001, c.currentTime + 0.09);
+    o.connect(g); g.connect(master);
+    o.start();
+    o.stop(c.currentTime + 0.11);
+  }
+
+  function clickSoft(){
+    if(!enabled || !unlocked) return;
+    const c = ensure(); if(!c) return;
+    // noise click
+    const bufferSize = 0.03 * c.sampleRate;
+    const buffer = c.createBuffer(1, bufferSize, c.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = (Math.random()*2-1) * (1 - i/bufferSize);
+    const noise = c.createBufferSource();
+    noise.buffer = buffer;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.00001, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.08, c.currentTime + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.00001, c.currentTime + 0.03);
+    noise.connect(g); g.connect(master);
+    noise.start();
+    noise.stop(c.currentTime + 0.035);
+  }
+
+  function success(kind="LIGHT"){
+    if(!enabled || !unlocked) return;
+    const c = ensure(); if(!c) return;
+
+    // soft “dopamine” chord: 2 quick sines + a tiny shimmer
+    const base = (kind==="LIGHT") ? 620 : 310;
+    const o1 = c.createOscillator();
+    const o2 = c.createOscillator();
+    const g = c.createGain();
+    const filter = c.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.value = 1600;
+
+    o1.type = "sine"; o2.type = "triangle";
+    o1.frequency.setValueAtTime(base, c.currentTime);
+    o2.frequency.setValueAtTime(base * 1.5, c.currentTime);
+
+    g.gain.setValueAtTime(0.00001, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.10, c.currentTime + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.00001, c.currentTime + 0.16);
+
+    o1.connect(filter); o2.connect(filter);
+    filter.connect(g); g.connect(master);
+
+    o1.start(); o2.start();
+    o1.stop(c.currentTime + 0.18);
+    o2.stop(c.currentTime + 0.18);
+
+    // shimmer (very subtle)
+    const sh = c.createOscillator();
+    const sg = c.createGain();
+    sh.type = "sine";
+    sh.frequency.setValueAtTime(base * 2.6, c.currentTime);
+    sg.gain.setValueAtTime(0.00001, c.currentTime);
+    sg.gain.exponentialRampToValueAtTime(0.035, c.currentTime + 0.01);
+    sg.gain.exponentialRampToValueAtTime(0.00001, c.currentTime + 0.09);
+    sh.connect(sg); sg.connect(master);
+    sh.start(); sh.stop(c.currentTime + 0.1);
+  }
+
+  function error(){
+    if(!enabled || !unlocked) return;
+    const c = ensure(); if(!c) return;
+    // low short thud
+    const o = c.createOscillator();
+    const g = c.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(140, c.currentTime);
+    o.frequency.exponentialRampToValueAtTime(90, c.currentTime + 0.08);
+    g.gain.setValueAtTime(0.00001, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.12, c.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.00001, c.currentTime + 0.1);
+    o.connect(g); g.connect(master);
+    o.start(); o.stop(c.currentTime + 0.12);
+  }
+
+  return { unlock, setEnabled, ping, clickSoft, success, error, get enabled(){return enabled;}, get unlocked(){return unlocked;} };
+})();
+
+/* Audio toggles */
+function wireAudioToggles(){
+  const tGate = el("audioToggleGate");
+  const tFeed = el("audioToggle");
+
+  const handler = async ()=>{
+    // Must unlock from a user gesture
+    await AudioFX.unlock();
+    AudioFX.setEnabled(!AudioFX.enabled);
+    AudioFX.clickSoft();
+  };
+
+  if(tGate) tGate.addEventListener("click", handler);
+  if(tFeed) tFeed.addEventListener("click", handler);
+
+  // Also: any first click anywhere can unlock (without enabling)
+  window.addEventListener("pointerdown", async ()=>{
+    if(!AudioFX.unlocked) await AudioFX.unlock();
+  }, { once:false, passive:true });
+}
+
+/* ---------------------------
+   API
+----------------------------*/
+async function apiLogin(){
+  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+  const start_param = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) ? tg.initDataUnsafe.start_param : "";
+  const res = await fetch(`${API_URL}/auth/login`,{
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({initData, start_param})
   });
+  return await res.json();
 }
 
-function updateVesselLabel(){
-  const w=+document.getElementById("work").value;
-  const p=+document.getElementById("pace").value;
-  const m=+document.getElementById("mind").value;
-  const v=+document.getElementById("vibe").value;
-  const avg=Math.round((w+p+m+v)/4);
-  document.getElementById("vessel-band").textContent = band(avg);
-  document.getElementById("me-body").textContent = bodyAsset(w,p,m,v);
+async function ping(){
+  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+  try{
+    await fetch(`${API_URL}/game/ping`,{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({initData})
+    });
+  }catch(e){}
 }
 
-function hashHue(seed){
-  let h=7;
-  for(const ch of seed) h=(h*31 + ch.charCodeAt(0))>>>0;
-  return h%360;
+async function loadFeed(){
+  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+  const res = await fetch(`${API_URL}/game/feed`,{
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({initData})
+  });
+  const data = await res.json();
+  if(data.status !== "ok"){
+    el("feed-msg").textContent = "Feed error: " + (data.msg||"UNKNOWN");
+    FEED = [];
+    await showDebug();
+    renderStageEmpty();
+    onSwipeBlocked();
+    AudioFX.error();
+    return;
+  }
+  FALLBACK_USED = !!data.fallback;
+  FEED = data.feed || [];
+
+  // update UI signal
+  el("mode-pill").textContent = FALLBACK_USED ? "1h" : "5m";
+
+  // Preload first two images before showing
+  const a = FEED[0]; const b = FEED[1];
+  await preloadImage(a?.bio_lock_url);
+  await preloadImage(b?.bio_lock_url);
+
+  renderStage();
+  if(FEED.length===0){
+    await showDebug();
+  } else {
+    hideDebug();
+  }
 }
 
-async function loadImage(url){
-  return new Promise((resolve,reject)=>{
-    const img=new Image();
+async function showDebug(){
+  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+  try{
+    const res = await fetch(`${API_URL}/game/feed_debug`,{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({initData})
+    });
+    const d = await res.json();
+    if(d.status!=="ok") return;
+    el("debug").classList.remove("hidden");
+
+    const five = d.cutoff_5m;
+    const oneh = d.cutoff_1h;
+    el("debug-lines").innerHTML = `
+      <div class="small muted">Your swipes today: <b>${d.your_swipes_today}</b></div>
+      <div class="divider"></div>
+      <div class="small muted"><b>5m rule:</b></div>
+      <div class="small muted">verified+pass: <b>${five.total_verified_pass}</b></div>
+      <div class="small muted">active: <b>${five.active_cutoff}</b></div>
+      <div class="small muted">active + vis&gt;0: <b>${five.active_and_vis_gt0}</b></div>
+      <div class="small muted">after swiped-filter: <b>${five.after_swiped_today_filter}</b></div>
+      <div class="divider"></div>
+      <div class="small muted"><b>1h fallback:</b></div>
+      <div class="small muted">verified+pass: <b>${oneh.total_verified_pass}</b></div>
+      <div class="small muted">active: <b>${oneh.active_cutoff}</b></div>
+      <div class="small muted">active + vis&gt;0: <b>${oneh.active_and_vis_gt0}</b></div>
+      <div class="small muted">after swiped-filter: <b>${oneh.after_swiped_today_filter}</b></div>
+    `;
+  }catch(e){}
+}
+function hideDebug(){ el("debug").classList.add("hidden"); }
+
+async function swipeApi(direction){
+  if(FEED.length===0) return {status:"error", msg:"NO_TARGETS"};
+  const t = FEED[0];
+  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+  const res = await fetch(`${API_URL}/game/swipe`,{
+    method:"POST", headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({initData, target_id: t.user_id, direction})
+  });
+  return await res.json();
+}
+
+/* ---------------------------
+   RENDER
+----------------------------*/
+function renderMeGate(){
+  el("me-id").textContent = ME.user_id ?? ME.tg_id ?? "—";
+  el("me-name").textContent = ME.username || "AGENT";
+  el("me-ap").textContent = ME.ap ?? 0;
+  el("me-biolock").textContent = ME.biolock_status || "GATE";
+  el("me-energy").textContent = ME.energy ?? 0;
+  el("me-vis").textContent = ME.visibility_credits ?? 0;
+  el("me-img").src = ME.bio_lock_url || "";
+
+  const pioneer = (ME.role==="PIONEER");
+  el("pioneer-badge").classList.toggle("hidden", !pioneer);
+  el("title").classList.toggle("pioneer-glitch", pioneer);
+
+  setTag(el("role-tag"), (ME.role||"CITIZEN"), pioneer?"neon":null);
+  setTag(el("verif-tag"), (ME.verification_status||"PENDING"),
+    (ME.verification_status==="VERIFIED"?"neon":(ME.verification_status==="REJECTED"?"red":"pink"))
+  );
+
+  if(ME.biolock_status==="PASS" && ME.bio_lock_url){
+    setTag(el("gate-msg"), "BIOLOCK OK", "neon");
+    el("gate-detail").textContent =
+      (ME.verification_status==="VERIFIED")
+        ? "Entering feed..."
+        : "Not VERIFIED yet. PIONEERS auto-verify. Tribunal later.";
+  } else {
+    setTag(el("gate-msg"), "LOCKED", "red");
+    el("gate-detail").textContent = "Scan face to enter.";
+  }
+}
+
+function renderHUD(swipesToday="?"){
+  el("hud-ap").textContent = ME.ap ?? 0;
+  el("hud-energy").textContent = ME.energy ?? 0;
+  el("hud-vis").textContent = ME.visibility_credits ?? 0;
+  el("hud-swipes").textContent = swipesToday;
+}
+
+function preloadImage(url){
+  return new Promise((resolve)=>{
+    if(!url) return resolve(false);
+    const img = new Image();
     img.crossOrigin="anonymous";
-    img.onload=()=>resolve(img);
-    img.onerror=()=>reject(new Error("IMG_FAIL"));
+    img.onload=()=>resolve(true);
+    img.onerror=()=>resolve(false);
     img.src=url;
   });
 }
 
-async function drawPreview(){
-  const canvas=document.getElementById("preview");
-  const ctx=canvas.getContext("2d");
-
-  const w=+document.getElementById("work").value;
-  const p=+document.getElementById("pace").value;
-  const m=+document.getElementById("mind").value;
-  const v=+document.getElementById("vibe").value;
-
-  const asset = bodyAsset(w,p,m,v);
-  const hue = hashHue(asset);
-
-  // bg
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  const grad=ctx.createLinearGradient(0,0,canvas.width,canvas.height);
-  grad.addColorStop(0, `hsl(${hue} 70% 8%)`);
-  grad.addColorStop(1, `hsl(${(hue+160)%360} 70% 10%)`);
-  ctx.fillStyle=grad;
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  // aura
-  const rg=ctx.createRadialGradient(canvas.width*0.5, canvas.height*0.35, 20, canvas.width*0.5, canvas.height*0.35, 420);
-  rg.addColorStop(0, `hsla(${(hue+260)%360} 90% 70% / 0.35)`);
-  rg.addColorStop(1, `hsla(${(hue+260)%360} 90% 70% / 0)`);
-  ctx.fillStyle=rg;
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  // "vehicle" (procedural hoverboard/cloud)
-  ctx.save();
-  ctx.translate(canvas.width/2, canvas.height*0.74);
-  ctx.shadowColor=`hsla(${(hue+180)%360} 90% 60% / 0.7)`;
-  ctx.shadowBlur=35;
-  ctx.fillStyle=`hsla(${(hue+180)%360} 90% 55% / 0.18)`;
-  ctx.strokeStyle=`hsla(${(hue+180)%360} 90% 65% / 0.75)`;
-  ctx.lineWidth=6;
-  ctx.beginPath();
-  ctx.moveTo(-260, 0);
-  ctx.bezierCurveTo(-180,-70,-40,-70,0,-25);
-  ctx.bezierCurveTo(40,20,190,20,260,-10);
-  ctx.bezierCurveTo(270,40,200,80,90,70);
-  ctx.bezierCurveTo(-20,60,-160,80,-250,40);
-  ctx.closePath();
-  ctx.fill(); ctx.stroke();
-  ctx.restore();
-
-  // ground shadow
-  ctx.fillStyle="rgba(0,0,0,0.55)";
-  ctx.beginPath();
-  ctx.ellipse(canvas.width/2, canvas.height*0.90, 280, 50, 0, 0, Math.PI*2);
-  ctx.fill();
-
-  // face (circle) if available
-  const faceUrl = ME && ME.bio_lock_url ? ME.bio_lock_url : null;
-  if(faceUrl){
-    try{
-      const img = await loadImage(faceUrl);
-      const cx=canvas.width/2, cy=canvas.height*0.38, r=160;
-
-      // crop circle
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx,cy,r,0,Math.PI*2);
-      ctx.closePath();
-      ctx.clip();
-      ctx.drawImage(img, cx-r, cy-r, r*2, r*2);
-      ctx.restore();
-
-      // ring glow
-      ctx.strokeStyle=`hsla(${(hue+180)%360} 90% 65% / 0.95)`;
-      ctx.lineWidth=10;
-      ctx.shadowColor=`hsla(${(hue+180)%360} 90% 65% / 0.8)`;
-      ctx.shadowBlur=25;
-      ctx.beginPath(); ctx.arc(cx,cy,r+8,0,Math.PI*2); ctx.stroke();
-      ctx.shadowBlur=0;
-
-    }catch(e){
-      // ignore preview errors
-    }
+function setCard(frontOrNext, data){
+  if(frontOrNext==="front"){
+    el("img-front").src = data?.bio_lock_url || "";
+    el("name-front").textContent = escapeHtml(data?.username || "UNKNOWN");
+    el("body-front").textContent = data?.body_asset_id || "—";
+    el("mode-pill").textContent = FALLBACK_USED ? "1h" : "5m";
   } else {
-    ctx.fillStyle="rgba(255,255,255,0.08)";
-    ctx.font="28px Courier New, monospace";
-    ctx.textAlign="center";
-    ctx.fillText("Scan Face to preview your Rider", canvas.width/2, canvas.height*0.40);
+    el("img-next").src = data?.bio_lock_url || "";
+    el("name-next").textContent = escapeHtml(data?.username || "...");
+    el("body-next").textContent = data?.body_asset_id || "—";
   }
-
-  // label
-  ctx.fillStyle="rgba(255,255,255,0.65)";
-  ctx.font="22px Courier New, monospace";
-  ctx.textAlign="left";
-  ctx.fillText(asset, 24, 40);
 }
 
-async function saveVessel(){
-  const work=+document.getElementById("work").value;
-  const pace=+document.getElementById("pace").value;
-  const mind=+document.getElementById("mind").value;
-  const vibe=+document.getElementById("vibe").value;
+function renderStageEmpty(){
+  setCard("front", {username:"NO TARGETS", body_asset_id:"—", bio_lock_url:""});
+  setCard("next", {username:"...", body_asset_id:"—", bio_lock_url:""});
+  el("feed-msg").textContent = "No targets match rules. Retrying...";
+  onSwipeBlocked();
+}
 
-  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
-  showLoader(true,"SAVING VESSEL...");
+function renderStage(){
+  if(FEED.length===0){
+    renderStageEmpty();
+    return;
+  }
+  setCard("front", FEED[0]);
+  setCard("next", FEED[1] || {username:"...", body_asset_id:"—", bio_lock_url:""});
+  el("feed-msg").textContent = "Drag to swipe (flick) or tap buttons.";
+}
+
+/* ---------------------------
+   SWIPE PHYSICS
+----------------------------*/
+let dragging=false, startX=0, startY=0;
+
+function resetFrontTransform(){
+  const card = el("card-front");
+  card.style.transition = "transform 220ms ease-out";
+  card.style.transform = "translate3d(0,0,0) rotate(0deg)";
+  setTimeout(()=>{ card.style.transition=""; }, 240);
+}
+
+async function commitSwipe(direction){
+  if(FEED.length===0) return;
+
+  // FX
+  impact(direction);
+  sparkleBurst(direction);
+  haptic(direction==="LIGHT" ? "success" : "medium");
+  AudioFX.success(direction);
+
+  const card = el("card-front");
+  card.style.transition = "transform 260ms ease-out";
+  const outX = direction==="LIGHT" ? 520 : -520;
+  const rot = direction==="LIGHT" ? 18 : -18;
+  card.style.transform = `translate3d(${outX}px, -20px, 0) rotate(${rot}deg)`;
+
+  const data = await swipeApi(direction);
+
+  if(data.status !== "ok"){
+    haptic("error");
+    AudioFX.error();
+    el("feed-msg").textContent = "Swipe blocked: " + (data.msg||"UNKNOWN");
+    resetFrontTransform();
+    onSwipeBlocked();
+    return;
+  }
+
+  // update ME HUD
+  ME.ap = data.new_ap;
+  ME.energy = data.new_energy;
+  ME.visibility_credits = data.new_visibility_credits;
+  renderHUD(data.swipes_today ?? "?");
+  onSwipeSuccess(direction);
+
+  // shift feed
+  FEED.shift();
+
+  // preload next-next
+  preloadImage(FEED[1]?.bio_lock_url);
+
+  // snap back and render new cards
+  setTimeout(()=>{
+    card.style.transition = "none";
+    card.style.transform = "translate3d(0,0,0) rotate(0deg)";
+    renderStage();
+
+    // subtle alive ping after swipe
+    setTimeout(()=>AudioFX.ping(), 180);
+
+    if(FEED.length < 3) loadFeed();
+  }, 280);
+}
+
+function swipeButton(direction){
+  if(FEED.length===0) return;
+  commitSwipe(direction);
+}
+
+function attachDrag(){
+  const card = el("card-front");
+
+  const onDown = (e)=>{
+    if(FEED.length===0) return;
+    dragging=true;
+    const p = (e.touches && e.touches[0]) ? e.touches[0] : e;
+    startX=p.clientX; startY=p.clientY;
+    card.style.transition="none";
+    AudioFX.clickSoft();
+  };
+
+  const onMove = (e)=>{
+    if(!dragging) return;
+    const p = (e.touches && e.touches[0]) ? e.touches[0] : e;
+    const dx = p.clientX - startX;
+    const dy = p.clientY - startY;
+    const rot = dx / 18;
+    card.style.transform = `translate3d(${dx}px, ${dy}px, 0) rotate(${rot}deg)`;
+
+    // micro “alive” guidance text
+    if(dx > 80){ el("feed-msg").textContent="RELEASE: LIGHT"; }
+    else if(dx < -80){ el("feed-msg").textContent="RELEASE: SPITE"; }
+    else { el("feed-msg").textContent="Drag to swipe (flick) or tap buttons."; }
+  };
+
+  const onUp = async ()=>{
+    if(!dragging) return;
+    dragging=false;
+
+    const tr = card.style.transform || "";
+    let dx = 0;
+    const m = tr.match(/translate3d\(([-0-9.]+)px/);
+    if(m) dx = parseFloat(m[1] || "0");
+
+    if(dx > 140) return commitSwipe("LIGHT");
+    if(dx < -140) return commitSwipe("SPITE");
+    resetFrontTransform();
+  };
+
+  card.addEventListener("pointerdown", onDown);
+  window.addEventListener("pointermove", onMove, {passive:true});
+  window.addEventListener("pointerup", onUp);
+
+  card.addEventListener("touchstart", onDown, {passive:true});
+  window.addEventListener("touchmove", onMove, {passive:true});
+  window.addEventListener("touchend", onUp, {passive:true});
+}
+
+/* ---------------------------
+   CAMERA + BIOLOCK
+----------------------------*/
+function showBiolockError(code){
+  const map = {
+    "NO_FACE":"NO FACE. Center your face.",
+    "MULTI_FACE":"MULTIPLE FACES. Only one allowed.",
+    "LOW_CONF":"LOW CONFIDENCE. Better light.",
+    "FACE_TOO_SMALL":"FACE TOO SMALL. Move closer.",
+    "TOO_SMALL":"IMAGE TOO SMALL.",
+    "BAD_IMAGE":"BAD IMAGE.",
+    "BUCKET_FAIL":"STORAGE ERROR."
+  };
+  el("biolock-error").textContent = map[code] ? map[code] : ("BIOLOCK FAIL: "+code);
+  AudioFX.error();
+}
+async function openCamera(){
+  if (isIOS && isTelegram) return openCameraFallback();
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ alert("Camera not supported."); return; }
+  const videoEl=el("video");
   try{
-    const res = await fetch(`${API_URL}/profile/vessel`,{
-      method:"POST", headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({initData, work, pace, mind, vibe})
-    });
-    const data = await res.json();
-    if(data.status!=="ok") throw new Error(data.msg||"SAVE_FAIL");
-    ME = data.user;
-    document.getElementById("vessel-msg").textContent = "Saved.";
-    document.getElementById("me-body").textContent = ME.body_asset_id || bodyAsset(work,pace,mind,vibe);
-    drawPreview();
+    showLoader(true,"ACCESSING CAMERA...");
+    cameraStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"user"}},audio:false});
+    videoEl.srcObject=cameraStream;
+    await new Promise(r=>videoEl.onloadedmetadata=()=>r());
+    await videoEl.play();
+    el("camera-box").classList.remove("hidden");
+    el("cam-debug").textContent="Camera started.";
+    AudioFX.clickSoft();
+  }catch(err){
+    alert("Camera denied.");
+    el("cam-debug").textContent="Error: "+(err.name||err);
+    AudioFX.error();
+  }finally{
+    showLoader(false);
+  }
+}
+function openCameraFallback(){
+  const input=el("cameraFallback");
+  input.onchange=async()=>{
+    const f=input.files && input.files[0];
+    if(!f) return;
+    await uploadBioBlob(f);
+    input.value="";
+  };
+  input.click();
+}
+function capturePhoto(){
+  const v=el("video");
+  const c=el("canvas");
+  if(!v.videoWidth){alert("Wait...");return;}
+  c.width=v.videoWidth; c.height=v.videoHeight;
+  c.getContext("2d").drawImage(v,0,0);
+  c.toBlob(async(b)=>{
+    if(!b){alert("Capture failed.");return;}
+    stopCamera();
+    await uploadBioBlob(b);
+  },"image/jpeg",0.92);
+}
+function stopCamera(){
+  try{
+    const v=el("video");
+    v.pause(); v.srcObject=null;
+  }catch(e){}
+  if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}
+  el("camera-box").classList.add("hidden");
+}
+async function uploadBioBlob(blobOrFile){
+  el("biolock-error").textContent="";
+  showLoader(true,"VERIFYING...");
+  try{
+    await AudioFX.unlock(); // user likely tapped by now; harmless
+    const fd=new FormData();
+    fd.append("initData",(tg && tg.initData)?tg.initData:"debug_mode");
+    fd.append("file",blobOrFile,"face.jpg");
+    const res=await fetch(`${API_URL}/auth/biolock`,{method:"POST",body:fd});
+    const data=await res.json();
+    if(data.status!=="success"){
+      haptic("error");
+      showBiolockError(data.msg || "FAIL");
+      await init();
+      return;
+    }
+    haptic("success");
+    AudioFX.success("LIGHT");
+    await init();
   }catch(e){
-    document.getElementById("vessel-msg").textContent = "Save failed: "+(e.message||e);
+    haptic("error");
+    showBiolockError("FAIL");
   }finally{
     showLoader(false);
   }
 }
 
+/* ---------------------------
+   RESET + SPONSOR
+----------------------------*/
+async function resetMe(){
+  const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+  if(!confirm("RESET?")) return;
+  showLoader(true,"RESETTING...");
+  AudioFX.clickSoft();
+  try{
+    await fetch(`${API_URL}/auth/reset`,{
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({initData})
+    });
+    location.reload();
+  }catch(e){
+    showLoader(false);
+    AudioFX.error();
+  }
+}
+function toggleSponsor(){
+  sponsorOn = !sponsorOn;
+  el("sponsorMark").classList.toggle("hidden", !sponsorOn);
+  AudioFX.clickSoft();
+}
+
+/* ---------------------------
+   INIT
+----------------------------*/
 async function init(){
   showLoader(true,"CONNECTING...");
   try{
-    const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
-    const start_param = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) ? tg.initDataUnsafe.start_param : "";
-    const res = await fetch(`${API_URL}/auth/login`,{
-      method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({initData, start_param})
-    });
-    const data = await res.json();
+    const data = await apiLogin();
     if(data.status!=="ok" || !data.user) throw new Error(data.msg||"LOGIN_FAIL");
-    ME=data.user;
+    ME = data.user;
+    renderMeGate();
 
-    // identity
-    document.getElementById("me-id").textContent = ME.user_id ?? ME.tg_id ?? "—";
-    document.getElementById("me-name").textContent = ME.username || "AGENT";
-    document.getElementById("me-ap").textContent = ME.ap ?? 0;
-    document.getElementById("me-biolock").textContent = ME.biolock_status || "GATE";
-    document.getElementById("me-img").src = ME.bio_lock_url || "";
+    wireAudioToggles();
 
-    const pioneer = (ME.role==="PIONEER");
-    document.getElementById("pioneer-badge").classList.toggle("hidden", !pioneer);
-    document.getElementById("title").classList.toggle("pioneer-glitch", pioneer);
-
-    setTag(document.getElementById("role-tag"), (ME.role||"CITIZEN"), pioneer?"neon":null);
-    setTag(document.getElementById("verif-tag"), (ME.verification_status||"PENDING"),
-      (ME.verification_status==="VERIFIED"?"neon":(ME.verification_status==="REJECTED"?"red":"pink"))
-    );
-
-    // preload sliders from DB if present
-    const w = (ME.vessel_work ?? 50);
-    const p = (ME.vessel_pace ?? 50);
-    const m = (ME.vessel_mind ?? 50);
-    const v = (ME.vessel_vibe ?? 50);
-
-    document.getElementById("work").value = w; document.getElementById("workVal").textContent = w;
-    document.getElementById("pace").value = p; document.getElementById("paceVal").textContent = p;
-    document.getElementById("mind").value = m; document.getElementById("mindVal").textContent = m;
-    document.getElementById("vibe").value = v; document.getElementById("vibeVal").textContent = v;
-
-    updateVesselLabel();
-    await drawPreview();
-
-    logStatus("CONNECTED.");
+    if(ME.biolock_status==="PASS" && ME.bio_lock_url && ME.verification_status==="VERIFIED"){
+      showScreen("screen-feed");
+      renderHUD("?");
+      attachDrag();
+      setStreak(0);
+      await loadFeed();
+      await ping();
+      el("feed-msg").textContent = "Locked & loaded.";
+      // subtle alive ping
+      setTimeout(()=>AudioFX.ping(), 220);
+    } else {
+      showScreen("screen-gate");
+      logStatus("AT GATE.");
+    }
   }catch(e){
+    showScreen("screen-gate");
     logStatus("BACKEND ERROR.");
+    AudioFX.error();
   }finally{
     showLoader(false);
   }
 }
 
-hookSliders();
+/* ---------------------------
+   ALIVE LOOPS
+----------------------------*/
+setInterval(ping, 30000);
+
+// auto refill feed attempts if empty
+setInterval(async ()=>{
+  if(!el("screen-feed").classList.contains("hidden") && FEED.length===0){
+    await loadFeed();
+  }
+}, 7000);
+
+// micro “alive” ping while browsing feed (very subtle)
+setInterval(()=>{
+  if(!el("screen-feed").classList.contains("hidden") && FEED.length>0){
+    AudioFX.ping();
+  }
+}, 12000);
+
 init();
 </script>
 </body>
