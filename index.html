@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-<title>AZEUQER: TITANIUM — PROMPT 1</title>
+<title>AZEUQER: TITANIUM — PROMPT 1.1 + 1.2</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -18,7 +18,7 @@
   @keyframes shake{0%{transform:translate(0,0);}2%{transform:translate(1px,0);}4%{transform:translate(0,0);}}
   .pioneer-glitch{color:#fff;text-shadow:0 0 6px var(--neon),0 0 12px var(--pink),0 0 20px var(--neon);animation:pglow 1.4s infinite alternate;}
   @keyframes pglow{from{filter:brightness(1);}to{filter:brightness(1.35);} }
-  .card{width:340px;max-width:95%;margin:14px auto;padding:14px;border:1px solid #333;background:rgba(255,255,255,0.03);border-radius:12px;text-align:left;}
+  .card{width:360px;max-width:96%;margin:14px auto;padding:14px;border:1px solid #333;background:rgba(255,255,255,0.03);border-radius:12px;text-align:left;}
   .row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;}
   .tag{display:inline-block;padding:6px 10px;border:1px solid #333;border-radius:999px;color:#bbb;font-size:0.75rem;}
   .tag.neon{border-color:var(--neon);color:var(--neon);}
@@ -32,19 +32,12 @@
   .btn-red{border-color:var(--red);color:var(--red);}
   .btn-red:active{background:var(--red);color:#000;}
   .btn-small{width:auto;padding:8px 10px;font-size:0.8rem;margin-top:0;border-radius:10px;}
-  .camera-label{display:block;width:100%;padding:20px;margin-top:14px;background:rgba(17,17,17,0.9);border:2px dashed var(--neon);color:var(--neon);font-size:1.05rem;font-weight:bold;cursor:pointer;text-transform:uppercase;border-radius:12px;}
+  .camera-label{display:block;width:100%;padding:18px;margin-top:12px;background:rgba(17,17,17,0.9);border:2px dashed var(--neon);color:var(--neon);font-size:1.05rem;font-weight:bold;cursor:pointer;text-transform:uppercase;border-radius:12px;}
   video{width:100%;border:2px solid var(--neon);margin-top:12px;border-radius:12px;background:#000;}
   #loader{position:fixed;inset:0;background:#000;z-index:100;display:flex;align-items:center;justify-content:center;flex-direction:column;}
-  .slider-wrap{margin-top:14px;}
-  .slider{width:100%;accent-color:var(--neon);}
-  .slider-label{display:flex;justify-content:space-between;align-items:center;margin-top:10px;color:#bbb;}
-  .slider-label b{color:#fff;}
-  .slider-pips{display:flex;justify-content:space-between;font-size:0.7rem;color:#666;margin-top:4px;}
   .avatar{width:120px;height:120px;margin:0 auto;border:2px solid var(--neon);border-radius:14px;overflow:hidden;background:#000;position:relative;}
   .avatar img{width:100%;height:100%;object-fit:cover;}
   .badge{position:absolute;bottom:-10px;right:-10px;background:#000;border:1px solid var(--neon);color:var(--neon);padding:6px 8px;font-size:0.7rem;font-weight:bold;border-radius:10px;}
-  .vessel-preview{width:260px;max-width:100%;margin:12px auto 0;border:1px solid #333;border-radius:12px;overflow:hidden;background:#000;}
-  .vessel-preview img{width:100%;display:block;}
   .copybox{width:100%;padding:12px;border:1px solid #333;border-radius:10px;background:rgba(0,0,0,0.4);color:#ccc;display:flex;align-items:center;justify-content:space-between;gap:10px;}
   .copybox code{color:#ddd;word-break:break-all;font-size:0.8rem;}
 </style>
@@ -60,8 +53,8 @@
 
 <div id="ui-layer">
   <div id="screen-entry" class="screen">
-    <h1 id="title" class="glitch" style="margin-top:30px;">AZEUQER</h1>
-    <p class="muted" style="margin:6px 0 0;">// PROMPT 1.3: BIO-LOCK</p>
+    <h1 id="title" class="glitch" style="margin-top:26px;">AZEUQER</h1>
+    <p class="muted" style="margin:6px 0 0;">// PROMPT 1.1 + 1.2: REFERRAL + PIONEER</p>
 
     <div class="card">
       <div class="row">
@@ -70,8 +63,7 @@
       </div>
       <div class="divider"></div>
       <div class="small">
-        <div><b>RULE:</b> Exactly <b>one</b> clear face, close enough, good lighting.</div>
-        <div class="muted">If you fail: you stay at the gate.</div>
+        <div><b>Bio-Lock is mandatory.</b> Exactly one clear face.</div>
       </div>
       <div id="biolock-error" class="small" style="margin-top:10px;color:#ff7777;"></div>
     </div>
@@ -92,11 +84,32 @@
       <h2 id="me-name" style="margin:12px 0 0;">AGENT</h2>
       <div class="small muted">User ID: <span id="me-id">—</span></div>
       <div class="small muted">AP: <span id="me-ap">0</span></div>
-      <div class="small muted">BioLock: <span id="me-biolock">GATE</span> | Attempts: <span id="me-attempts">0</span></div>
 
-      <div class="vessel-preview">
-        <img id="vessel-art" src="" alt="vessel art" />
+      <div class="divider"></div>
+      <div class="small muted">BioLock: <span id="me-biolock">GATE</span> | Attempts: <span id="me-attempts">0</span></div>
+      <div id="pending-note" class="small" style="margin-top:8px;color:#ffaa66;display:none;">
+        You are <b>PENDING</b>. Tribunal will be added in Prompt 5. (Pioneers are instant VERIFIED.)
       </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <span class="tag neon">REFERRAL</span>
+        <span id="ref-status" class="tag">NONE</span>
+      </div>
+      <div class="divider"></div>
+
+      <div class="small">
+        Invite others. Reward pays out <b>only after</b> the invitee passes Bio-Lock.
+      </div>
+
+      <div class="copybox" style="margin-top:10px;">
+        <code id="ref-link">https://t.me/AzeuqerBot?start=ref_0</code>
+        <button class="btn btn-small" onclick="copyReferral()">COPY</button>
+        <button class="btn btn-small" onclick="shareReferral()">SHARE</button>
+      </div>
+
+      <div id="ref-debug" class="small muted" style="margin-top:10px;"></div>
     </div>
 
     <button class="camera-label" onclick="openCamera()">📸 SCAN FACE (SELFIE)</button>
@@ -110,19 +123,6 @@
 
     <input id="cameraFallback" class="hidden" type="file" accept="image/*" capture="user" />
     <canvas id="canvas" class="hidden"></canvas>
-
-    <div class="card">
-      <div class="row">
-        <span class="tag neon">REFERRAL</span>
-        <span id="ref-status" class="tag">NONE</span>
-      </div>
-      <div class="divider"></div>
-      <div class="copybox" style="margin-top:10px;">
-        <code id="ref-link">https://t.me/AzeuqerBot?start=ref_0</code>
-        <button class="btn btn-small" onclick="copyReferral()">COPY</button>
-      </div>
-      <div id="ref-debug" class="small muted" style="margin-top:10px;"></div>
-    </div>
 
     <div id="status-log" class="small muted" style="margin-top:14px;">SYSTEM READY</div>
   </div>
@@ -155,6 +155,7 @@ function buildReferralLink(userId){
   const BOT = "AzeuqerBot";
   return `https://t.me/${BOT}?start=ref_${userId}`;
 }
+
 async function copyReferral(){
   const txt = document.getElementById("ref-link").innerText;
   try{ await navigator.clipboard.writeText(txt); document.getElementById("ref-debug").innerText="Copied."; }
@@ -165,40 +166,33 @@ async function copyReferral(){
   }
 }
 
-function vesselSvgDataUrl(seed){
-  const hash=[...seed].reduce((a,c)=>((a*31)+c.charCodeAt(0))>>>0,7);
-  const hue1=hash%360, hue2=(hue1+140)%360, hue3=(hue1+260)%360;
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="600" height="360" viewBox="0 0 600 360">
-    <defs>
-      <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
-        <stop offset="0" stop-color="hsl(${hue1} 70% 8%)"/>
-        <stop offset="1" stop-color="hsl(${hue2} 70% 10%)"/>
-      </linearGradient>
-      <radialGradient id="aura" cx="50%" cy="48%" r="55%">
-        <stop offset="0" stop-color="hsl(${hue3} 90% 70%)" stop-opacity="0.35"/>
-        <stop offset="1" stop-color="hsl(${hue3} 90% 70%)" stop-opacity="0"/>
-      </radialGradient>
-      <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
-        <feGaussianBlur stdDeviation="6" result="b"/>
-        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-      </filter>
-    </defs>
-    <rect width="600" height="360" fill="url(#bg)"/>
-    <rect width="600" height="360" fill="url(#aura)"/>
-    <path d="M0,310 C120,280 220,330 320,315 C420,300 520,320 600,295 L600,360 L0,360 Z" fill="rgba(0,0,0,0.55)"/>
-    <g filter="url(#glow)">
-      <path d="M120,250 C160,210 260,210 300,240 C340,270 420,270 470,245
-               C520,220 560,235 560,255
-               C560,285 520,300 480,298
-               C430,296 380,320 320,318
-               C260,316 210,300 170,300
-               C130,300 100,285 100,265
-               C100,258 108,255 120,250 Z"
-            fill="rgba(0,255,204,0.12)" stroke="rgba(0,255,204,0.55)" stroke-width="2"/>
-    </g>
-    <text x="20" y="40" font-family="Courier New, monospace" font-size="18" fill="rgba(255,255,255,0.65)">${seed}</text>
-  </svg>`;
-  return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+function shareReferral(){
+  const link = document.getElementById("ref-link").innerText;
+  const text = encodeURIComponent("Join AZEUQER. Bio-Lock required. Enter via my link:");
+  const url  = encodeURIComponent(link);
+  const share = `https://t.me/share/url?url=${url}&text=${text}`;
+
+  // Works inside Telegram (opens share)
+  try {
+    if (tg && tg.openTelegramLink) tg.openTelegramLink(share);
+    else window.open(share, "_blank");
+  } catch(e) {
+    window.open(share, "_blank");
+  }
+}
+
+function showBiolockError(code){
+  const el = document.getElementById("biolock-error");
+  const map = {
+    "NO_FACE": "NO FACE DETECTED. Center your face and try again.",
+    "MULTI_FACE": "MULTIPLE FACES DETECTED. Only one person allowed.",
+    "LOW_CONF": "LOW CONFIDENCE. Improve lighting and focus.",
+    "FACE_TOO_SMALL": "FACE TOO SMALL. Move closer to the camera.",
+    "TOO_SMALL": "IMAGE TOO SMALL. Use a clearer camera feed.",
+    "BAD_IMAGE": "BAD IMAGE. Try again.",
+    "BUCKET_FAIL": "STORAGE ERROR. Try again later."
+  };
+  el.textContent = map[code] ? map[code] : ("BIO-LOCK FAIL: " + code);
 }
 
 function renderMe(user){
@@ -224,24 +218,12 @@ function renderMe(user){
   setTag(document.getElementById("ref-status"), (user.referral_status||"NONE"),
     (user.referral_status==="PAID"?"neon":(user.referral_status==="PENDING"?"pink":(user.referral_status==="BROKEN"?"red":null)))
   );
+
   document.getElementById("ref-link").innerText = buildReferralLink(user.user_id ?? user.tg_id ?? 0);
 
-  const seed = user.body_asset_id || "body_mid_mid_mid_mid.png";
-  document.getElementById("vessel-art").src = vesselSvgDataUrl(seed);
-}
-
-function showBiolockError(code){
-  const el = document.getElementById("biolock-error");
-  const map = {
-    "NO_FACE": "NO FACE DETECTED. Center your face and try again.",
-    "MULTI_FACE": "MULTIPLE FACES DETECTED. Only one person allowed.",
-    "LOW_CONF": "LOW CONFIDENCE. Improve lighting and focus.",
-    "FACE_TOO_SMALL": "FACE TOO SMALL. Move closer to the camera.",
-    "TOO_SMALL": "IMAGE TOO SMALL. Use a clearer camera feed.",
-    "BAD_IMAGE": "BAD IMAGE. Try again.",
-    "BUCKET_FAIL": "STORAGE ERROR. Try again later."
-  };
-  el.textContent = map[code] ? map[code] : ("BIO-LOCK FAIL: " + code);
+  // show pending notice for non-pioneers
+  const pending = (user.verification_status === "PENDING");
+  document.getElementById("pending-note").style.display = pending ? "block" : "none";
 }
 
 async function init(){
@@ -251,7 +233,7 @@ async function init(){
     const start_param = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) ? tg.initDataUnsafe.start_param : "";
     const res = await fetch(`${API_URL}/auth/login`,{
       method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({initData,start_param})
+      body:JSON.stringify({initData, start_param})
     });
     const data = await res.json();
     if(data.status!=="ok" || !data.user) throw new Error(data.msg||"Login failed");
