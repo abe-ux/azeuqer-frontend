@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no" />
-<title>AZEUQER — Profile</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,viewport-fit=cover" />
+<title>AZEUQER — Titanium</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
@@ -14,35 +14,50 @@
     --neon:#00E5FF; --magenta:#FF2BD6; --lime:#8BFF5A;
     --gold:#FFD25A; --red:#FF3B30; --violet:#7C5CFF;
 
-    --glass: rgba(255,255,255,0.72);
-    --glass2: rgba(255,255,255,0.50);
+    --glass: rgba(255,255,255,0.78);
     --stroke: rgba(15,23,42,0.10);
     --shadow: 0 18px 60px rgba(12, 22, 44, 0.12);
     --shadow2: 0 10px 30px rgba(12, 22, 44, 0.10);
     --radius: 22px;
+
+    --safeTop: env(safe-area-inset-top, 0px);
+    --safeBottom: env(safe-area-inset-bottom, 0px);
   }
 
   *{ box-sizing:border-box; }
-  body{
+
+  html, body{
+    height:100%;
     margin:0;
     font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     color:var(--ink);
-    height:100vh;
-    overflow:hidden;
     background:
       radial-gradient(1200px 700px at 15% 10%, rgba(0,229,255,0.18), rgba(0,229,255,0) 55%),
       radial-gradient(900px 600px at 85% 20%, rgba(255,43,214,0.16), rgba(255,43,214,0) 55%),
       radial-gradient(900px 700px at 55% 90%, rgba(139,255,90,0.12), rgba(139,255,90,0) 55%),
       linear-gradient(180deg, var(--bg1), var(--bg2));
+    overflow:hidden;
   }
 
-  /* Sponsor/partners ticker (editable) */
+  /* Master scroll container */
+  #app{
+    height:100%;
+    overflow:auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: calc(92px + var(--safeBottom));
+  }
+
+  .hidden{ display:none !important; }
+
+  /* Sponsor ticker (always visible) */
   .ticker{
-    position:fixed; top:0; left:0; right:0;
-    height:44px; z-index:50;
+    position:sticky; top:0;
+    height:44px;
+    z-index:60;
     display:flex; align-items:center;
-    padding:0 14px;
-    background: rgba(255,255,255,0.78);
+    padding: 0 14px;
+    padding-top: var(--safeTop);
+    background: rgba(255,255,255,0.86);
     border-bottom:1px solid var(--stroke);
     backdrop-filter: blur(10px);
   }
@@ -57,7 +72,6 @@
   }
   .ticker .marquee{
     flex:1;
-    position:relative;
     overflow:hidden;
     height:22px;
     border-radius:999px;
@@ -79,38 +93,35 @@
     padding:3px 10px;
     border-radius:999px;
     border:1px solid rgba(11,15,26,0.08);
-    background: rgba(255,255,255,0.80);
+    background: rgba(255,255,255,0.88);
     box-shadow: 0 8px 18px rgba(12,22,44,0.06);
     font-size:12px;
     color: rgba(11,15,26,0.78);
   }
-  .dot{ width:7px; height:7px; border-radius:50%; background: var(--neon); box-shadow: 0 0 12px rgba(0,229,255,0.55); }
-  .dot.m{ background: var(--magenta); box-shadow: 0 0 12px rgba(255,43,214,0.55); }
-  .dot.g{ background: var(--gold); box-shadow: 0 0 12px rgba(255,210,90,0.55); }
+  .dot{ width:7px; height:7px; border-radius:50%; background: var(--neon); box-shadow: 0 0 12px rgba(0,229,255,0.45); }
+  .dot.m{ background: var(--magenta); box-shadow: 0 0 12px rgba(255,43,214,0.45); }
+  .dot.g{ background: var(--gold); box-shadow: 0 0 12px rgba(255,210,90,0.45); }
 
-  /* Layout */
-  .stage{
-    height:100vh;
-    padding-top: 56px;
-    padding-bottom: 84px;
-    overflow:auto;
-    -webkit-overflow-scrolling: touch;
-  }
+  /* Page wrap */
   .wrap{
     width:min(980px, 92vw);
-    margin: 0 auto;
+    margin: 14px auto 0;
   }
 
+  /* Sticky header row */
   .topbar{
-    margin-top: 14px;
+    position:sticky;
+    top:44px;
+    z-index:55;
     display:flex;
     align-items:center;
     justify-content:space-between;
     gap:12px;
+    padding: 10px 0;
+    background: linear-gradient(180deg, rgba(247,251,255,0.92), rgba(247,251,255,0.0));
+    backdrop-filter: blur(6px);
   }
-  .brand{
-    display:flex; align-items:center; gap:12px;
-  }
+  .brand{ display:flex; align-items:center; gap:12px; }
   .mark{
     width:40px; height:40px; border-radius:16px;
     background:
@@ -118,24 +129,10 @@
       linear-gradient(135deg, rgba(0,229,255,1), rgba(255,43,214,1));
     box-shadow: 0 12px 28px rgba(0,229,255,0.16);
   }
-  .title{
-    font-weight:950;
-    letter-spacing:-0.03em;
-    font-size: 18px;
-    line-height:1;
-  }
-  .subtitle{
-    margin-top:4px;
-    font-size:12px;
-    color: rgba(11,15,26,0.55);
-    font-weight:650;
-  }
+  .title{ font-weight:950; letter-spacing:-0.03em; font-size: 18px; line-height:1; }
+  .subtitle{ margin-top:4px; font-size:12px; color: rgba(11,15,26,0.55); font-weight:650; }
 
-  .actions{
-    display:flex;
-    gap:10px;
-    align-items:center;
-  }
+  .actions{ display:flex; gap:10px; align-items:center; }
   .btn{
     border:none;
     border-radius: 16px;
@@ -146,14 +143,14 @@
     background: rgba(11,15,26,0.04);
     border: 1px solid rgba(11,15,26,0.10);
     color: rgba(11,15,26,0.78);
-    transition: transform .08s ease, filter .18s ease, box-shadow .18s ease;
     user-select:none;
+    transition: transform .08s ease, filter .18s ease;
   }
   .btn:active{ transform: scale(0.985); filter: brightness(0.98); }
   .btn.primary{
     background: linear-gradient(135deg, rgba(0,229,255,1), rgba(255,43,214,1));
-    color: white;
-    border: none;
+    color:white;
+    border:none;
     box-shadow: 0 16px 44px rgba(255,43,214,0.18);
   }
   .btn.danger{
@@ -161,12 +158,17 @@
     border: 1px solid rgba(255,59,48,0.22);
     color: rgba(255,59,48,0.90);
   }
+  .btn.pill{ display:inline-flex; align-items:center; gap:10px; }
+  .miniLed{ width:10px; height:10px; border-radius:50%; background: rgba(11,15,26,0.22); }
+  .miniLed.on{
+    background: var(--magenta);
+    box-shadow: 0 0 16px rgba(255,43,214,0.25);
+  }
 
   /* Card frame */
   .frame{
-    margin-top: 14px;
     border-radius: var(--radius);
-    background: linear-gradient(180deg, rgba(255,255,255,0.84), rgba(255,255,255,0.55));
+    background: linear-gradient(180deg, rgba(255,255,255,0.88), rgba(255,255,255,0.58));
     border: 1px solid rgba(11,15,26,0.10);
     box-shadow: var(--shadow);
     overflow:hidden;
@@ -182,9 +184,93 @@
     pointer-events:none;
   }
 
-  .content{
+  /* Screens */
+  .screen{ display:block; }
+  .screen.hidden{ display:none !important; }
+
+  /* Intro styling */
+  .introWrap{
     position:relative;
     padding: 18px;
+    min-height: 70vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    gap:14px;
+  }
+  .introTitle{
+    font-weight:980;
+    font-size: 32px;
+    letter-spacing:-0.04em;
+  }
+  .introText{
+    font-weight:850;
+    font-size: 18px;
+    color: rgba(11,15,26,0.72);
+    max-width: 640px;
+    line-height:1.35;
+  }
+  .pulse{
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{ transform: scale(1); filter: brightness(1); }
+    50%{ transform: scale(1.02); filter: brightness(1.03); }
+  }
+  .splitBar{
+    width:min(680px, 92%);
+    height: 14px;
+    border-radius:999px;
+    background: linear-gradient(90deg, rgba(255,59,48,0.85), rgba(255,210,90,0.95));
+    box-shadow: 0 18px 48px rgba(255,59,48,0.12);
+    border: 1px solid rgba(11,15,26,0.08);
+    overflow:hidden;
+    position:relative;
+  }
+  .splitBar::after{
+    content:"";
+    position:absolute; inset:-40px;
+    background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.35), rgba(255,255,255,0) 55%);
+    filter: blur(12px);
+    animation: sweep 1.9s linear infinite;
+  }
+  @keyframes sweep{
+    0%{ transform: translateX(-30%); }
+    100%{ transform: translateX(130%); }
+  }
+
+  .emailRow{
+    width:min(520px, 92%);
+    display:flex; gap:10px;
+    margin-top:8px;
+  }
+  .input{
+    flex:1;
+    padding: 12px 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(11,15,26,0.12);
+    outline:none;
+    font-size: 14px;
+    background: rgba(255,255,255,0.92);
+    color: rgba(11,15,26,0.85);
+  }
+  .input:focus{ border-color: rgba(0,229,255,0.75); box-shadow: 0 0 0 6px rgba(0,229,255,0.10); }
+
+  .micro{
+    margin-top:4px;
+    font-size: 12px;
+    color: rgba(11,15,26,0.58);
+    font-weight:700;
+    line-height: 1.35;
+    max-width: 680px;
+  }
+
+  /* Profile layout (Screen 2) */
+  .content{
+    position:relative;
+    padding: 16px;
     display:grid;
     grid-template-columns: 1.1fr 0.9fr;
     gap:14px;
@@ -193,19 +279,15 @@
     .content{ grid-template-columns: 1fr; }
   }
 
-  /* Profile header */
   .pane{
     border-radius: 18px;
     border: 1px solid rgba(11,15,26,0.10);
-    background: rgba(255,255,255,0.70);
+    background: rgba(255,255,255,0.74);
     box-shadow: var(--shadow2);
     padding: 14px;
   }
-  .profile-head{
-    display:flex;
-    gap:14px;
-    align-items:center;
-  }
+
+  .profile-head{ display:flex; gap:14px; align-items:center; }
   .avatar{
     width:92px; height:92px;
     border-radius: 22px;
@@ -217,8 +299,7 @@
   }
   .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
   .badge{
-    position:absolute;
-    left:8px; bottom:8px;
+    position:absolute; left:8px; bottom:8px;
     padding:6px 10px;
     border-radius:999px;
     font-weight:950;
@@ -226,7 +307,7 @@
     letter-spacing:0.06em;
     text-transform:uppercase;
     border: 1px solid rgba(11,15,26,0.10);
-    background: rgba(255,255,255,0.75);
+    background: rgba(255,255,255,0.82);
     color: rgba(11,15,26,0.78);
   }
   .badge.founder{
@@ -235,13 +316,8 @@
     color: rgba(11,15,26,0.85);
   }
 
-  .meta{
-    flex:1;
-    min-width:0;
-  }
-  .nameRow{
-    display:flex; align-items:baseline; justify-content:space-between; gap:10px;
-  }
+  .meta{ flex:1; min-width:0; }
+  .nameRow{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
   .name{
     font-weight:980;
     font-size: 22px;
@@ -250,22 +326,12 @@
     overflow:hidden;
     text-overflow:ellipsis;
   }
-  .tagline{
-    margin-top:6px;
-    color: rgba(11,15,26,0.62);
-    font-weight:650;
-    font-size:13px;
-    line-height: 1.35;
-  }
-
   .faction{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
+    display:inline-flex; align-items:center; gap:8px;
     padding: 8px 10px;
     border-radius: 999px;
     border: 1px solid rgba(11,15,26,0.10);
-    background: rgba(255,255,255,0.72);
+    background: rgba(255,255,255,0.78);
     font-weight:900;
     font-size: 12px;
     user-select:none;
@@ -275,20 +341,15 @@
   .faction.dissonance .f-dot{ background: var(--red); box-shadow: 0 0 14px rgba(255,59,48,0.30); }
   .faction.unsorted .f-dot{ background: rgba(11,15,26,0.20); }
 
-  /* Stat tiles */
-  .tiles{
-    margin-top: 12px;
-    display:grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap:10px;
-  }
-  @media (max-width: 540px){
-    .tiles{ grid-template-columns: repeat(2, 1fr); }
-  }
+  .tagline{ margin-top:6px; color: rgba(11,15,26,0.62); font-weight:650; font-size:13px; line-height: 1.35; }
+
+  .tiles{ margin-top: 12px; display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; }
+  @media (max-width: 540px){ .tiles{ grid-template-columns: repeat(2, 1fr); } }
+
   .tile{
     border-radius: 16px;
     border: 1px solid rgba(11,15,26,0.10);
-    background: rgba(255,255,255,0.72);
+    background: rgba(255,255,255,0.78);
     padding: 10px 10px;
   }
   .tile .k{
@@ -305,28 +366,18 @@
     letter-spacing:-0.02em;
   }
   .tile.ap .v{ background: linear-gradient(135deg, rgba(0,229,255,1), rgba(255,43,214,1)); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  .tile.energy .v{ color: rgba(11,15,26,0.88); }
   .tile.stars .v{ color: rgba(124,92,255,0.95); }
   .tile.kills .v{ color: rgba(255,59,48,0.90); }
 
-  /* Referral block */
   .ref{
     margin-top: 12px;
     border-radius: 18px;
     border: 1px solid rgba(11,15,26,0.10);
-    background: rgba(255,255,255,0.72);
+    background: rgba(255,255,255,0.78);
     padding: 12px;
   }
-  .refTop{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-  }
-  .refTitle{
-    font-weight:980;
-    letter-spacing:-0.02em;
-  }
+  .refTop{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .refTitle{ font-weight:980; letter-spacing:-0.02em; }
   .refCount{
     padding: 7px 10px;
     border-radius: 999px;
@@ -335,23 +386,7 @@
     border: 1px solid rgba(139,255,90,0.35);
     background: rgba(139,255,90,0.16);
   }
-  .codeRow{
-    margin-top:10px;
-    display:flex;
-    gap:10px;
-    align-items:center;
-  }
-  .input{
-    flex:1;
-    padding: 12px 12px;
-    border-radius: 14px;
-    border: 1px solid rgba(11,15,26,0.12);
-    outline:none;
-    font-size: 13px;
-    background: rgba(255,255,255,0.90);
-    color: rgba(11,15,26,0.85);
-  }
-  .input:focus{ border-color: rgba(0,229,255,0.75); box-shadow: 0 0 0 6px rgba(0,229,255,0.10); }
+  .codeRow{ margin-top:10px; display:flex; gap:10px; align-items:center; }
   .miniBtn{
     border:none;
     padding: 12px 12px;
@@ -364,48 +399,21 @@
     min-width: 92px;
     user-select:none;
   }
-  .miniBtn:active{ transform: scale(0.985); }
   .miniBtn.copy{
     background: linear-gradient(135deg, rgba(0,229,255,1), rgba(255,43,214,1));
     border:none; color:white;
   }
 
-  .micro{
-    margin-top:10px;
-    font-size: 12px;
-    color: rgba(11,15,26,0.58);
-    line-height: 1.35;
-  }
+  .invHeader{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .invTitle{ font-weight:980; letter-spacing:-0.02em; }
+  .invHint{ font-size:12px; color: rgba(11,15,26,0.55); font-weight:700; }
+  .invGrid{ margin-top: 12px; display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; }
+  @media (max-width: 420px){ .invGrid{ grid-template-columns: repeat(2, 1fr); } }
 
-  /* Inventory */
-  .invHeader{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-  }
-  .invTitle{
-    font-weight:980;
-    letter-spacing:-0.02em;
-  }
-  .invHint{
-    font-size:12px;
-    color: rgba(11,15,26,0.55);
-    font-weight:700;
-  }
-  .invGrid{
-    margin-top: 12px;
-    display:grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap:10px;
-  }
-  @media (max-width: 420px){
-    .invGrid{ grid-template-columns: repeat(2, 1fr); }
-  }
   .slot{
     border-radius: 18px;
     border: 1px solid rgba(11,15,26,0.10);
-    background: rgba(255,255,255,0.72);
+    background: rgba(255,255,255,0.78);
     padding: 10px;
     min-height: 76px;
     display:flex;
@@ -439,96 +447,49 @@
     font-size: 11px;
     font-weight:950;
     border: 1px solid rgba(11,15,26,0.10);
-    background: rgba(255,255,255,0.78);
+    background: rgba(255,255,255,0.82);
     color: rgba(11,15,26,0.72);
   }
-  .slot.rare{
-    border-color: rgba(255,210,90,0.35);
-    box-shadow: 0 18px 40px rgba(255,210,90,0.10);
-  }
+  .slot.rare{ border-color: rgba(255,210,90,0.35); box-shadow: 0 18px 40px rgba(255,210,90,0.10); }
   .slot.rare::before{
-    content:"";
-    position:absolute;
-    inset:-40px;
+    content:""; position:absolute; inset:-40px;
     background: radial-gradient(circle at 30% 30%, rgba(255,210,90,0.40), rgba(255,210,90,0) 55%);
-    filter: blur(18px);
-    opacity:0.55;
+    filter: blur(18px); opacity:0.55;
   }
-  .slot.mythic{
-    border-color: rgba(255,43,214,0.30);
-    box-shadow: 0 18px 44px rgba(255,43,214,0.12);
-  }
+  .slot.mythic{ border-color: rgba(255,43,214,0.30); box-shadow: 0 18px 44px rgba(255,43,214,0.12); }
   .slot.mythic::before{
-    content:"";
-    position:absolute;
-    inset:-40px;
+    content:""; position:absolute; inset:-40px;
     background: radial-gradient(circle at 30% 30%, rgba(255,43,214,0.38), rgba(0,229,255,0.22), rgba(255,255,255,0) 60%);
-    filter: blur(18px);
-    opacity:0.60;
+    filter: blur(18px); opacity:0.60;
   }
 
-  /* Quick shop */
-  .shopRow{
+  .camBox{
     margin-top: 12px;
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap:10px;
-  }
-  @media (max-width: 520px){
-    .shopRow{ grid-template-columns:1fr; }
-  }
-  .shopBtn{
-    border:none;
     border-radius: 18px;
+    border: 1px solid rgba(11,15,26,0.10);
+    background: rgba(255,255,255,0.80);
     padding: 12px;
-    cursor:pointer;
-    background: rgba(255,255,255,0.72);
+  }
+  video{
+    width:100%;
+    border-radius: 16px;
     border: 1px solid rgba(11,15,26,0.10);
-    box-shadow: var(--shadow2);
-    text-align:left;
-    user-select:none;
-  }
-  .shopBtn:active{ transform: scale(0.99); }
-  .shopBtn .h{
-    font-weight:980;
-    letter-spacing:-0.02em;
-  }
-  .shopBtn .d{
-    margin-top:4px;
-    font-size:12px;
-    color: rgba(11,15,26,0.58);
-    line-height: 1.35;
-    font-weight:650;
-  }
-  .pill2{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    padding: 8px 10px;
-    border-radius: 999px;
-    border: 1px solid rgba(11,15,26,0.10);
-    background: rgba(255,255,255,0.78);
-    font-weight:900;
-    font-size: 12px;
-    user-select:none;
-  }
-  .pill2 .pDot{
-    width:10px; height:10px; border-radius:50%;
-    background: var(--violet);
-    box-shadow: 0 0 14px rgba(124,92,255,0.25);
+    background: rgba(11,15,26,0.04);
+    display:block;
   }
 
-  /* Bottom nav (optional, for your multi-screen app) */
+  /* Bottom nav (global) */
   .nav{
-    position:fixed; bottom:0; left:0; right:0;
+    position:fixed; left:0; right:0; bottom:0;
     height:72px;
-    background: rgba(255,255,255,0.80);
+    padding-bottom: var(--safeBottom);
+    background: rgba(255,255,255,0.86);
     border-top:1px solid rgba(11,15,26,0.10);
     backdrop-filter: blur(10px);
     display:flex;
     justify-content:center;
     align-items:center;
-    z-index:60;
+    z-index:70;
   }
   .navInner{
     width:min(980px, 92vw);
@@ -579,160 +540,209 @@
 
 <body>
 
-<!-- EDITABLE SPONSOR TICKER -->
-<div class="ticker">
-  <div class="label">Sponsors</div>
-  <div class="marquee">
-    <div class="track" id="sponsorTrack">
-      <span class="chip"><span class="dot"></span> Azeuqer Foundation</span>
-      <span class="chip"><span class="dot m"></span> Neon Lux Studios</span>
-      <span class="chip"><span class="dot g"></span> Titan Labs</span>
-      <span class="chip"><span class="dot"></span> Community Partners</span>
-      <span class="chip"><span class="dot m"></span> Drops • Bosses • Vouchers</span>
-
-      <!-- duplicate -->
-      <span class="chip"><span class="dot"></span> Azeuqer Foundation</span>
-      <span class="chip"><span class="dot m"></span> Neon Lux Studios</span>
-      <span class="chip"><span class="dot g"></span> Titan Labs</span>
-      <span class="chip"><span class="dot"></span> Community Partners</span>
-      <span class="chip"><span class="dot m"></span> Drops • Bosses • Vouchers</span>
-    </div>
-  </div>
-</div>
-
 <div id="loader">
   <div class="spin"></div>
   <div class="msg" id="loaderMsg">Loading…</div>
 </div>
 
-<div class="stage">
-  <div class="wrap">
-    <div class="topbar">
-      <div class="brand">
-        <div class="mark"></div>
-        <div>
-          <div class="title">AZEUQER</div>
-          <div class="subtitle">Character Profile • Passport • Inventory</div>
-        </div>
-      </div>
+<div id="app">
 
-      <div class="actions">
-        <button class="btn" onclick="toggleSound()">Sound</button>
-        <button class="btn danger" onclick="resetIdentity()">Reset</button>
+  <!-- Always-on Sponsor ticker -->
+  <div class="ticker">
+    <div class="label">Sponsors</div>
+    <div class="marquee">
+      <div class="track" id="tickerTrack">
+        <span class="chip"><span class="dot"></span> Azeuqer Foundation</span>
+        <span class="chip"><span class="dot m"></span> Neon Lux Studios</span>
+        <span class="chip"><span class="dot g"></span> Titan Labs</span>
+        <span class="chip"><span class="dot"></span> Community Partners</span>
+        <span class="chip"><span class="dot m"></span> Drops • Bosses • Vouchers</span>
+
+        <span class="chip"><span class="dot"></span> Azeuqer Foundation</span>
+        <span class="chip"><span class="dot m"></span> Neon Lux Studios</span>
+        <span class="chip"><span class="dot g"></span> Titan Labs</span>
+        <span class="chip"><span class="dot"></span> Community Partners</span>
+        <span class="chip"><span class="dot m"></span> Drops • Bosses • Vouchers</span>
       </div>
     </div>
+  </div>
 
-    <div class="frame">
-      <div class="grid"></div>
+  <div class="wrap">
 
-      <div class="content">
-        <!-- LEFT: PROFILE -->
-        <div class="pane">
-          <div class="profile-head">
-            <div class="avatar">
-              <img id="avatarImg" src="" alt="avatar"/>
-              <div id="founderBadge" class="badge founder" style="display:none;">FOUNDER</div>
-              <div id="citizenBadge" class="badge" style="display:none;">CITIZEN</div>
-            </div>
-
-            <div class="meta">
-              <div class="nameRow">
-                <div class="name" id="userName">Loading…</div>
-                <div class="faction unsorted" id="factionPill">
-                  <span class="f-dot"></span>
-                  <span id="factionText">UNSORTED</span>
-                </div>
-              </div>
-              <div class="tagline" id="userTagline">Your profile powers visibility, loot & ranking.</div>
-              <div class="micro" id="emailLine">Email: —</div>
-            </div>
-          </div>
-
-          <div class="tiles">
-            <div class="tile ap">
-              <div class="k">AP</div>
-              <div class="v" id="apVal">0</div>
-            </div>
-            <div class="tile energy">
-              <div class="k">Energy</div>
-              <div class="v"><span id="energyVal">0</span>/<span id="energyMax">30</span></div>
-            </div>
-            <div class="tile stars">
-              <div class="k">Stars</div>
-              <div class="v" id="starsVal">0</div>
-            </div>
-            <div class="tile kills">
-              <div class="k">Boss Kills</div>
-              <div class="v" id="killsVal">0</div>
-            </div>
-          </div>
-
-          <!-- Referral -->
-          <div class="ref">
-            <div class="refTop">
-              <div class="refTitle">Referrals</div>
-              <div class="refCount"><span id="refCount">0</span> joined</div>
-            </div>
-
-            <div class="codeRow">
-              <input id="refLink" class="input" readonly value="Generating referral link…" />
-              <button class="miniBtn copy" onclick="copyReferral()">Copy</button>
-            </div>
-
-            <div class="micro">
-              Share your link. When they finish Bio-Gate + Initiation, rewards vest & unlock.
-            </div>
-          </div>
-
-          <!-- Quick shop / shortcuts -->
-          <div class="shopRow">
-            <button class="shopBtn" onclick="openPotions()">
-              <div class="h">Potions</div>
-              <div class="d">HP & Energy refills. Daily purchase scaling. (AP or Stars)</div>
-            </button>
-            <button class="shopBtn" onclick="openMarket()">
-              <div class="h">Marketplace</div>
-              <div class="d">Mercs for rent • Equipment • Sponsor crates • Limited drops</div>
-            </button>
-          </div>
-
-          <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
-            <div class="pill2"><span class="pDot"></span> Rank: <span id="rankVal" style="margin-left:6px;">—</span></div>
-            <div class="pill2"><span class="pDot" style="background:var(--neon);box-shadow:0 0 14px rgba(0,229,255,0.25);"></span> ID: <span id="idVal" style="margin-left:6px;">—</span></div>
+    <!-- SCREEN 1: INTRO SEQUENCE -->
+    <div id="screen-intro" class="screen">
+      <div class="topbar">
+        <div class="brand">
+          <div class="mark"></div>
+          <div>
+            <div class="title">AZEUQER</div>
+            <div class="subtitle">THE WAKE-UP CALL</div>
           </div>
         </div>
-
-        <!-- RIGHT: INVENTORY -->
-        <div class="pane">
-          <div class="invHeader">
-            <div class="invTitle">Inventory</div>
-            <div class="invHint">Tap to inspect / equip</div>
-          </div>
-
-          <div class="invGrid" id="invGrid">
-            <!-- populated by JS -->
-          </div>
-
-          <div class="micro" id="invMsg">
-            Loot drops from boss fights + marketplace. Equipped items glow.
-          </div>
-
-          <button class="btn primary" style="width:100%; margin-top:12px;" onclick="goToFeed()">Go to Feed</button>
-          <button class="btn" style="width:100%; margin-top:10px;" onclick="openHallOfFame()">Hall of Fame</button>
+        <div class="actions">
+          <button id="soundBtnIntro" class="btn pill" onclick="toggleSound()">
+            <span id="soundLed" class="miniLed"></span>
+            <span id="soundText">Sound Off</span>
+          </button>
         </div>
       </div>
+
+      <div class="frame">
+        <div class="grid"></div>
+        <div class="introWrap">
+          <div class="introTitle" id="introTitle">THE VOID</div>
+          <div class="introText pulse" id="introText">…</div>
+
+          <div id="introSplit" class="splitBar hidden"></div>
+
+          <div id="emailBlock" class="hidden" style="width:100%; display:flex; flex-direction:column; align-items:center;">
+            <div class="emailRow">
+              <input id="emailInput" class="input" placeholder="Enter e-mail (+500 AP)" inputmode="email" />
+              <button class="btn primary" onclick="submitEmail()">Claim</button>
+            </div>
+            <div class="micro">We don’t want your money. We want your truth. (You can skip this for now.)</div>
+            <button class="btn" style="margin-top:10px;" onclick="goProfile()">Skip → Continue</button>
+          </div>
+
+          <div class="micro" id="introMicro">No buttons. No logo. Just truth.</div>
+        </div>
+      </div>
+
+      <div style="height:24px;"></div>
+    </div>
+
+    <!-- SCREEN 2: PROFILE -->
+    <div id="screen-profile" class="screen hidden">
+      <div class="topbar">
+        <div class="brand">
+          <div class="mark"></div>
+          <div>
+            <div class="title">AZEUQER</div>
+            <div class="subtitle">Profile • Passport • Bio-Gate</div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="soundBtn" class="btn pill" onclick="toggleSound()">
+            <span class="miniLed" id="soundLed2"></span>
+            <span id="soundText2">Sound Off</span>
+          </button>
+          <button class="btn danger" onclick="resetIdentity()">Reset</button>
+        </div>
+      </div>
+
+      <div class="frame">
+        <div class="grid"></div>
+
+        <div class="content">
+
+          <!-- LEFT: Profile -->
+          <div class="pane">
+            <div class="profile-head">
+              <div class="avatar">
+                <img id="avatarImg" src="" alt="avatar"/>
+                <div id="founderBadge" class="badge founder" style="display:none;">FOUNDER</div>
+                <div id="citizenBadge" class="badge" style="display:none;">CITIZEN</div>
+              </div>
+
+              <div class="meta">
+                <div class="nameRow">
+                  <div class="name" id="userName">Loading…</div>
+                  <div class="faction unsorted" id="factionPill">
+                    <span class="f-dot"></span>
+                    <span id="factionText">UNSORTED</span>
+                  </div>
+                </div>
+                <div class="tagline" id="userTagline">Your profile powers visibility, loot & ranking.</div>
+                <div class="micro" id="emailLine">Email: —</div>
+
+                <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+                  <button class="btn primary" onclick="openBioGate()">Face Scan / Bio-Gate</button>
+                  <button class="btn" onclick="closeBioGate()">Close</button>
+                </div>
+                <div class="micro" id="camNote">Tip: On iPhone Telegram, the selfie capture fallback is used.</div>
+              </div>
+            </div>
+
+            <div class="tiles">
+              <div class="tile ap">
+                <div class="k">AP</div>
+                <div class="v" id="apVal">0</div>
+              </div>
+              <div class="tile">
+                <div class="k">Energy</div>
+                <div class="v"><span id="energyVal">0</span>/<span id="energyMax">30</span></div>
+              </div>
+              <div class="tile stars">
+                <div class="k">Stars</div>
+                <div class="v" id="starsVal">0</div>
+              </div>
+              <div class="tile kills">
+                <div class="k">Boss Kills</div>
+                <div class="v" id="killsVal">0</div>
+              </div>
+            </div>
+
+            <div class="ref">
+              <div class="refTop">
+                <div class="refTitle">Referrals</div>
+                <div class="refCount"><span id="refCount">0</span> joined</div>
+              </div>
+              <div class="codeRow">
+                <input id="refLink" class="input" readonly value="Generating referral link…" />
+                <button class="miniBtn copy" onclick="copyReferral()">Copy</button>
+              </div>
+              <div class="micro">Share your link. Rewards vest after Bio-Gate + Initiation (10 swipes).</div>
+            </div>
+
+            <!-- Camera UI -->
+            <div id="camBox" class="camBox hidden">
+              <div class="micro" id="camDebug" style="margin-top:0;">Opening camera…</div>
+              <video id="video" class="hidden" autoplay playsinline muted></video>
+              <canvas id="canvas" class="hidden"></canvas>
+              <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="btn primary" style="flex:1;" onclick="capturePhoto()">Capture</button>
+                <button class="btn" style="flex:1;" onclick="closeBioGate()">Cancel</button>
+              </div>
+              <input id="cameraFallback" class="hidden" type="file" accept="image/*" capture="user" />
+            </div>
+
+          </div>
+
+          <!-- RIGHT: Inventory -->
+          <div class="pane">
+            <div class="invHeader">
+              <div class="invTitle">Inventory</div>
+              <div class="invHint">Tap to inspect</div>
+            </div>
+
+            <div class="invGrid" id="invGrid"></div>
+            <div class="micro" id="invMsg">Loot drops from boss fights + marketplace. Equipped items glow.</div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;">
+              <button class="btn" onclick="goIntro()">Intro</button>
+              <button class="btn" onclick="goToFeed()">Feed</button>
+            </div>
+
+            <button class="btn primary" style="width:100%; margin-top:10px;" onclick="goToFeed()">Go to Feed</button>
+          </div>
+
+        </div>
+      </div>
+
+      <div style="height:24px;"></div>
     </div>
 
   </div>
 </div>
 
-<!-- Optional bottom nav -->
+<!-- Global bottom nav -->
 <div class="nav">
   <div class="navInner">
-    <button class="navBtn active" onclick="noop()">Profile</button>
+    <button class="navBtn" id="navIntro" onclick="goIntro()">Intro</button>
+    <button class="navBtn active" id="navProfile" onclick="goProfile()">Profile</button>
     <button class="navBtn" onclick="goToFeed()">Feed</button>
-    <button class="navBtn" onclick="openHallOfFame()">Hall</button>
-    <button class="navBtn" onclick="openMarket()">Market</button>
+    <button class="navBtn" onclick="goToMarket()">Market</button>
   </div>
 </div>
 
@@ -743,17 +753,68 @@
 const API_URL = "https://azeuqer-backend.onrender.com";
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
 try { if (tg) { tg.ready(); tg.expand(); } } catch(e) {}
+function initData(){ return (tg && tg.initData) ? tg.initData : "debug_mode"; }
 
 /* =========================
-   Subtle SFX (non-annoying)
+   LOADER
+========================= */
+function showLoader(v,msg="Loading…"){
+  const el=document.getElementById("loader");
+  document.getElementById("loaderMsg").textContent = msg;
+  el.style.display = v ? "flex" : "none";
+}
+
+/* =========================
+   SIMPLE ROUTER (screens)
+========================= */
+function setActiveNav(which){
+  const map = [
+    ["navIntro", which==="intro"],
+    ["navProfile", which==="profile"],
+  ];
+  map.forEach(([id,on])=>{
+    const b = document.getElementById(id);
+    if(!b) return;
+    b.classList.toggle("active", !!on);
+  });
+}
+function showScreen(id){
+  document.getElementById("screen-intro").classList.add("hidden");
+  document.getElementById("screen-profile").classList.add("hidden");
+  document.getElementById(id).classList.remove("hidden");
+  // Scroll to top of screen area
+  const app = document.getElementById("app");
+  if(app) app.scrollTo({ top: 0, behavior: "smooth" });
+}
+function goIntro(){ clickSfx(); setActiveNav("intro"); showScreen("screen-intro"); }
+function goProfile(){ clickSfx(); setActiveNav("profile"); showScreen("screen-profile"); initProfile(); }
+function goToFeed(){ clickSfx(); alert("Next: Feed screen (Prompt 2 polish)."); }
+function goToMarket(){ clickSfx(); alert("Next: Marketplace screen (later)."); }
+
+/* =========================
+   API helper
+========================= */
+async function api(path, body){
+  const res = await fetch(API_URL + path, {
+    method:"POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify(body || {})
+  });
+  const data = await res.json().catch(()=>({status:"error", msg:"BAD_JSON"}));
+  return { ok: res.ok, data };
+}
+
+/* =========================
+   SOUND (subtle)
 ========================= */
 let audioCtx=null;
 let soundOn=false;
+
 function ensureAudio(){
   if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if(audioCtx.state==="suspended") audioCtx.resume();
 }
-function tone({freq=220,dur=0.06,type="sine",gain=0.025,slide=0}={}){
+function tone({freq=220,dur=0.06,type="sine",gain=0.02,slide=0}={}){
   if(!soundOn) return;
   if(!audioCtx) return;
   const o=audioCtx.createOscillator();
@@ -768,62 +829,139 @@ function tone({freq=220,dur=0.06,type="sine",gain=0.025,slide=0}={}){
   o.connect(g); g.connect(audioCtx.destination);
   o.start(); o.stop(audioCtx.currentTime+dur);
 }
-function clickSfx(){ ensureAudio(); tone({freq:260,dur:0.05,type:"triangle",gain:0.022,slide:120}); }
-function confirmSfx(){ ensureAudio(); tone({freq:320,dur:0.05,type:"triangle",gain:0.02,slide:140}); setTimeout(()=>tone({freq:420,dur:0.08,type:"triangle",gain:0.026,slide:180}), 70); }
+function clickSfx(){ ensureAudio(); tone({freq:260,dur:0.05,type:"triangle",gain:0.018,slide:120}); }
+function confirmSfx(){ ensureAudio(); tone({freq:320,dur:0.05,type:"triangle",gain:0.018,slide:140}); setTimeout(()=>tone({freq:420,dur:0.08,type:"triangle",gain:0.022,slide:180}), 70); }
 function errorSfx(){ ensureAudio(); tone({freq:170,dur:0.06,type:"square",gain:0.02,slide:-30}); }
+window.addEventListener("pointerdown", ()=>{ ensureAudio(); }, { once:true });
 
+function syncSoundButtons(){
+  const on = soundOn;
+  // Intro button
+  const led1 = document.getElementById("soundLed");
+  const txt1 = document.getElementById("soundText");
+  if(led1) led1.classList.toggle("on", on);
+  if(txt1) txt1.textContent = on ? "Sound On" : "Sound Off";
+
+  // Profile button
+  const led2 = document.getElementById("soundLed2");
+  const txt2 = document.getElementById("soundText2");
+  if(led2) led2.classList.toggle("on", on);
+  if(txt2) txt2.textContent = on ? "Sound On" : "Sound Off";
+}
 function toggleSound(){
   ensureAudio();
   soundOn = !soundOn;
-  if(soundOn) confirmSfx(); else clickSfx();
+  syncSoundButtons();
+  soundOn ? confirmSfx() : clickSfx();
 }
-
-/* unlock audio on first tap */
-window.addEventListener("pointerdown", ()=>{ ensureAudio(); }, { once:true });
 
 /* =========================
-   Helpers
+   INTRO SEQUENCE (Screen 1)
 ========================= */
-function initData(){ return (tg && tg.initData) ? tg.initData : "debug_mode"; }
+const beats = [
+  { title:"THE VOID", text:"You are invisible.", micro:"(No buttons. No logo. Just truth.)", ms:1500 },
+  { title:"THE VOID", text:"The Algorithm ignores you.", micro:"", ms:1100 },
+  { title:"THE VOID", text:"Society filters you.", micro:"", ms:1100 },
+  { title:"THE VOID", text:"Reality forgets you.", micro:"", ms:1100 },
+  { title:"WAKE UP", text:"WAKE UP.", micro:"", ms:1200, split:false, shock:true },
 
-function showLoader(v,msg="Loading…"){
-  const el=document.getElementById("loader");
-  const m=document.getElementById("loaderMsg");
-  m.textContent=msg;
-  el.style.display = v ? "flex" : "none";
+  { title:"THE PROMISE", text:"Here, you are the Asset.", micro:"", ms:1200, split:true },
+  { title:"THE PROMISE", text:"Here, your face is the Currency.", micro:"We do not want your money. We want your Truth.", ms:1400, split:true },
+
+  { title:"THE CONTRACT", text:"To enter the Citadel, you must be judged.", micro:"Are you Order? Or are you Chaos?", ms:1400, split:false },
+  { title:"THE CONTRACT", text:"Scan your face. Reveal your soul.", micro:"+500 AP if you enter an email now.", ms:1300, split:false, email:true }
+];
+
+let beatIndex = 0;
+let introRunning = false;
+
+function runIntro(){
+  if(introRunning) return;
+  introRunning = true;
+  beatIndex = 0;
+  stepBeat();
 }
 
-async function api(path, body){
-  const res = await fetch(API_URL + path, {
-    method:"POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify(body || {})
-  });
-  const data = await res.json().catch(()=>({status:"error", msg:"BAD_JSON"}));
-  return data;
-}
+function stepBeat(){
+  const b = beats[beatIndex];
+  const titleEl = document.getElementById("introTitle");
+  const textEl  = document.getElementById("introText");
+  const microEl = document.getElementById("introMicro");
+  const splitEl = document.getElementById("introSplit");
+  const emailBlock = document.getElementById("emailBlock");
 
-function setFactionUI(faction){
-  const pill = document.getElementById("factionPill");
-  const text = document.getElementById("factionText");
-  const dot = pill.querySelector(".f-dot");
-  pill.classList.remove("euphoria","dissonance","unsorted");
-  if((faction||"").toUpperCase()==="EUPHORIA"){
-    pill.classList.add("euphoria");
-    text.textContent="EUPHORIA";
-  }else if((faction||"").toUpperCase()==="DISSONANCE"){
-    pill.classList.add("dissonance");
-    text.textContent="DISSONANCE";
+  titleEl.textContent = b.title;
+  textEl.textContent  = b.text;
+  microEl.textContent = b.micro || "";
+
+  if(b.split) splitEl.classList.remove("hidden");
+  else splitEl.classList.add("hidden");
+
+  if(b.shock){ confirmSfx(); }
+  else { clickSfx(); }
+
+  if(b.email){
+    emailBlock.classList.remove("hidden");
+    introRunning = false;
+    return;
   }else{
-    pill.classList.add("unsorted");
-    text.textContent="UNSORTED";
+    emailBlock.classList.add("hidden");
+  }
+
+  beatIndex++;
+  if(beatIndex >= beats.length){
+    introRunning = false;
+    emailBlock.classList.remove("hidden");
+    return;
+  }
+  setTimeout(stepBeat, b.ms || 1200);
+}
+
+async function submitEmail(){
+  clickSfx();
+  const email = (document.getElementById("emailInput").value || "").trim();
+  if(!email || !email.includes("@")){
+    errorSfx();
+    alert("Please enter a valid email.");
+    return;
+  }
+  showLoader(true, "Saving email (+500 AP) …");
+  try{
+    const {ok, data} = await api("/profile/email", { initData: initData(), email });
+    if(!ok || data.status !== "ok"){
+      errorSfx();
+      alert(data.msg || "Email save failed (backend endpoint missing).");
+      return;
+    }
+    confirmSfx();
+    goProfile();
+  }finally{
+    showLoader(false);
   }
 }
 
 /* =========================
-   Inventory (placeholder-friendly)
-   - Backend inventory endpoint can replace this later.
+   PROFILE (Screen 2)
 ========================= */
+function setFactionUI(faction){
+  const pill = document.getElementById("factionPill");
+  const text = document.getElementById("factionText");
+  pill.classList.remove("euphoria","dissonance","unsorted");
+  const f = (faction||"UNSORTED").toUpperCase();
+  if(f==="EUPHORIA"){ pill.classList.add("euphoria"); text.textContent="EUPHORIA"; }
+  else if(f==="DISSONANCE"){ pill.classList.add("dissonance"); text.textContent="DISSONANCE"; }
+  else { pill.classList.add("unsorted"); text.textContent="UNSORTED"; }
+}
+
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
 function renderInventory(items){
   const grid=document.getElementById("invGrid");
   grid.innerHTML = "";
@@ -837,15 +975,13 @@ function renderInventory(items){
     `;
     return;
   }
-
-  // Show up to 9 items in a nice spread
   const view = items.slice(0,9);
   view.forEach(it=>{
     const rar = (it.rarity||"COMMON").toUpperCase();
     const cls = (rar==="MYTHIC") ? "slot mythic" : (rar==="RARE" ? "slot rare" : "slot");
     const div = document.createElement("div");
     div.className = cls;
-    div.onclick = ()=>inspectItem(it);
+    div.onclick = ()=>{ clickSfx(); alert(`ITEM\n\n${it.name||it.item_id}\nRarity: ${rar}\nDurability: ${it.durability ?? "?"}/100`); };
     div.innerHTML = `
       <div class="sname">${escapeHtml(it.slot || "ITEM")}</div>
       <div class="item">${escapeHtml(it.name || it.item_id || "Unknown")}</div>
@@ -853,49 +989,18 @@ function renderInventory(items){
     `;
     grid.appendChild(div);
   });
-
-  // fill remaining slots for consistent grid
   for(let i=view.length;i<9;i++){
     const div=document.createElement("div");
     div.className="slot";
-    div.onclick = ()=>{ clickSfx(); };
-    div.innerHTML = `
-      <div class="sname">Slot</div>
-      <div class="item">—</div>
-      <div class="rarity">—</div>
-    `;
+    div.onclick=()=>clickSfx();
+    div.innerHTML = `<div class="sname">Slot</div><div class="item">—</div><div class="rarity">—</div>`;
     grid.appendChild(div);
   }
 }
 
-function inspectItem(it){
-  clickSfx();
-  alert(
-    `ITEM\n\n`+
-    `Name: ${it.name || it.item_id || "Unknown"}\n`+
-    `Rarity: ${(it.rarity||"COMMON").toUpperCase()}\n`+
-    `Durability: ${it.durability ?? "?"}/100\n\n`+
-    `Equip/Repair flows will be wired in Screen 4 (Market + Items).`
-  );
-}
-
-function escapeHtml(s){
-  return String(s ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-
-/* =========================
-   Referral
-========================= */
 function buildReferralLink(userId){
-  // your bot link format (edit as needed)
   return `https://t.me/AzeuqerBot?start=ref_${userId}`;
 }
-
 async function copyReferral(){
   clickSfx();
   const input=document.getElementById("refLink");
@@ -903,123 +1008,201 @@ async function copyReferral(){
   try{
     await navigator.clipboard.writeText(text);
     confirmSfx();
-    input.blur();
   }catch(e){
-    // fallback
     input.select();
     document.execCommand("copy");
     confirmSfx();
   }
 }
 
-/* =========================
-   Navigation hooks (wire later)
-========================= */
-function goToFeed(){
-  clickSfx();
-  alert("Route to FEED screen (Screen 2 → Screen Feed). We'll wire in the full multi-screen build.");
-}
-function openHallOfFame(){
-  clickSfx();
-  alert("Route to HALL OF FAME (Screen 4). We'll build this next after Boss Screen.");
-}
-function openMarket(){
-  clickSfx();
-  alert("Route to MARKETPLACE (Screen 5). We'll build after Hall of Fame.");
-}
-function openPotions(){
-  clickSfx();
-  alert("Potions shop shortcut (HP/Energy). We'll wire pricing rules + daily scaling.");
-}
-function noop(){ clickSfx(); }
+/* Camera (Bio-Gate) */
+let cameraStream = null;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+const isTelegram = !!tg;
 
-/* =========================
-   Reset identity
-========================= */
-async function resetIdentity(){
+function camMsg(t){ document.getElementById("camDebug").textContent = t; }
+
+async function openBioGate(){
   clickSfx();
-  if(!confirm("Reset Identity? This clears your Bio-Lock + session profile.")) return;
-  showLoader(true, "Resetting…");
+  document.getElementById("camBox").classList.remove("hidden");
+
+  if(isIOS && isTelegram){
+    camMsg("iPhone Telegram detected → using selfie capture fallback…");
+    return openCameraFallback();
+  }
+
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    camMsg("Camera API not supported → using fallback…");
+    return openCameraFallback();
+  }
+
+  const video = document.getElementById("video");
+  video.classList.remove("hidden");
+  camMsg("Requesting camera permission…");
+
   try{
-    const data = await api("/auth/reset", { initData: initData() });
-    if(data.status && data.status !== "RESET_COMPLETE" && data.status !== "ok"){
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "user" } },
+      audio: false
+    });
+    video.srcObject = cameraStream;
+    await new Promise((resolve)=> video.onloadedmetadata = resolve);
+    await video.play();
+    camMsg("Camera ready. Tap Capture.");
+    confirmSfx();
+  }catch(e){
+    camMsg("Camera denied → using fallback selfie capture…");
+    errorSfx();
+    openCameraFallback();
+  }
+}
+
+function openCameraFallback(){
+  const input = document.getElementById("cameraFallback");
+  input.onchange = async ()=>{
+    const file = input.files && input.files[0];
+    if(!file) return;
+    camMsg("Uploading selfie…");
+    await uploadBioBlob(file);
+    input.value = "";
+  };
+  input.click();
+}
+
+function closeBioGate(){
+  clickSfx();
+  stopCamera();
+  document.getElementById("camBox").classList.add("hidden");
+}
+
+function stopCamera(){
+  const video = document.getElementById("video");
+  try{ video.pause(); }catch(e){}
+  try{ video.srcObject = null; }catch(e){}
+  if(cameraStream){
+    cameraStream.getTracks().forEach(t=>t.stop());
+    cameraStream = null;
+  }
+}
+
+function capturePhoto(){
+  clickSfx();
+  const video = document.getElementById("video");
+  if(!video || !video.videoWidth){
+    camMsg("Camera not ready. If on iPhone, use fallback selfie capture.");
+    errorSfx();
+    return;
+  }
+  const canvas = document.getElementById("canvas");
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext("2d").drawImage(video, 0, 0);
+
+  canvas.toBlob(async (blob)=>{
+    if(!blob){
+      camMsg("Capture failed. Try again.");
       errorSfx();
-      alert(data.msg || "Reset failed");
       return;
     }
+    camMsg("Uploading face scan…");
+    await uploadBioBlob(blob);
+  }, "image/jpeg", 0.9);
+}
+
+async function uploadBioBlob(blobOrFile){
+  showLoader(true, "Uploading Bio-Lock…");
+  try{
+    const fd = new FormData();
+    fd.append("initData", initData());
+    fd.append("file", blobOrFile, "face.jpg");
+
+    const res = await fetch(`${API_URL}/auth/biolock`, { method:"POST", body: fd });
+    const data = await res.json().catch(()=>({status:"error", msg:"BAD_JSON"}));
+
+    if(!res.ok || data.status !== "success"){
+      errorSfx();
+      alert("Bio-Lock failed: " + (data.msg || "Upload error"));
+      camMsg("Bio-Lock failed. Try again.");
+      return;
+    }
+
     confirmSfx();
-    alert("Reset complete. Reloading…");
+    camMsg("Bio-Lock success. Refreshing profile…");
+    stopCamera();
+    await initProfile();
+  }catch(e){
+    errorSfx();
+    alert("Upload failed.");
+  }finally{
+    showLoader(false);
+  }
+}
+
+async function resetIdentity(){
+  clickSfx();
+  if(!confirm("Reset Identity? This clears your Bio-Lock + profile.")) return;
+  showLoader(true, "Resetting…");
+  try{
+    await api("/auth/reset", { initData: initData() });
+    confirmSfx();
     location.reload();
   }finally{
     showLoader(false);
   }
 }
 
-/* =========================
-   INIT (fetch user profile)
-   - Uses /auth/login (your backend)
-   - If you add /auth/profile later, it still works.
-========================= */
-async function init(){
+async function initProfile(){
   showLoader(true, "Loading Profile…");
   try{
-    const data = await api("/auth/login", { initData: initData() });
-    if(data.status !== "ok" || !data.user){
+    const {ok, data} = await api("/auth/login", { initData: initData() });
+    if(!ok || !data.user){
       errorSfx();
       alert("Login failed: " + (data.msg || "Unknown"));
       return;
     }
-
     const u = data.user;
 
-    // Core identity
     document.getElementById("userName").textContent = u.username || "AGENT";
     document.getElementById("emailLine").textContent = "Email: " + (u.email || "—");
 
-    // Avatar
     document.getElementById("avatarImg").src = u.bio_lock_url || "";
 
-    // Badges
     document.getElementById("founderBadge").style.display = u.is_founder ? "inline-flex" : "none";
     document.getElementById("citizenBadge").style.display = !u.is_founder ? "inline-flex" : "none";
     document.getElementById("citizenBadge").textContent = (u.status || "CITIZEN").toUpperCase();
 
-    // Faction & rank
     setFactionUI(u.faction || "UNSORTED");
-    document.getElementById("rankVal").textContent = (u.rank || "—");
-    document.getElementById("idVal").textContent = (u.user_id || u.tg_id || "—");
 
-    // Stats tiles
     document.getElementById("apVal").textContent = (u.ap ?? 0);
     document.getElementById("energyVal").textContent = (u.energy ?? 0);
     document.getElementById("energyMax").textContent = (u.energy_max ?? 30);
-
-    // “Total Stars” placeholder until you wire Telegram Stars ledger
     document.getElementById("starsVal").textContent = (u.stars_total ?? 0);
-
-    // Boss kills
     document.getElementById("killsVal").textContent = (u.boss_kills ?? 0);
 
-    // Referrals
     document.getElementById("refCount").textContent = (u.referral_count ?? 0);
-    const refLink = buildReferralLink(u.user_id || u.tg_id || "0");
-    document.getElementById("refLink").value = refLink;
+    document.getElementById("refLink").value = buildReferralLink(u.user_id || u.tg_id || "0");
 
-    // Inventory (placeholder data until backend /game/inventory is wired)
-    // If your backend already provides u.inventory, it will display it.
     const inv = Array.isArray(u.inventory) ? u.inventory : [
       { slot:"HEAD", name:"Starter Visor", rarity:"COMMON", durability:100 },
       { slot:"CHEST", name:"Neon Hoodie", rarity:"RARE", durability:92 },
       { slot:"ACC", name:"Void Charm", rarity:"MYTHIC", durability:77 }
     ];
     renderInventory(inv);
-
   }finally{
     showLoader(false);
   }
 }
 
-init();
+/* =========================
+   BOOT
+========================= */
+syncSoundButtons();
+
+// Start at Intro always
+showScreen("screen-intro");
+setActiveNav("intro");
+runIntro();
 </script>
+
 </body>
 </html>
