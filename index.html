@@ -2,748 +2,350 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,viewport-fit=cover" />
-<title>AZEUQER — Titanium</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>AZEUQER: TITANIUM</title>
+
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
   :root{
-    --bg1:#F7FBFF; --bg2:#FFFFFF;
-    --ink:#0B0F1A; --muted:#667085;
+    --bg1:#f7fbff;
+    --bg2:#eef6ff;
+    --ink:#0b1220;
+    --muted:#5b6b82;
 
-    --neon:#00E5FF; --magenta:#FF2BD6; --lime:#8BFF5A;
-    --gold:#FFD25A; --red:#FF3B30; --violet:#7C5CFF;
-
-    --glass: rgba(255,255,255,0.78);
-    --stroke: rgba(15,23,42,0.10);
-    --shadow: 0 18px 60px rgba(12, 22, 44, 0.12);
-    --shadow2: 0 10px 30px rgba(12, 22, 44, 0.10);
-    --radius: 22px;
-
-    --safeTop: env(safe-area-inset-top, 0px);
-    --safeBottom: env(safe-area-inset-bottom, 0px);
+    --cyan:#00d4ff;
+    --violet:#7c3aed;
+    --pink:#ff2bd6;
+    --gold:#ffcc33;
+    --red:#ff2d2d;
+    --card:#ffffffcc;
+    --line:#d8e6ff;
+    --shadow: 0 18px 40px rgba(11,18,32,0.12);
   }
 
-  *{ box-sizing:border-box; }
-
-  html, body{
-    height:100%;
-    margin:0;
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-    color:var(--ink);
-    background:
-      radial-gradient(1200px 700px at 15% 10%, rgba(0,229,255,0.18), rgba(0,229,255,0) 55%),
-      radial-gradient(900px 600px at 85% 20%, rgba(255,43,214,0.16), rgba(255,43,214,0) 55%),
-      radial-gradient(900px 700px at 55% 90%, rgba(139,255,90,0.12), rgba(139,255,90,0) 55%),
-      linear-gradient(180deg, var(--bg1), var(--bg2));
-    overflow:hidden;
+  html, body { height: 100%; margin:0; }
+  body{
+    background: radial-gradient(1200px 900px at 20% 10%, #ffffff 0%, var(--bg1) 40%, var(--bg2) 100%);
+    color: var(--ink);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    overflow: hidden; /* important: we scroll inside the screen container */
   }
 
-  /* Master scroll container */
-  #app{
-    height:100%;
-    overflow:auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: calc(92px + var(--safeBottom));
+  /* Telegram safe area */
+  .app {
+    position: fixed;
+    inset: 0;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
   }
 
-  .hidden{ display:none !important; }
-
-  /* Sponsor ticker (always visible) */
-  .ticker{
-    position:sticky; top:0;
-    height:44px;
-    z-index:60;
-    display:flex; align-items:center;
-    padding: 0 14px;
-    padding-top: var(--safeTop);
-    background: rgba(255,255,255,0.86);
-    border-bottom:1px solid var(--stroke);
+  /* Sponsor marquee (editable) */
+  .marquee {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: linear-gradient(90deg, rgba(0,212,255,0.12), rgba(124,58,237,0.12), rgba(255,43,214,0.12));
+    border-bottom: 1px solid var(--line);
     backdrop-filter: blur(10px);
+    overflow: hidden;
   }
-  .ticker .label{
-    font-weight:800;
-    font-size:12px;
-    letter-spacing:0.08em;
-    text-transform:uppercase;
-    color:rgba(11,15,26,0.55);
-    margin-right:10px;
-    white-space:nowrap;
-  }
-  .ticker .marquee{
-    flex:1;
-    overflow:hidden;
-    height:22px;
-    border-radius:999px;
-    background: rgba(11,15,26,0.04);
-    border:1px solid rgba(11,15,26,0.06);
-  }
-  .ticker .track{
-    display:inline-flex;
-    align-items:center;
-    gap:18px;
-    height:100%;
-    white-space:nowrap;
-    padding-left:100%;
-    animation: marquee 18s linear infinite;
-  }
-  @keyframes marquee{ 0%{transform:translateX(0);}100%{transform:translateX(-100%);} }
-  .chip{
-    display:inline-flex; align-items:center; gap:8px;
-    padding:3px 10px;
-    border-radius:999px;
-    border:1px solid rgba(11,15,26,0.08);
-    background: rgba(255,255,255,0.88);
-    box-shadow: 0 8px 18px rgba(12,22,44,0.06);
-    font-size:12px;
-    color: rgba(11,15,26,0.78);
-  }
-  .dot{ width:7px; height:7px; border-radius:50%; background: var(--neon); box-shadow: 0 0 12px rgba(0,229,255,0.45); }
-  .dot.m{ background: var(--magenta); box-shadow: 0 0 12px rgba(255,43,214,0.45); }
-  .dot.g{ background: var(--gold); box-shadow: 0 0 12px rgba(255,210,90,0.45); }
-
-  /* Page wrap */
-  .wrap{
-    width:min(980px, 92vw);
-    margin: 14px auto 0;
-  }
-
-  /* Sticky header row */
-  .topbar{
-    position:sticky;
-    top:44px;
-    z-index:55;
+  .marquee .track{
     display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    padding: 10px 0;
-    background: linear-gradient(180deg, rgba(247,251,255,0.92), rgba(247,251,255,0.0));
-    backdrop-filter: blur(6px);
+    gap: 40px;
+    white-space: nowrap;
+    animation: scroll 16s linear infinite;
+    padding: 10px 16px;
+    font-weight: 700;
+    color: #22314c;
   }
-  .brand{ display:flex; align-items:center; gap:12px; }
-  .mark{
-    width:40px; height:40px; border-radius:16px;
-    background:
-      radial-gradient(18px 18px at 30% 30%, rgba(255,255,255,0.95), rgba(255,255,255,0) 60%),
-      linear-gradient(135deg, rgba(0,229,255,1), rgba(255,43,214,1));
-    box-shadow: 0 12px 28px rgba(0,229,255,0.16);
-  }
-  .title{ font-weight:950; letter-spacing:-0.03em; font-size: 18px; line-height:1; }
-  .subtitle{ margin-top:4px; font-size:12px; color: rgba(11,15,26,0.55); font-weight:650; }
+  .tag{ padding:6px 10px; border:1px solid var(--line); border-radius:999px; background:#fff; box-shadow: 0 10px 20px rgba(0,0,0,.04); }
+  @keyframes scroll{ from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-  .actions{ display:flex; gap:10px; align-items:center; }
-  .btn{
-    border:none;
-    border-radius: 16px;
-    padding: 12px 14px;
-    font-weight:900;
-    font-size: 13px;
-    cursor:pointer;
-    background: rgba(11,15,26,0.04);
-    border: 1px solid rgba(11,15,26,0.10);
-    color: rgba(11,15,26,0.78);
-    user-select:none;
-    transition: transform .08s ease, filter .18s ease;
+  /* Top utilities */
+  .topbar {
+    position: fixed;
+    top: env(safe-area-inset-top);
+    right: env(safe-area-inset-right);
+    z-index: 60;
+    display: flex;
+    gap: 10px;
+    padding: 10px;
   }
-  .btn:active{ transform: scale(0.985); filter: brightness(0.98); }
-  .btn.primary{
-    background: linear-gradient(135deg, rgba(0,229,255,1), rgba(255,43,214,1));
-    color:white;
-    border:none;
-    box-shadow: 0 16px 44px rgba(255,43,214,0.18);
+  .iconbtn{
+    pointer-events: auto;
+    width: 44px; height: 44px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: #fff;
+    box-shadow: 0 10px 24px rgba(11,18,32,0.10);
+    display:flex; align-items:center; justify-content:center;
+    cursor: pointer;
+    user-select: none;
   }
-  .btn.danger{
-    background: rgba(255,59,48,0.10);
-    border: 1px solid rgba(255,59,48,0.22);
-    color: rgba(255,59,48,0.90);
-  }
-  .btn.pill{ display:inline-flex; align-items:center; gap:10px; }
-  .miniLed{ width:10px; height:10px; border-radius:50%; background: rgba(11,15,26,0.22); }
-  .miniLed.on{
-    background: var(--magenta);
-    box-shadow: 0 0 16px rgba(255,43,214,0.25);
-  }
-
-  /* Card frame */
-  .frame{
-    border-radius: var(--radius);
-    background: linear-gradient(180deg, rgba(255,255,255,0.88), rgba(255,255,255,0.58));
-    border: 1px solid rgba(11,15,26,0.10);
-    box-shadow: var(--shadow);
-    overflow:hidden;
-    position:relative;
-  }
-  .grid{
-    position:absolute; inset:-2px;
-    background:
-      linear-gradient(rgba(11,15,26,0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(11,15,26,0.035) 1px, transparent 1px);
-    background-size: 36px 36px;
-    mask-image: radial-gradient(circle at 50% 20%, rgba(0,0,0,1), rgba(0,0,0,0) 70%);
-    pointer-events:none;
-  }
+  .iconbtn:active{ transform: scale(.98); }
 
   /* Screens */
-  .screen{ display:block; }
-  .screen.hidden{ display:none !important; }
+  .screen {
+    position: absolute;
+    inset: 0;
+    padding: 0 16px 18px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  .hidden { display:none !important; }
 
-  /* Intro styling */
-  .introWrap{
-    position:relative;
-    padding: 18px;
-    min-height: 70vh;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    text-align:center;
-    gap:14px;
-  }
-  .introTitle{
-    font-weight:980;
-    font-size: 32px;
-    letter-spacing:-0.04em;
-  }
-  .introText{
-    font-weight:850;
-    font-size: 18px;
-    color: rgba(11,15,26,0.72);
-    max-width: 640px;
-    line-height:1.35;
-  }
-  .pulse{
-    animation: pulse 1.6s ease-in-out infinite;
-  }
-  @keyframes pulse{
-    0%,100%{ transform: scale(1); filter: brightness(1); }
-    50%{ transform: scale(1.02); filter: brightness(1.03); }
-  }
-  .splitBar{
-    width:min(680px, 92%);
-    height: 14px;
-    border-radius:999px;
-    background: linear-gradient(90deg, rgba(255,59,48,0.85), rgba(255,210,90,0.95));
-    box-shadow: 0 18px 48px rgba(255,59,48,0.12);
-    border: 1px solid rgba(11,15,26,0.08);
-    overflow:hidden;
-    position:relative;
-  }
-  .splitBar::after{
-    content:"";
-    position:absolute; inset:-40px;
-    background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.35), rgba(255,255,255,0) 55%);
-    filter: blur(12px);
-    animation: sweep 1.9s linear infinite;
-  }
-  @keyframes sweep{
-    0%{ transform: translateX(-30%); }
-    100%{ transform: translateX(130%); }
-  }
-
-  .emailRow{
-    width:min(520px, 92%);
-    display:flex; gap:10px;
-    margin-top:8px;
-  }
-  .input{
-    flex:1;
-    padding: 12px 12px;
-    border-radius: 14px;
-    border: 1px solid rgba(11,15,26,0.12);
-    outline:none;
-    font-size: 14px;
-    background: rgba(255,255,255,0.92);
-    color: rgba(11,15,26,0.85);
-  }
-  .input:focus{ border-color: rgba(0,229,255,0.75); box-shadow: 0 0 0 6px rgba(0,229,255,0.10); }
-
-  .micro{
-    margin-top:4px;
-    font-size: 12px;
-    color: rgba(11,15,26,0.58);
-    font-weight:700;
-    line-height: 1.35;
-    max-width: 680px;
-  }
-
-  /* Profile layout (Screen 2) */
-  .content{
-    position:relative;
-    padding: 16px;
-    display:grid;
-    grid-template-columns: 1.1fr 0.9fr;
-    gap:14px;
-  }
-  @media (max-width: 900px){
-    .content{ grid-template-columns: 1fr; }
-  }
-
-  .pane{
-    border-radius: 18px;
-    border: 1px solid rgba(11,15,26,0.10);
-    background: rgba(255,255,255,0.74);
-    box-shadow: var(--shadow2);
-    padding: 14px;
-  }
-
-  .profile-head{ display:flex; gap:14px; align-items:center; }
-  .avatar{
-    width:92px; height:92px;
+  .wrap { max-width: 560px; margin: 0 auto; padding: 14px 0 80px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
     border-radius: 22px;
-    border: 2px solid rgba(0,229,255,0.35);
-    overflow:hidden;
-    background: rgba(11,15,26,0.03);
-    flex:0 0 auto;
-    position:relative;
-  }
-  .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .badge{
-    position:absolute; left:8px; bottom:8px;
-    padding:6px 10px;
-    border-radius:999px;
-    font-weight:950;
-    font-size:11px;
-    letter-spacing:0.06em;
-    text-transform:uppercase;
-    border: 1px solid rgba(11,15,26,0.10);
-    background: rgba(255,255,255,0.82);
-    color: rgba(11,15,26,0.78);
-  }
-  .badge.founder{
-    border-color: rgba(255,210,90,0.35);
-    background: rgba(255,210,90,0.18);
-    color: rgba(11,15,26,0.85);
+    box-shadow: var(--shadow);
+    padding: 16px;
   }
 
-  .meta{ flex:1; min-width:0; }
-  .nameRow{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
-  .name{
-    font-weight:980;
-    font-size: 22px;
-    letter-spacing:-0.03em;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
+  .title {
+    font-size: 28px;
+    letter-spacing: -0.02em;
+    margin: 10px 0 8px;
+    font-weight: 900;
   }
-  .faction{
-    display:inline-flex; align-items:center; gap:8px;
-    padding: 8px 10px;
-    border-radius: 999px;
-    border: 1px solid rgba(11,15,26,0.10);
-    background: rgba(255,255,255,0.78);
-    font-weight:900;
-    font-size: 12px;
-    user-select:none;
+  .sub { color: var(--muted); line-height: 1.4; }
+
+  .big {
+    margin-top: 14px;
+    border-radius: 22px;
+    padding: 18px;
+    background: linear-gradient(135deg, rgba(0,212,255,0.16), rgba(124,58,237,0.14), rgba(255,43,214,0.12));
+    border: 1px solid var(--line);
   }
-  .f-dot{ width:10px; height:10px; border-radius:50%; background: rgba(11,15,26,0.18); }
-  .faction.euphoria .f-dot{ background: var(--gold); box-shadow: 0 0 14px rgba(255,210,90,0.35); }
-  .faction.dissonance .f-dot{ background: var(--red); box-shadow: 0 0 14px rgba(255,59,48,0.30); }
-  .faction.unsorted .f-dot{ background: rgba(11,15,26,0.20); }
 
-  .tagline{ margin-top:6px; color: rgba(11,15,26,0.62); font-weight:650; font-size:13px; line-height: 1.35; }
-
-  .tiles{ margin-top: 12px; display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; }
-  @media (max-width: 540px){ .tiles{ grid-template-columns: repeat(2, 1fr); } }
-
-  .tile{
+  .btn {
+    width: 100%;
+    border: 0;
     border-radius: 16px;
-    border: 1px solid rgba(11,15,26,0.10);
-    background: rgba(255,255,255,0.78);
-    padding: 10px 10px;
+    padding: 14px 14px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--cyan), var(--violet));
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 12px 26px rgba(124,58,237,0.22);
   }
-  .tile .k{
-    font-size: 12px;
-    font-weight:900;
-    color: rgba(11,15,26,0.55);
-    letter-spacing:0.08em;
-    text-transform:uppercase;
+  .btn:active{ transform: scale(.99); }
+  .btn-secondary{
+    background: #fff;
+    color: #22314c;
+    border: 1px solid var(--line);
+    box-shadow: 0 12px 26px rgba(11,18,32,0.06);
   }
-  .tile .v{
-    margin-top: 4px;
-    font-weight:980;
-    font-size: 18px;
-    letter-spacing:-0.02em;
+  .btn-danger{
+    background: linear-gradient(135deg, var(--red), var(--pink));
+    box-shadow: 0 12px 26px rgba(255,45,45,0.18);
   }
-  .tile.ap .v{ background: linear-gradient(135deg, rgba(0,229,255,1), rgba(255,43,214,1)); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  .tile.stars .v{ color: rgba(124,92,255,0.95); }
-  .tile.kills .v{ color: rgba(255,59,48,0.90); }
+  .row { display:flex; gap: 10px; }
+  .row > * { flex:1; }
 
-  .ref{
-    margin-top: 12px;
-    border-radius: 18px;
-    border: 1px solid rgba(11,15,26,0.10);
-    background: rgba(255,255,255,0.78);
-    padding: 12px;
-  }
-  .refTop{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
-  .refTitle{ font-weight:980; letter-spacing:-0.02em; }
-  .refCount{
-    padding: 7px 10px;
-    border-radius: 999px;
-    font-weight:950;
-    font-size: 12px;
-    border: 1px solid rgba(139,255,90,0.35);
-    background: rgba(139,255,90,0.16);
-  }
-  .codeRow{ margin-top:10px; display:flex; gap:10px; align-items:center; }
-  .miniBtn{
-    border:none;
-    padding: 12px 12px;
-    border-radius: 14px;
-    font-weight:950;
-    cursor:pointer;
-    background: rgba(11,15,26,0.04);
-    border:1px solid rgba(11,15,26,0.10);
-    color: rgba(11,15,26,0.78);
-    min-width: 92px;
-    user-select:none;
-  }
-  .miniBtn.copy{
-    background: linear-gradient(135deg, rgba(0,229,255,1), rgba(255,43,214,1));
-    border:none; color:white;
-  }
-
-  .invHeader{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
-  .invTitle{ font-weight:980; letter-spacing:-0.02em; }
-  .invHint{ font-size:12px; color: rgba(11,15,26,0.55); font-weight:700; }
-  .invGrid{ margin-top: 12px; display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; }
-  @media (max-width: 420px){ .invGrid{ grid-template-columns: repeat(2, 1fr); } }
-
-  .slot{
-    border-radius: 18px;
-    border: 1px solid rgba(11,15,26,0.10);
-    background: rgba(255,255,255,0.78);
-    padding: 10px;
-    min-height: 76px;
-    display:flex;
-    flex-direction:column;
-    justify-content:space-between;
-    position:relative;
-    overflow:hidden;
-    user-select:none;
-    cursor:pointer;
-  }
-  .slot .sname{
-    font-weight:950;
-    font-size:12px;
-    color: rgba(11,15,26,0.62);
-    letter-spacing:0.06em;
-    text-transform:uppercase;
-  }
-  .slot .item{
-    margin-top:8px;
-    font-weight:980;
-    font-size: 13px;
-    letter-spacing:-0.01em;
-    color: rgba(11,15,26,0.86);
-  }
-  .rarity{
-    position:absolute;
-    right:10px;
-    bottom:10px;
-    padding: 6px 10px;
-    border-radius: 999px;
-    font-size: 11px;
-    font-weight:950;
-    border: 1px solid rgba(11,15,26,0.10);
-    background: rgba(255,255,255,0.82);
-    color: rgba(11,15,26,0.72);
-  }
-  .slot.rare{ border-color: rgba(255,210,90,0.35); box-shadow: 0 18px 40px rgba(255,210,90,0.10); }
-  .slot.rare::before{
-    content:""; position:absolute; inset:-40px;
-    background: radial-gradient(circle at 30% 30%, rgba(255,210,90,0.40), rgba(255,210,90,0) 55%);
-    filter: blur(18px); opacity:0.55;
-  }
-  .slot.mythic{ border-color: rgba(255,43,214,0.30); box-shadow: 0 18px 44px rgba(255,43,214,0.12); }
-  .slot.mythic::before{
-    content:""; position:absolute; inset:-40px;
-    background: radial-gradient(circle at 30% 30%, rgba(255,43,214,0.38), rgba(0,229,255,0.22), rgba(255,255,255,0) 60%);
-    filter: blur(18px); opacity:0.60;
-  }
-
-  .camBox{
-    margin-top: 12px;
-    border-radius: 18px;
-    border: 1px solid rgba(11,15,26,0.10);
-    background: rgba(255,255,255,0.80);
-    padding: 12px;
-  }
-  video{
+  .input{
     width:100%;
+    padding: 14px 14px;
     border-radius: 16px;
-    border: 1px solid rgba(11,15,26,0.10);
-    background: rgba(11,15,26,0.04);
-    display:block;
+    border: 1px solid var(--line);
+    outline: none;
+    font-weight: 700;
+    font-size: 15px;
+    background: #fff;
   }
 
-  /* Bottom nav (global) */
-  .nav{
-    position:fixed; left:0; right:0; bottom:0;
-    height:72px;
-    padding-bottom: var(--safeBottom);
-    background: rgba(255,255,255,0.86);
-    border-top:1px solid rgba(11,15,26,0.10);
-    backdrop-filter: blur(10px);
+  /* Intro sequence typography */
+  .void {
+    margin-top: 18px;
+    min-height: 240px;
     display:flex;
-    justify-content:center;
     align-items:center;
-    z-index:70;
+    justify-content:center;
+    text-align:center;
+    padding: 18px;
   }
-  .navInner{
-    width:min(980px, 92vw);
-    display:flex;
-    justify-content:space-between;
-    gap:10px;
+  .line {
+    font-weight: 900;
+    font-size: 26px;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
   }
-  .navBtn{
-    flex:1;
-    border:none;
+  .pulse { animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{ transform: scale(1); opacity: 1;} 50%{ transform: scale(1.02); opacity: .85; } }
+
+  .split {
+    border-radius: 22px;
+    border: 1px solid var(--line);
+    overflow:hidden;
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    margin-top: 12px;
+  }
+  .split .left{
+    background: linear-gradient(135deg, rgba(255,45,45,0.16), rgba(255,43,214,0.10));
+    padding: 16px;
+  }
+  .split .right{
+    background: linear-gradient(135deg, rgba(255,204,51,0.18), rgba(0,212,255,0.08));
+    padding: 16px;
+  }
+  .split h3{ margin:0 0 8px; font-weight: 1000; }
+  .split p{ margin:0; color: var(--muted); font-weight: 700; }
+
+  /* Camera box */
+  #cameraBox video{
+    width: 100%;
     border-radius: 18px;
-    padding: 12px;
-    font-weight:950;
-    cursor:pointer;
-    background: rgba(11,15,26,0.04);
-    border: 1px solid rgba(11,15,26,0.10);
-    color: rgba(11,15,26,0.72);
-    user-select:none;
-  }
-  .navBtn.active{
-    background: linear-gradient(135deg, rgba(0,229,255,1), rgba(255,43,214,1));
-    border:none;
-    color:white;
-    box-shadow: 0 16px 44px rgba(255,43,214,0.14);
+    border: 1px solid var(--line);
+    background:#000;
   }
 
   /* Loader */
-  #loader{
-    position:fixed; inset:0;
+  #loader {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
     display:none;
     align-items:center;
     justify-content:center;
-    flex-direction:column;
-    background: rgba(255,255,255,0.85);
+    background: rgba(255,255,255,0.7);
     backdrop-filter: blur(10px);
-    z-index:100;
+  }
+  #loader .box{
+    width: min(520px, calc(100% - 32px));
+    border-radius: 22px;
+    border: 1px solid var(--line);
+    background:#fff;
+    box-shadow: var(--shadow);
+    padding: 18px;
+    text-align:center;
   }
   #loader .spin{
-    width:44px; height:44px; border-radius:50%;
-    border: 3px solid rgba(11,15,26,0.12);
-    border-top-color: rgba(0,229,255,0.95);
-    animation: spin 0.9s linear infinite;
+    width: 44px; height: 44px;
+    border-radius: 999px;
+    border: 4px solid rgba(124,58,237,.18);
+    border-top-color: rgba(124,58,237,.9);
+    margin: 0 auto 10px;
+    animation: sp 1s linear infinite;
   }
-  @keyframes spin{ to{ transform:rotate(360deg); } }
-  #loader .msg{ margin-top:12px; font-weight:900; color: rgba(11,15,26,0.72); }
+  @keyframes sp{ to{ transform: rotate(360deg);} }
+
+  .tiny { font-size: 12px; color: var(--muted); font-weight: 800; }
+  .link { color: #1d4ed8; font-weight: 900; text-decoration: none; }
 </style>
 </head>
 
 <body>
+<div class="app">
 
-<div id="loader">
-  <div class="spin"></div>
-  <div class="msg" id="loaderMsg">Loading…</div>
-</div>
+  <!-- Sponsor marquee (EDIT THIS TEXT ANYTIME) -->
+  <div class="marquee">
+    <div class="track" aria-hidden="true">
+      <span class="tag">SPONSORS: DGLITCH • PARTNERS: YOUR-NAME-HERE •</span>
+      <span class="tag">SPONSORS: DGLITCH • PARTNERS: YOUR-NAME-HERE •</span>
+      <span class="tag">SPONSORS: DGLITCH • PARTNERS: YOUR-NAME-HERE •</span>
+      <span class="tag">SPONSORS: DGLITCH • PARTNERS: YOUR-NAME-HERE •</span>
+    </div>
+  </div>
 
-<div id="app">
+  <!-- Top buttons -->
+  <div class="topbar">
+    <div class="iconbtn" id="soundBtn" title="Sound">🔊</div>
+  </div>
 
-  <!-- Always-on Sponsor ticker -->
-  <div class="ticker">
-    <div class="label">Sponsors</div>
-    <div class="marquee">
-      <div class="track" id="tickerTrack">
-        <span class="chip"><span class="dot"></span> Azeuqer Foundation</span>
-        <span class="chip"><span class="dot m"></span> Neon Lux Studios</span>
-        <span class="chip"><span class="dot g"></span> Titan Labs</span>
-        <span class="chip"><span class="dot"></span> Community Partners</span>
-        <span class="chip"><span class="dot m"></span> Drops • Bosses • Vouchers</span>
+  <!-- Loader -->
+  <div id="loader">
+    <div class="box">
+      <div class="spin"></div>
+      <div style="font-weight:1000;">SYNCING…</div>
+      <div class="tiny" id="loaderMsg">connecting</div>
+    </div>
+  </div>
 
-        <span class="chip"><span class="dot"></span> Azeuqer Foundation</span>
-        <span class="chip"><span class="dot m"></span> Neon Lux Studios</span>
-        <span class="chip"><span class="dot g"></span> Titan Labs</span>
-        <span class="chip"><span class="dot"></span> Community Partners</span>
-        <span class="chip"><span class="dot m"></span> Drops • Bosses • Vouchers</span>
+  <!-- Screen 1: Intro -->
+  <div id="screenIntro" class="screen">
+    <div class="wrap">
+      <div class="card">
+        <div class="title">AZEUQER</div>
+        <div class="sub">Biometric Social Stock Market • Titanium Build</div>
+
+        <div class="void">
+          <div id="introLine" class="line pulse">You are invisible.</div>
+        </div>
+
+        <div class="split" id="splitBlock" style="display:none;">
+          <div class="left">
+            <h3 style="color:#a11;">DISSONANCE</h3>
+            <p>Chaos. Heat. Truth-with-teeth.</p>
+          </div>
+          <div class="right">
+            <h3 style="color:#a16207;">EUPHORIA</h3>
+            <p>Order. Shine. Calm dominance.</p>
+          </div>
+        </div>
+
+        <div class="big" id="contractBlock" style="display:none;">
+          <div style="font-weight:1000; font-size:18px;">Scan your face. Reveal your soul.</div>
+          <div class="sub" style="margin-top:8px;">To enter the Citadel, you must be judged.</div>
+
+          <div style="margin-top:14px;">
+            <input class="input" id="emailInput" type="email" placeholder="Enter e-mail (adds +500 AP)" />
+            <button class="btn btn-secondary" style="margin-top:10px;" id="saveEmailBtn">Save Email</button>
+            <div class="tiny" id="emailHint" style="margin-top:8px;"></div>
+          </div>
+
+          <div style="margin-top:14px;" class="row">
+            <button class="btn" id="continueBtn">Continue</button>
+            <button class="btn btn-secondary" id="officialBtn">Official</button>
+          </div>
+
+          <div class="tiny" style="margin-top:10px;">
+            Official page: <a class="link" href="https://www.dglitch.gg/" target="_blank" rel="noopener">dglitch.gg</a>
+          </div>
+        </div>
+
+        <button class="btn" id="skipBtn" style="margin-top:12px;">WAKE UP</button>
       </div>
     </div>
   </div>
 
-  <div class="wrap">
+  <!-- Screen 2: Bio-Gate (scan) -->
+  <div id="screenGate" class="screen hidden">
+    <div class="wrap">
+      <div class="card">
+        <div class="title">The Bio-Gate</div>
+        <div class="sub">No face, no game. This is the lock.</div>
 
-    <!-- SCREEN 1: INTRO SEQUENCE -->
-    <div id="screen-intro" class="screen">
-      <div class="topbar">
-        <div class="brand">
-          <div class="mark"></div>
-          <div>
-            <div class="title">AZEUQER</div>
-            <div class="subtitle">THE WAKE-UP CALL</div>
-          </div>
-        </div>
-        <div class="actions">
-          <button id="soundBtnIntro" class="btn pill" onclick="toggleSound()">
-            <span id="soundLed" class="miniLed"></span>
-            <span id="soundText">Sound Off</span>
-          </button>
-        </div>
-      </div>
+        <div class="big">
+          <button class="btn" id="openCamBtn">📸 Scan Face (Front Camera)</button>
+          <div class="tiny" id="camDebug" style="margin-top:10px;"></div>
 
-      <div class="frame">
-        <div class="grid"></div>
-        <div class="introWrap">
-          <div class="introTitle" id="introTitle">THE VOID</div>
-          <div class="introText pulse" id="introText">…</div>
-
-          <div id="introSplit" class="splitBar hidden"></div>
-
-          <div id="emailBlock" class="hidden" style="width:100%; display:flex; flex-direction:column; align-items:center;">
-            <div class="emailRow">
-              <input id="emailInput" class="input" placeholder="Enter e-mail (+500 AP)" inputmode="email" />
-              <button class="btn primary" onclick="submitEmail()">Claim</button>
+          <div id="cameraBox" class="hidden" style="margin-top:12px;">
+            <video id="video" autoplay playsinline muted></video>
+            <div class="row" style="margin-top:10px;">
+              <button class="btn" id="captureBtn">Capture</button>
+              <button class="btn btn-danger" id="closeCamBtn">Close</button>
             </div>
-            <div class="micro">We don’t want your money. We want your truth. (You can skip this for now.)</div>
-            <button class="btn" style="margin-top:10px;" onclick="goProfile()">Skip → Continue</button>
           </div>
 
-          <div class="micro" id="introMicro">No buttons. No logo. Just truth.</div>
+          <!-- iOS/Telegram fallback -->
+          <input id="cameraFallback" class="hidden" type="file" accept="image/*" capture="user" />
+          <canvas id="canvas" class="hidden"></canvas>
+        </div>
+
+        <div style="margin-top:12px;" class="row">
+          <button class="btn btn-secondary" id="backIntroBtn">Back</button>
+          <button class="btn btn-secondary" id="refreshBtn">Refresh</button>
         </div>
       </div>
-
-      <div style="height:24px;"></div>
     </div>
-
-    <!-- SCREEN 2: PROFILE -->
-    <div id="screen-profile" class="screen hidden">
-      <div class="topbar">
-        <div class="brand">
-          <div class="mark"></div>
-          <div>
-            <div class="title">AZEUQER</div>
-            <div class="subtitle">Profile • Passport • Bio-Gate</div>
-          </div>
-        </div>
-
-        <div class="actions">
-          <button id="soundBtn" class="btn pill" onclick="toggleSound()">
-            <span class="miniLed" id="soundLed2"></span>
-            <span id="soundText2">Sound Off</span>
-          </button>
-          <button class="btn danger" onclick="resetIdentity()">Reset</button>
-        </div>
-      </div>
-
-      <div class="frame">
-        <div class="grid"></div>
-
-        <div class="content">
-
-          <!-- LEFT: Profile -->
-          <div class="pane">
-            <div class="profile-head">
-              <div class="avatar">
-                <img id="avatarImg" src="" alt="avatar"/>
-                <div id="founderBadge" class="badge founder" style="display:none;">FOUNDER</div>
-                <div id="citizenBadge" class="badge" style="display:none;">CITIZEN</div>
-              </div>
-
-              <div class="meta">
-                <div class="nameRow">
-                  <div class="name" id="userName">Loading…</div>
-                  <div class="faction unsorted" id="factionPill">
-                    <span class="f-dot"></span>
-                    <span id="factionText">UNSORTED</span>
-                  </div>
-                </div>
-                <div class="tagline" id="userTagline">Your profile powers visibility, loot & ranking.</div>
-                <div class="micro" id="emailLine">Email: —</div>
-
-                <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
-                  <button class="btn primary" onclick="openBioGate()">Face Scan / Bio-Gate</button>
-                  <button class="btn" onclick="closeBioGate()">Close</button>
-                </div>
-                <div class="micro" id="camNote">Tip: On iPhone Telegram, the selfie capture fallback is used.</div>
-              </div>
-            </div>
-
-            <div class="tiles">
-              <div class="tile ap">
-                <div class="k">AP</div>
-                <div class="v" id="apVal">0</div>
-              </div>
-              <div class="tile">
-                <div class="k">Energy</div>
-                <div class="v"><span id="energyVal">0</span>/<span id="energyMax">30</span></div>
-              </div>
-              <div class="tile stars">
-                <div class="k">Stars</div>
-                <div class="v" id="starsVal">0</div>
-              </div>
-              <div class="tile kills">
-                <div class="k">Boss Kills</div>
-                <div class="v" id="killsVal">0</div>
-              </div>
-            </div>
-
-            <div class="ref">
-              <div class="refTop">
-                <div class="refTitle">Referrals</div>
-                <div class="refCount"><span id="refCount">0</span> joined</div>
-              </div>
-              <div class="codeRow">
-                <input id="refLink" class="input" readonly value="Generating referral link…" />
-                <button class="miniBtn copy" onclick="copyReferral()">Copy</button>
-              </div>
-              <div class="micro">Share your link. Rewards vest after Bio-Gate + Initiation (10 swipes).</div>
-            </div>
-
-            <!-- Camera UI -->
-            <div id="camBox" class="camBox hidden">
-              <div class="micro" id="camDebug" style="margin-top:0;">Opening camera…</div>
-              <video id="video" class="hidden" autoplay playsinline muted></video>
-              <canvas id="canvas" class="hidden"></canvas>
-              <div style="display:flex; gap:10px; margin-top:10px;">
-                <button class="btn primary" style="flex:1;" onclick="capturePhoto()">Capture</button>
-                <button class="btn" style="flex:1;" onclick="closeBioGate()">Cancel</button>
-              </div>
-              <input id="cameraFallback" class="hidden" type="file" accept="image/*" capture="user" />
-            </div>
-
-          </div>
-
-          <!-- RIGHT: Inventory -->
-          <div class="pane">
-            <div class="invHeader">
-              <div class="invTitle">Inventory</div>
-              <div class="invHint">Tap to inspect</div>
-            </div>
-
-            <div class="invGrid" id="invGrid"></div>
-            <div class="micro" id="invMsg">Loot drops from boss fights + marketplace. Equipped items glow.</div>
-
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;">
-              <button class="btn" onclick="goIntro()">Intro</button>
-              <button class="btn" onclick="goToFeed()">Feed</button>
-            </div>
-
-            <button class="btn primary" style="width:100%; margin-top:10px;" onclick="goToFeed()">Go to Feed</button>
-          </div>
-
-        </div>
-      </div>
-
-      <div style="height:24px;"></div>
-    </div>
-
   </div>
-</div>
 
-<!-- Global bottom nav -->
-<div class="nav">
-  <div class="navInner">
-    <button class="navBtn" id="navIntro" onclick="goIntro()">Intro</button>
-    <button class="navBtn active" id="navProfile" onclick="goProfile()">Profile</button>
-    <button class="navBtn" onclick="goToFeed()">Feed</button>
-    <button class="navBtn" onclick="goToMarket()">Market</button>
-  </div>
 </div>
 
 <script>
@@ -752,457 +354,366 @@
 ========================= */
 const API_URL = "https://azeuqer-backend.onrender.com";
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
-try { if (tg) { tg.ready(); tg.expand(); } } catch(e) {}
-function initData(){ return (tg && tg.initData) ? tg.initData : "debug_mode"; }
+
+try{
+  if(tg){
+    tg.ready();
+    tg.expand();
+    if(tg.disableVerticalSwipes) tg.disableVerticalSwipes(); // enables scroll
+  }
+}catch(e){}
 
 /* =========================
    LOADER
 ========================= */
-function showLoader(v,msg="Loading…"){
-  const el=document.getElementById("loader");
-  document.getElementById("loaderMsg").textContent = msg;
-  el.style.display = v ? "flex" : "none";
+function showLoader(on, msg=""){
+  const l = document.getElementById("loader");
+  const m = document.getElementById("loaderMsg");
+  if(on){
+    l.style.display = "flex";
+    m.textContent = msg || "working";
+  } else {
+    l.style.display = "none";
+  }
 }
 
 /* =========================
-   SIMPLE ROUTER (screens)
+   SOUND (Subtle WebAudio SFX)
 ========================= */
-function setActiveNav(which){
-  const map = [
-    ["navIntro", which==="intro"],
-    ["navProfile", which==="profile"],
-  ];
-  map.forEach(([id,on])=>{
-    const b = document.getElementById(id);
-    if(!b) return;
-    b.classList.toggle("active", !!on);
-  });
-}
-function showScreen(id){
-  document.getElementById("screen-intro").classList.add("hidden");
-  document.getElementById("screen-profile").classList.add("hidden");
-  document.getElementById(id).classList.remove("hidden");
-  // Scroll to top of screen area
-  const app = document.getElementById("app");
-  if(app) app.scrollTo({ top: 0, behavior: "smooth" });
-}
-function goIntro(){ clickSfx(); setActiveNav("intro"); showScreen("screen-intro"); }
-function goProfile(){ clickSfx(); setActiveNav("profile"); showScreen("screen-profile"); initProfile(); }
-function goToFeed(){ clickSfx(); alert("Next: Feed screen (Prompt 2 polish)."); }
-function goToMarket(){ clickSfx(); alert("Next: Marketplace screen (later)."); }
-
-/* =========================
-   API helper
-========================= */
-async function api(path, body){
-  const res = await fetch(API_URL + path, {
-    method:"POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify(body || {})
-  });
-  const data = await res.json().catch(()=>({status:"error", msg:"BAD_JSON"}));
-  return { ok: res.ok, data };
-}
-
-/* =========================
-   SOUND (subtle)
-========================= */
-let audioCtx=null;
-let soundOn=false;
+let soundOn = true;
+let audioCtx = null;
 
 function ensureAudio(){
-  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if(audioCtx.state==="suspended") audioCtx.resume();
-}
-function tone({freq=220,dur=0.06,type="sine",gain=0.02,slide=0}={}){
-  if(!soundOn) return;
-  if(!audioCtx) return;
-  const o=audioCtx.createOscillator();
-  const g=audioCtx.createGain();
-  o.type=type;
-  o.frequency.setValueAtTime(freq, audioCtx.currentTime);
-  if(slide){
-    o.frequency.exponentialRampToValueAtTime(Math.max(40,freq+slide), audioCtx.currentTime+dur);
+  if(!audioCtx){
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   }
-  g.gain.setValueAtTime(gain, audioCtx.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+dur);
-  o.connect(g); g.connect(audioCtx.destination);
-  o.start(); o.stop(audioCtx.currentTime+dur);
+  if(audioCtx.state === "suspended") audioCtx.resume();
 }
-function clickSfx(){ ensureAudio(); tone({freq:260,dur:0.05,type:"triangle",gain:0.018,slide:120}); }
-function confirmSfx(){ ensureAudio(); tone({freq:320,dur:0.05,type:"triangle",gain:0.018,slide:140}); setTimeout(()=>tone({freq:420,dur:0.08,type:"triangle",gain:0.022,slide:180}), 70); }
-function errorSfx(){ ensureAudio(); tone({freq:170,dur:0.06,type:"square",gain:0.02,slide:-30}); }
-window.addEventListener("pointerdown", ()=>{ ensureAudio(); }, { once:true });
 
-function syncSoundButtons(){
-  const on = soundOn;
-  // Intro button
-  const led1 = document.getElementById("soundLed");
-  const txt1 = document.getElementById("soundText");
-  if(led1) led1.classList.toggle("on", on);
-  if(txt1) txt1.textContent = on ? "Sound On" : "Sound Off";
-
-  // Profile button
-  const led2 = document.getElementById("soundLed2");
-  const txt2 = document.getElementById("soundText2");
-  if(led2) led2.classList.toggle("on", on);
-  if(txt2) txt2.textContent = on ? "Sound On" : "Sound Off";
+function blip(freq=660, dur=0.045, type="sine", gain=0.06){
+  if(!soundOn) return;
+  ensureAudio();
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = type;
+  o.frequency.value = freq;
+  g.gain.value = gain;
+  o.connect(g);
+  g.connect(audioCtx.destination);
+  o.start();
+  o.stop(audioCtx.currentTime + dur);
+  g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
 }
-function toggleSound(){
+
+function clickSfx(){ blip(740, 0.03, "triangle", 0.05); }
+function successSfx(){ blip(880, 0.05, "sine", 0.06); setTimeout(()=>blip(1320,0.04,"sine",0.05), 60); }
+function errorSfx(){ blip(220, 0.07, "square", 0.04); }
+
+const soundBtn = document.getElementById("soundBtn");
+soundBtn.addEventListener("click", ()=>{
   ensureAudio();
   soundOn = !soundOn;
-  syncSoundButtons();
-  soundOn ? confirmSfx() : clickSfx();
+  soundBtn.textContent = soundOn ? "🔊" : "🔇";
+  clickSfx();
+});
+
+/* =========================
+   SCREEN CONTROL
+========================= */
+function showScreen(id){
+  document.getElementById("screenIntro").classList.add("hidden");
+  document.getElementById("screenGate").classList.add("hidden");
+  document.getElementById(id).classList.remove("hidden");
+  clickSfx();
 }
 
 /* =========================
-   INTRO SEQUENCE (Screen 1)
+   INTRO SEQUENCE
 ========================= */
-const beats = [
-  { title:"THE VOID", text:"You are invisible.", micro:"(No buttons. No logo. Just truth.)", ms:1500 },
-  { title:"THE VOID", text:"The Algorithm ignores you.", micro:"", ms:1100 },
-  { title:"THE VOID", text:"Society filters you.", micro:"", ms:1100 },
-  { title:"THE VOID", text:"Reality forgets you.", micro:"", ms:1100 },
-  { title:"WAKE UP", text:"WAKE UP.", micro:"", ms:1200, split:false, shock:true },
+const introLine = document.getElementById("introLine");
+const skipBtn = document.getElementById("skipBtn");
+const splitBlock = document.getElementById("splitBlock");
+const contractBlock = document.getElementById("contractBlock");
 
-  { title:"THE PROMISE", text:"Here, you are the Asset.", micro:"", ms:1200, split:true },
-  { title:"THE PROMISE", text:"Here, your face is the Currency.", micro:"We do not want your money. We want your Truth.", ms:1400, split:true },
-
-  { title:"THE CONTRACT", text:"To enter the Citadel, you must be judged.", micro:"Are you Order? Or are you Chaos?", ms:1400, split:false },
-  { title:"THE CONTRACT", text:"Scan your face. Reveal your soul.", micro:"+500 AP if you enter an email now.", ms:1300, split:false, email:true }
+let introStep = 0;
+const steps = [
+  { t: "You are invisible.", ms: 1200 },
+  { t: "The Algorithm ignores you.", ms: 1200 },
+  { t: "Society filters you.", ms: 1200 },
+  { t: "Reality forgets you.", ms: 1200 },
+  { t: "WAKE UP.", ms: 900, glitch:true },
+  { t: "Here, you are the Asset.", ms: 1200, split:true },
+  { t: "Here, your face is the Currency.", ms: 1200, split:true },
+  { t: "We do not want your money.", ms: 1200, split:true },
+  { t: "We want your Truth.", ms: 1200, split:true },
+  { t: "To enter the Citadel, you must be judged.", ms: 1200, contract:true },
+  { t: "Are you Order?", ms: 900, contract:true },
+  { t: "Or are you Chaos?", ms: 900, contract:true },
+  { t: "Scan your face. Reveal your soul.", ms: 900, contract:true }
 ];
 
-let beatIndex = 0;
-let introRunning = false;
+let introTimer = null;
 
 function runIntro(){
-  if(introRunning) return;
-  introRunning = true;
-  beatIndex = 0;
-  stepBeat();
-}
+  clearTimeout(introTimer);
+  const s = steps[introStep] || null;
 
-function stepBeat(){
-  const b = beats[beatIndex];
-  const titleEl = document.getElementById("introTitle");
-  const textEl  = document.getElementById("introText");
-  const microEl = document.getElementById("introMicro");
-  const splitEl = document.getElementById("introSplit");
-  const emailBlock = document.getElementById("emailBlock");
-
-  titleEl.textContent = b.title;
-  textEl.textContent  = b.text;
-  microEl.textContent = b.micro || "";
-
-  if(b.split) splitEl.classList.remove("hidden");
-  else splitEl.classList.add("hidden");
-
-  if(b.shock){ confirmSfx(); }
-  else { clickSfx(); }
-
-  if(b.email){
-    emailBlock.classList.remove("hidden");
-    introRunning = false;
+  if(!s){
+    // End state
+    splitBlock.style.display = "grid";
+    contractBlock.style.display = "block";
+    skipBtn.style.display = "none";
+    successSfx();
     return;
+  }
+
+  // visual state
+  if(s.split){
+    splitBlock.style.display = "grid";
+  }
+  if(s.contract){
+    splitBlock.style.display = "grid";
+    contractBlock.style.display = "block";
+    skipBtn.style.display = "none";
+  }
+
+  introLine.textContent = s.t;
+
+  if(s.glitch){
+    introLine.style.textShadow = "2px 0 var(--pink), -2px 0 var(--cyan)";
+    blip(120,0.06,"sawtooth",0.04);
+    setTimeout(()=>blip(220,0.05,"square",0.03), 60);
   }else{
-    emailBlock.classList.add("hidden");
+    introLine.style.textShadow = "none";
+    blip(660,0.03,"sine",0.03);
   }
 
-  beatIndex++;
-  if(beatIndex >= beats.length){
-    introRunning = false;
-    emailBlock.classList.remove("hidden");
-    return;
-  }
-  setTimeout(stepBeat, b.ms || 1200);
+  introStep++;
+  introTimer = setTimeout(runIntro, s.ms);
 }
 
-async function submitEmail(){
+skipBtn.addEventListener("click", ()=>{
+  ensureAudio();
+  // jump to contract
+  splitBlock.style.display = "grid";
+  contractBlock.style.display = "block";
+  skipBtn.style.display = "none";
+  introStep = steps.length;
   clickSfx();
-  const email = (document.getElementById("emailInput").value || "").trim();
-  if(!email || !email.includes("@")){
+});
+
+runIntro();
+
+/* =========================
+   OFFICIAL LINK
+========================= */
+const officialBtn = document.getElementById("officialBtn");
+officialBtn.addEventListener("click", ()=>{
+  clickSfx();
+  const url = "https://www.dglitch.gg/";
+  try{
+    if(tg && tg.openLink) tg.openLink(url);
+    else window.open(url, "_blank", "noopener");
+  }catch(e){
+    window.open(url, "_blank", "noopener");
+  }
+});
+
+/* =========================
+   EMAIL SAVE
+========================= */
+const saveEmailBtn = document.getElementById("saveEmailBtn");
+const emailInput = document.getElementById("emailInput");
+const emailHint = document.getElementById("emailHint");
+
+function getInitData(){
+  return (tg && tg.initData) ? tg.initData : "debug_mode";
+}
+
+saveEmailBtn.addEventListener("click", async ()=>{
+  ensureAudio();
+  clickSfx();
+  const email = (emailInput.value || "").trim();
+  if(!email){
+    emailHint.textContent = "Enter an email first.";
     errorSfx();
-    alert("Please enter a valid email.");
     return;
   }
-  showLoader(true, "Saving email (+500 AP) …");
+  showLoader(true, "saving email…");
   try{
-    const {ok, data} = await api("/profile/email", { initData: initData(), email });
-    if(!ok || data.status !== "ok"){
+    const res = await fetch(`${API_URL}/profile/email`,{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ initData: getInitData(), email })
+    });
+    const data = await res.json();
+    if(data.status === "ok"){
+      emailHint.textContent = "Saved. +500 AP applied (first time only).";
+      successSfx();
+    }else{
+      emailHint.textContent = "Email save failed: " + (data.msg || "unknown");
       errorSfx();
-      alert(data.msg || "Email save failed (backend endpoint missing).");
-      return;
     }
-    confirmSfx();
-    goProfile();
+  }catch(e){
+    emailHint.textContent = "Email save failed: network error";
+    errorSfx();
   }finally{
     showLoader(false);
   }
-}
+});
 
 /* =========================
-   PROFILE (Screen 2)
+   CONTINUE TO GATE
 ========================= */
-function setFactionUI(faction){
-  const pill = document.getElementById("factionPill");
-  const text = document.getElementById("factionText");
-  pill.classList.remove("euphoria","dissonance","unsorted");
-  const f = (faction||"UNSORTED").toUpperCase();
-  if(f==="EUPHORIA"){ pill.classList.add("euphoria"); text.textContent="EUPHORIA"; }
-  else if(f==="DISSONANCE"){ pill.classList.add("dissonance"); text.textContent="DISSONANCE"; }
-  else { pill.classList.add("unsorted"); text.textContent="UNSORTED"; }
-}
-
-function escapeHtml(s){
-  return String(s ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-
-function renderInventory(items){
-  const grid=document.getElementById("invGrid");
-  grid.innerHTML = "";
-  if(!items || items.length===0){
-    grid.innerHTML = `
-      <div class="slot" style="grid-column:span 3; cursor:default;">
-        <div class="sname">Empty</div>
-        <div class="item">No loot yet — fight bosses.</div>
-        <div class="rarity">—</div>
-      </div>
-    `;
-    return;
-  }
-  const view = items.slice(0,9);
-  view.forEach(it=>{
-    const rar = (it.rarity||"COMMON").toUpperCase();
-    const cls = (rar==="MYTHIC") ? "slot mythic" : (rar==="RARE" ? "slot rare" : "slot");
-    const div = document.createElement("div");
-    div.className = cls;
-    div.onclick = ()=>{ clickSfx(); alert(`ITEM\n\n${it.name||it.item_id}\nRarity: ${rar}\nDurability: ${it.durability ?? "?"}/100`); };
-    div.innerHTML = `
-      <div class="sname">${escapeHtml(it.slot || "ITEM")}</div>
-      <div class="item">${escapeHtml(it.name || it.item_id || "Unknown")}</div>
-      <div class="rarity">${escapeHtml(rar)}</div>
-    `;
-    grid.appendChild(div);
-  });
-  for(let i=view.length;i<9;i++){
-    const div=document.createElement("div");
-    div.className="slot";
-    div.onclick=()=>clickSfx();
-    div.innerHTML = `<div class="sname">Slot</div><div class="item">—</div><div class="rarity">—</div>`;
-    grid.appendChild(div);
-  }
-}
-
-function buildReferralLink(userId){
-  return `https://t.me/AzeuqerBot?start=ref_${userId}`;
-}
-async function copyReferral(){
+document.getElementById("continueBtn").addEventListener("click", ()=>{
+  ensureAudio();
   clickSfx();
-  const input=document.getElementById("refLink");
-  const text=input.value || "";
-  try{
-    await navigator.clipboard.writeText(text);
-    confirmSfx();
-  }catch(e){
-    input.select();
-    document.execCommand("copy");
-    confirmSfx();
-  }
-}
+  showScreen("screenGate");
+});
 
-/* Camera (Bio-Gate) */
+/* =========================
+   CAMERA SYSTEM (Telegram safe)
+========================= */
 let cameraStream = null;
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 const isTelegram = !!tg;
 
-function camMsg(t){ document.getElementById("camDebug").textContent = t; }
+function setCamDebug(msg){
+  document.getElementById("camDebug").textContent = msg;
+}
 
-async function openBioGate(){
+async function openCamera(){
+  ensureAudio();
   clickSfx();
-  document.getElementById("camBox").classList.remove("hidden");
 
+  // iOS + Telegram: use capture fallback (reliable)
   if(isIOS && isTelegram){
-    camMsg("iPhone Telegram detected → using selfie capture fallback…");
+    setCamDebug("iOS + Telegram detected → using selfie capture fallback.");
     return openCameraFallback();
   }
 
   if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
-    camMsg("Camera API not supported → using fallback…");
+    setCamDebug("Camera API not supported → using fallback.");
     return openCameraFallback();
   }
 
   const video = document.getElementById("video");
-  video.classList.remove("hidden");
-  camMsg("Requesting camera permission…");
-
   try{
-    cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "user" } },
-      audio: false
-    });
+    showLoader(true, "opening camera…");
+    setCamDebug("Requesting permission…");
+
+    const constraints = { video: { facingMode: { ideal: "user" } }, audio:false };
+    cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+
     video.srcObject = cameraStream;
-    await new Promise((resolve)=> video.onloadedmetadata = resolve);
+    video.setAttribute("playsinline","");
+    video.muted = true;
+
+    await new Promise(resolve => video.onloadedmetadata = resolve);
     await video.play();
-    camMsg("Camera ready. Tap Capture.");
-    confirmSfx();
-  }catch(e){
-    camMsg("Camera denied → using fallback selfie capture…");
+
+    document.getElementById("cameraBox").classList.remove("hidden");
+    setCamDebug("Camera ready.");
+    successSfx();
+  }catch(err){
+    setCamDebug("Camera denied/blocked → fallback.");
     errorSfx();
     openCameraFallback();
+  }finally{
+    showLoader(false);
   }
 }
 
 function openCameraFallback(){
   const input = document.getElementById("cameraFallback");
   input.onchange = async ()=>{
-    const file = input.files && input.files[0];
-    if(!file) return;
-    camMsg("Uploading selfie…");
-    await uploadBioBlob(file);
-    input.value = "";
+    const f = input.files && input.files[0];
+    if(!f) return;
+    showLoader(true, "uploading selfie…");
+    try{
+      await uploadBioBlob(f);
+      successSfx();
+    }finally{
+      input.value = "";
+      showLoader(false);
+    }
   };
   input.click();
 }
 
-function closeBioGate(){
-  clickSfx();
-  stopCamera();
-  document.getElementById("camBox").classList.add("hidden");
-}
-
 function stopCamera(){
-  const video = document.getElementById("video");
-  try{ video.pause(); }catch(e){}
-  try{ video.srcObject = null; }catch(e){}
+  try{
+    const video = document.getElementById("video");
+    video.pause();
+    video.srcObject = null;
+  }catch(e){}
+
   if(cameraStream){
     cameraStream.getTracks().forEach(t=>t.stop());
     cameraStream = null;
   }
+  document.getElementById("cameraBox").classList.add("hidden");
+  setCamDebug("Camera closed.");
+  clickSfx();
 }
 
 function capturePhoto(){
+  ensureAudio();
   clickSfx();
   const video = document.getElementById("video");
-  if(!video || !video.videoWidth){
-    camMsg("Camera not ready. If on iPhone, use fallback selfie capture.");
+  const canvas = document.getElementById("canvas");
+
+  if(!video.videoWidth){
+    setCamDebug("Camera not ready yet.");
     errorSfx();
     return;
   }
-  const canvas = document.getElementById("canvas");
+
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   canvas.getContext("2d").drawImage(video, 0, 0);
 
   canvas.toBlob(async (blob)=>{
     if(!blob){
-      camMsg("Capture failed. Try again.");
+      setCamDebug("Capture failed.");
       errorSfx();
       return;
     }
-    camMsg("Uploading face scan…");
-    await uploadBioBlob(blob);
-  }, "image/jpeg", 0.9);
+    stopCamera();
+    showLoader(true, "uploading face…");
+    try{
+      await uploadBioBlob(blob);
+      successSfx();
+    }finally{
+      showLoader(false);
+    }
+  }, "image/jpeg", 0.92);
 }
 
 async function uploadBioBlob(blobOrFile){
-  showLoader(true, "Uploading Bio-Lock…");
-  try{
-    const fd = new FormData();
-    fd.append("initData", initData());
-    fd.append("file", blobOrFile, "face.jpg");
+  const fd = new FormData();
+  fd.append("initData", getInitData());
+  fd.append("file", blobOrFile, "face.jpg");
 
-    const res = await fetch(`${API_URL}/auth/biolock`, { method:"POST", body: fd });
-    const data = await res.json().catch(()=>({status:"error", msg:"BAD_JSON"}));
+  const res = await fetch(`${API_URL}/auth/biolock`, { method:"POST", body: fd });
+  const data = await res.json();
 
-    if(!res.ok || data.status !== "success"){
-      errorSfx();
-      alert("Bio-Lock failed: " + (data.msg || "Upload error"));
-      camMsg("Bio-Lock failed. Try again.");
-      return;
-    }
-
-    confirmSfx();
-    camMsg("Bio-Lock success. Refreshing profile…");
-    stopCamera();
-    await initProfile();
-  }catch(e){
+  if(data.status === "success"){
+    setCamDebug("Bio-Lock accepted. Reloading…");
+    // next step later: route to Profile Screen
+    setTimeout(()=>location.reload(), 700);
+  }else{
+    setCamDebug("Bio-Lock failed: " + (data.msg || "unknown"));
     errorSfx();
-    alert("Upload failed.");
-  }finally{
-    showLoader(false);
   }
 }
 
-async function resetIdentity(){
-  clickSfx();
-  if(!confirm("Reset Identity? This clears your Bio-Lock + profile.")) return;
-  showLoader(true, "Resetting…");
-  try{
-    await api("/auth/reset", { initData: initData() });
-    confirmSfx();
-    location.reload();
-  }finally{
-    showLoader(false);
-  }
-}
-
-async function initProfile(){
-  showLoader(true, "Loading Profile…");
-  try{
-    const {ok, data} = await api("/auth/login", { initData: initData() });
-    if(!ok || !data.user){
-      errorSfx();
-      alert("Login failed: " + (data.msg || "Unknown"));
-      return;
-    }
-    const u = data.user;
-
-    document.getElementById("userName").textContent = u.username || "AGENT";
-    document.getElementById("emailLine").textContent = "Email: " + (u.email || "—");
-
-    document.getElementById("avatarImg").src = u.bio_lock_url || "";
-
-    document.getElementById("founderBadge").style.display = u.is_founder ? "inline-flex" : "none";
-    document.getElementById("citizenBadge").style.display = !u.is_founder ? "inline-flex" : "none";
-    document.getElementById("citizenBadge").textContent = (u.status || "CITIZEN").toUpperCase();
-
-    setFactionUI(u.faction || "UNSORTED");
-
-    document.getElementById("apVal").textContent = (u.ap ?? 0);
-    document.getElementById("energyVal").textContent = (u.energy ?? 0);
-    document.getElementById("energyMax").textContent = (u.energy_max ?? 30);
-    document.getElementById("starsVal").textContent = (u.stars_total ?? 0);
-    document.getElementById("killsVal").textContent = (u.boss_kills ?? 0);
-
-    document.getElementById("refCount").textContent = (u.referral_count ?? 0);
-    document.getElementById("refLink").value = buildReferralLink(u.user_id || u.tg_id || "0");
-
-    const inv = Array.isArray(u.inventory) ? u.inventory : [
-      { slot:"HEAD", name:"Starter Visor", rarity:"COMMON", durability:100 },
-      { slot:"CHEST", name:"Neon Hoodie", rarity:"RARE", durability:92 },
-      { slot:"ACC", name:"Void Charm", rarity:"MYTHIC", durability:77 }
-    ];
-    renderInventory(inv);
-  }finally{
-    showLoader(false);
-  }
-}
-
-/* =========================
-   BOOT
-========================= */
-syncSoundButtons();
-
-// Start at Intro always
-showScreen("screen-intro");
-setActiveNav("intro");
-runIntro();
+/* Buttons */
+document.getElementById("openCamBtn").addEventListener("click", openCamera);
+document.getElementById("captureBtn").addEventListener("click", capturePhoto);
+document.getElementById("closeCamBtn").addEventListener("click", stopCamera);
+document.getElementById("backIntroBtn").addEventListener("click", ()=>showScreen("screenIntro"));
+document.getElementById("refreshBtn").addEventListener("click", ()=>location.reload());
 </script>
-
 </body>
 </html>
