@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>AZEUQER — Wake Up</title>
+<title>AZEUQER — Screens 1 + 2</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
   :root{
     --bg0:#fbfdff;
-    --bg1:#f1f7ff;
-    --ink:#081225;
-    --muted:#5c6b86;
+    --bg1:#f2f7ff;
+    --ink:#071225;
+    --muted:#5b6b86;
 
     --cyan:#00d9ff;
     --violet:#7c3aed;
@@ -25,6 +25,9 @@
 
     --shadow: 0 18px 44px rgba(8,18,37,0.10);
     --shadow2: 0 10px 26px rgba(8,18,37,0.08);
+    --radius: 24px;
+
+    --marqueeH: 56px; /* JS will update this */
   }
 
   html, body { height:100%; margin:0; }
@@ -50,9 +53,11 @@
 
   /* Sponsor marquee (editable) */
   .marquee{
-    position:sticky;
-    top:0;
-    z-index:50;
+    position:fixed;
+    top: env(safe-area-inset-top);
+    left: env(safe-area-inset-left);
+    right: env(safe-area-inset-right);
+    z-index:80;
     background: rgba(255,255,255,0.72);
     border-bottom:1px solid var(--line);
     backdrop-filter: blur(12px);
@@ -83,9 +88,9 @@
   /* Top utilities */
   .topbar{
     position:fixed;
-    top: env(safe-area-inset-top);
+    top: calc(env(safe-area-inset-top) + var(--marqueeH) + 8px);
     right: env(safe-area-inset-right);
-    z-index:60;
+    z-index:90;
     display:flex;
     gap:10px;
     padding: 10px;
@@ -104,18 +109,31 @@
   }
   .iconbtn:active{ transform: scale(.98); }
 
-  /* Screen layout */
+  /* Router screens area */
+  .screens{
+    position:absolute;
+    inset:0;
+    /* IMPORTANT: push content below the marquee so nothing is covered */
+    padding-top: calc(var(--marqueeH) + 10px);
+    box-sizing:border-box;
+  }
+
+  /* Each screen scrolls independently and safely in Telegram */
   .screen{
     position:absolute;
     inset:0;
     overflow-y:auto;
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     padding: 0 16px 18px;
+    display:none;
   }
+  .screen.active{ display:block; }
+
   .wrap{
     max-width: 560px;
     margin: 0 auto;
-    padding: 14px 0 100px;
+    padding: 14px 0 110px;
   }
 
   /* Cards */
@@ -123,13 +141,12 @@
     position:relative;
     background: var(--card);
     border:1px solid var(--line);
-    border-radius: 24px;
+    border-radius: var(--radius);
     box-shadow: var(--shadow);
     overflow:hidden;
   }
-  .card-inner{
-    padding: 18px;
-  }
+  .card-inner{ padding: 18px; }
+
   .brand{
     display:flex;
     align-items:center;
@@ -181,9 +198,7 @@
     margin: 8px 0 0;
   }
 
-  .fade{
-    animation: fadeIn 480ms ease-out both;
-  }
+  .fade{ animation: fadeIn 480ms ease-out both; }
   @keyframes fadeIn{
     from{ opacity:0; transform: translateY(6px); }
     to{ opacity:1; transform: translateY(0); }
@@ -218,6 +233,17 @@
   }
   .rgb-scan.on{ opacity: 1; }
 
+  /* “Void” overlay for the first moments */
+  .voidOverlay{
+    position:absolute;
+    inset:0;
+    background: radial-gradient(900px 500px at 50% 30%, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.94) 62%, rgba(0,0,0,0.98) 100%);
+    transition: opacity 600ms ease;
+    pointer-events:none;
+    opacity: 0;
+  }
+  .voidOverlay.on{ opacity: 1; }
+
   /* Promise split */
   .split{
     display:grid;
@@ -232,23 +258,10 @@
     background:#fff;
     box-shadow: var(--shadow2);
   }
-  .pane h3{
-    margin:0 0 8px;
-    font-weight: 1000;
-    letter-spacing: -0.01em;
-  }
-  .pane p{
-    margin:0;
-    color: var(--muted);
-    font-weight: 800;
-    line-height: 1.3;
-  }
-  .pane.red{
-    background: linear-gradient(135deg, rgba(255,45,45,0.16), rgba(255,43,214,0.10));
-  }
-  .pane.gold{
-    background: linear-gradient(135deg, rgba(255,204,51,0.20), rgba(0,217,255,0.08));
-  }
+  .pane h3{ margin:0 0 8px; font-weight: 1000; letter-spacing: -0.01em; }
+  .pane p{ margin:0; color: var(--muted); font-weight: 800; line-height: 1.3; }
+  .pane.red{ background: linear-gradient(135deg, rgba(255,45,45,0.16), rgba(255,43,214,0.10)); }
+  .pane.gold{ background: linear-gradient(135deg, rgba(255,204,51,0.20), rgba(0,217,255,0.08)); }
 
   /* Contract block */
   .contract{
@@ -304,9 +317,7 @@
     transform: translate(-50%,-50%);
     opacity: .45;
   }
-  .retLine.v{
-    width:2px; height: 140px;
-  }
+  .retLine.v{ width:2px; height: 140px; }
   .retPulse{
     position:absolute;
     inset:0;
@@ -346,7 +357,6 @@
     margin-top: 10px;
   }
   .btn:active{ transform: scale(.99); }
-
   .btnSecondary{
     background:#fff;
     color:#22314c;
@@ -368,11 +378,9 @@
     font-weight: 800;
     text-align:center;
   }
-  .link{
-    color:#1d4ed8;
-    font-weight: 1000;
-    text-decoration:none;
-  }
+  .link{ color:#1d4ed8; font-weight: 1000; text-decoration:none; }
+
+  .hidden{ display:none !important; }
 
   /* Loader */
   #loader{
@@ -387,7 +395,7 @@
   }
   #loader .box{
     width: min(520px, calc(100% - 32px));
-    border-radius: 24px;
+    border-radius: var(--radius);
     border: 1px solid var(--line);
     background:#fff;
     box-shadow: var(--shadow);
@@ -404,18 +412,109 @@
   }
   @keyframes sp{ to{ transform: rotate(360deg); } }
 
-  /* “Void” overlay for the first moments */
-  .voidOverlay{
-    position:absolute;
-    inset:0;
-    background: radial-gradient(900px 500px at 50% 30%, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.94) 62%, rgba(0,0,0,0.98) 100%);
-    transition: opacity 600ms ease;
-    pointer-events:none;
-    opacity: 0;
+  /* Screen 2 (Profile) layout */
+  .grid2{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 12px;
   }
-  .voidOverlay.on{ opacity: 1; }
+  .stat{
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius: 18px;
+    padding: 12px;
+    box-shadow: var(--shadow2);
+  }
+  .stat .k{ color: var(--muted); font-weight: 900; font-size: 12px; }
+  .stat .v{ font-weight: 1100; font-size: 18px; margin-top: 6px; letter-spacing:-0.02em; }
 
-  .hidden{ display:none !important; }
+  .profileTop{
+    display:flex;
+    gap: 12px;
+    align-items:center;
+    margin-top: 10px;
+  }
+  .avatar{
+    width: 72px; height:72px;
+    border-radius: 20px;
+    border:1px solid var(--line);
+    background: linear-gradient(135deg, rgba(0,217,255,0.18), rgba(124,58,237,0.12));
+    box-shadow: var(--shadow2);
+    overflow:hidden;
+    flex: 0 0 auto;
+  }
+  .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .pname{ font-weight:1100; font-size: 20px; letter-spacing:-0.02em; margin:0; }
+  .pfaction{
+    margin-top: 4px;
+    font-weight: 1000;
+    color: var(--muted);
+  }
+  .tag{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border:1px solid var(--line);
+    background:#fff;
+    box-shadow: var(--shadow2);
+    font-weight: 1000;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  .tag .dot{ width: 10px; height:10px; border-radius:999px; background: var(--green); box-shadow: 0 0 0 4px rgba(24,245,156,0.15); }
+
+  .invGrid{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .invItem{
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius: 16px;
+    padding: 12px;
+    text-align:center;
+    font-weight: 1000;
+    font-size: 12px;
+    color:#22314c;
+    box-shadow: var(--shadow2);
+  }
+
+  .footerNav{
+    position: fixed;
+    left: env(safe-area-inset-left);
+    right: env(safe-area-inset-right);
+    bottom: env(safe-area-inset-bottom);
+    z-index: 85;
+    padding: 10px 12px;
+    pointer-events:none;
+  }
+  .footerNav .bar{
+    pointer-events:auto;
+    display:flex;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 20px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(12px);
+    box-shadow: var(--shadow);
+  }
+  .navbtn{
+    flex:1;
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius: 16px;
+    padding: 12px 10px;
+    font-weight: 1100;
+    cursor:pointer;
+    box-shadow: var(--shadow2);
+  }
+  .navbtn:active{ transform: scale(.99); }
 </style>
 </head>
 
@@ -423,7 +522,7 @@
 <div class="app">
 
   <!-- Marquee: EDIT THIS TEXT ANYTIME -->
-  <div class="marquee">
+  <div class="marquee" id="marquee">
     <div class="track" id="marqueeTrack" aria-hidden="true">
       <span class="pill">SPONSORS: DGLITCH • PARTNERS: YOUR-NAME-HERE •</span>
       <span class="pill">SPONSORS: DGLITCH • PARTNERS: YOUR-NAME-HERE •</span>
@@ -444,76 +543,168 @@
     </div>
   </div>
 
-  <div class="screen" id="screenIntro">
-    <div class="wrap">
-      <div class="card">
-        <div class="rgb-scan" id="rgbScan"></div>
-        <div class="voidOverlay" id="voidOverlay"></div>
+  <div class="screens">
 
-        <div class="card-inner">
-          <div class="brand">
-            <div class="logo">AZEUQER</div>
-            <div class="badge">WAKE-UP CALL</div>
-          </div>
+    <!-- =========================
+         SCREEN 1: INTRO SEQUENCE
+    ========================== -->
+    <div class="screen active" id="screenIntro" data-screen="intro">
+      <div class="wrap">
+        <div class="card">
+          <div class="rgb-scan" id="rgbScan"></div>
+          <div class="voidOverlay" id="voidOverlay"></div>
 
-          <div class="cinema">
-            <div class="line fade" id="mainLine">You are invisible.</div>
-            <div class="subline fade" id="subLine">No buttons. No logo. Just truth.</div>
+          <div class="card-inner">
+            <div class="brand">
+              <div class="logo">AZEUQER</div>
+              <div class="badge">WAKE-UP CALL</div>
+            </div>
 
-            <div class="split hidden" id="splitBlock">
-              <div class="pane red">
-                <h3 style="color:#a11;">DISSONANCE</h3>
-                <p>Chaos. Heat. Truth-with-teeth.</p>
+            <div class="cinema">
+              <div class="line fade" id="mainLine">You are invisible.</div>
+              <div class="subline fade" id="subLine">No buttons. No logo. Just truth.</div>
+
+              <div class="split hidden" id="splitBlock">
+                <div class="pane red">
+                  <h3 style="color:#a11;">DISSONANCE</h3>
+                  <p>Chaos. Heat. Truth-with-teeth.</p>
+                </div>
+                <div class="pane gold">
+                  <h3 style="color:#a16207;">EUPHORIA</h3>
+                  <p>Order. Shine. Calm dominance.</p>
+                </div>
               </div>
-              <div class="pane gold">
-                <h3 style="color:#a16207;">EUPHORIA</h3>
-                <p>Order. Shine. Calm dominance.</p>
+
+              <div class="contract hidden" id="contractBlock">
+                <div style="font-weight:1000; font-size:18px; letter-spacing:-0.01em;">
+                  To enter the Citadel, you must be judged.
+                </div>
+                <div style="color:var(--muted); font-weight:800; margin-top:6px;">
+                  Are you <span style="color:var(--gold); font-weight:1000;">Order</span> or
+                  <span style="color:var(--red); font-weight:1000;">Chaos</span>?
+                </div>
+
+                <div style="margin-top:12px;" class="reticleWrap" id="reticleWrap">
+                  <div class="retPulse"></div>
+                  <div class="reticle" id="reticle"></div>
+                  <div class="retLine"></div>
+                  <div class="retLine v"></div>
+                </div>
+
+                <input class="input" id="emailInput" type="email" placeholder="Enter e-mail (+500 AP)" />
+                <button class="btn btnSecondary" id="saveEmailBtn">Enter E-mail</button>
+
+                <div class="row">
+                  <button class="btn" id="continueBtn">Continue</button>
+                  <button class="btn btnSecondary" id="officialBtn">Official</button>
+                </div>
+
+                <div class="tiny">
+                  Official site:
+                  <a class="link" href="https://www.dglitch.gg/" target="_blank" rel="noopener">https://www.dglitch.gg/</a>
+                </div>
+
+                <div class="tiny" id="emailHint"></div>
               </div>
             </div>
 
-            <div class="contract hidden" id="contractBlock">
-              <div style="font-weight:1000; font-size:18px; letter-spacing:-0.01em;">
-                To enter the Citadel, you must be judged.
-              </div>
-              <div style="color:var(--muted); font-weight:800; margin-top:6px;">
-                Are you <span style="color:var(--gold); font-weight:1000;">Order</span> or <span style="color:var(--red); font-weight:1000;">Chaos</span>?
-              </div>
-
-              <div style="margin-top:12px;" class="reticleWrap" id="reticleWrap">
-                <div class="retPulse"></div>
-                <div class="reticle" id="reticle"></div>
-                <div class="retLine"></div>
-                <div class="retLine v"></div>
-              </div>
-
-              <input class="input" id="emailInput" type="email" placeholder="Enter e-mail (+500 AP)" />
-              <button class="btn btnSecondary" id="saveEmailBtn">Enter E-mail</button>
-
-              <div class="row">
-                <button class="btn" id="nextBtn">Continue</button>
-                <button class="btn btnSecondary" id="officialBtn">Official</button>
-              </div>
-
-              <div class="tiny">
-                Official site: <a class="link" href="https://www.dglitch.gg/" target="_blank" rel="noopener">https://www.dglitch.gg/</a>
-              </div>
-
-              <div class="tiny" id="emailHint"></div>
+            <div class="row">
+              <button class="btn btnDanger" id="wakeBtn">WAKE UP</button>
+              <button class="btn btnSecondary" id="replayBtn">Replay</button>
             </div>
-          </div>
 
-          <div class="row">
-            <button class="btn btnDanger" id="wakeBtn">WAKE UP</button>
-            <button class="btn btnSecondary" id="replayBtn">Replay</button>
-          </div>
-
-          <div class="tiny">
-            Tip: tap anything once to unlock sound in mobile browsers.
+            <div class="tiny">
+              Tip: tap anything once to unlock sound in mobile browsers.
+            </div>
           </div>
         </div>
       </div>
     </div>
+
+    <!-- =========================
+         SCREEN 2: CHARACTER PROFILE
+    ========================== -->
+    <div class="screen" id="screenProfile" data-screen="profile">
+      <div class="wrap">
+        <div class="card">
+          <div class="card-inner">
+            <div class="brand">
+              <div class="logo">Your Passport</div>
+              <div class="badge">PROFILE</div>
+            </div>
+
+            <div class="profileTop">
+              <div class="avatar">
+                <img id="pAvatar" alt="avatar" src="" />
+              </div>
+              <div style="flex:1;">
+                <p class="pname" id="pName">AGENT</p>
+                <div class="pfaction" id="pFaction">UNSORTED • Rank —</div>
+                <div class="tag"><span class="dot"></span><span id="pEnergy">Energy: 30/30</span></div>
+              </div>
+            </div>
+
+            <div class="grid2">
+              <div class="stat">
+                <div class="k">AP (Azeuqer Points)</div>
+                <div class="v" id="pAP">0</div>
+              </div>
+              <div class="stat">
+                <div class="k">Telegram Stars</div>
+                <div class="v" id="pStars">0</div>
+              </div>
+              <div class="stat">
+                <div class="k">Boss Kills</div>
+                <div class="v" id="pBossKills">0</div>
+              </div>
+              <div class="stat">
+                <div class="k">Referrals</div>
+                <div class="v" id="pRefCount">0</div>
+              </div>
+            </div>
+
+            <div style="margin-top:12px;">
+              <div class="stat" style="padding:12px;">
+                <div class="k">Referral Link / Code</div>
+                <div class="v" style="font-size:14px; font-weight:1000; line-height:1.2; word-break:break-all;" id="pRefLink">—</div>
+                <div class="row">
+                  <button class="btn btnSecondary" id="copyRefBtn">Copy</button>
+                  <button class="btn" id="refreshProfileBtn">Refresh</button>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:12px;">
+              <div style="font-weight:1100; letter-spacing:-0.02em; font-size:16px;">Inventory</div>
+              <div class="tiny" style="text-align:left; margin-top:6px;">(Mock for now — backend will fill this.)</div>
+              <div class="invGrid" id="invGrid">
+                <div class="invItem">Starter Sigil</div>
+                <div class="invItem">Energy Potion</div>
+                <div class="invItem">Mystery Crate</div>
+              </div>
+            </div>
+
+            <div class="row" style="margin-top:14px;">
+              <button class="btn btnSecondary" id="backToIntroBtn">Back</button>
+              <button class="btn" id="goNextBtn">Next Screens</button>
+            </div>
+
+            <div class="tiny" id="profileHint"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
+
+  <!-- Bottom quick nav (optional, nice for Telegram) -->
+  <div class="footerNav">
+    <div class="bar">
+      <button class="navbtn" id="navIntro">Intro</button>
+      <button class="navbtn" id="navProfile">Profile</button>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -535,6 +726,30 @@ try{
 const API_URL = "https://azeuqer-backend.onrender.com";
 
 /* =========================
+   Fix marquee overlap automatically
+========================= */
+function updateMarqueeHeight(){
+  const m = document.getElementById("marquee");
+  const h = m ? Math.ceil(m.getBoundingClientRect().height) : 56;
+  document.documentElement.style.setProperty("--marqueeH", h + "px");
+}
+window.addEventListener("resize", updateMarqueeHeight);
+setTimeout(updateMarqueeHeight, 50);
+setTimeout(updateMarqueeHeight, 300);
+
+/* =========================
+   Router (show/hide screens)
+========================= */
+function showScreen(name){
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  const el = document.querySelector(`.screen[data-screen="${name}"]`);
+  if(el) el.classList.add("active");
+  // scroll to top of screen content
+  if(el) el.scrollTop = 0;
+  clickSfx();
+}
+
+/* =========================
    Loader
 ========================= */
 function showLoader(on, msg=""){
@@ -549,6 +764,7 @@ function showLoader(on, msg=""){
 ========================= */
 let soundOn = true;
 let audioCtx = null;
+
 function ensureAudio(){
   if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if(audioCtx.state === "suspended") audioCtx.resume();
@@ -582,7 +798,7 @@ soundBtn.addEventListener("click", ()=>{
 window.addEventListener("pointerdown", ()=>{ try{ ensureAudio(); }catch(e){} }, { once:true });
 
 /* =========================
-   Intro Script — "The Wake-Up Call"
+   Screen 1 — Intro Sequence
 ========================= */
 const mainLine = document.getElementById("mainLine");
 const subLine = document.getElementById("subLine");
@@ -594,27 +810,21 @@ const contractBlock = document.getElementById("contractBlock");
 
 const wakeBtn = document.getElementById("wakeBtn");
 const replayBtn = document.getElementById("replayBtn");
+const continueBtn = document.getElementById("continueBtn");
 
 let timer = null;
 let step = 0;
 
-/**
- * Sequence exactly based on your narrative,
- * but paced and animated for a premium idle/MMO feel.
- */
 const sequence = [
   { mode:"voidOn", text:"You are invisible.", sub:"No buttons. No logo. Just truth.", ms:1300 },
   { mode:"voidOn", text:"The Algorithm ignores you.", sub:"", ms:950 },
   { mode:"voidOn", text:"Society filters you.", sub:"", ms:950 },
   { mode:"voidOn", text:"Reality forgets you.", sub:"", ms:950 },
-
   { mode:"glitch", text:"WAKE UP.", sub:"", ms:950 },
-
   { mode:"split", text:"Here, you are the Asset.", sub:"", ms:1100 },
   { mode:"split", text:"Here, your face is the Currency.", sub:"", ms:1100 },
   { mode:"split", text:"We do not want your money.", sub:"", ms:1100 },
   { mode:"split", text:"We want your Truth.", sub:"", ms:1200 },
-
   { mode:"contract", text:"To enter the Citadel, you must be judged.", sub:"", ms:900 },
   { mode:"contract", text:"Are you Order?", sub:"(Gold flash)", ms:850, flash:"gold" },
   { mode:"contract", text:"Or are you Chaos?", sub:"(Red flash)", ms:850, flash:"red" },
@@ -624,44 +834,34 @@ const sequence = [
 function setText(t, s=""){
   mainLine.classList.remove("fade");
   subLine.classList.remove("fade");
-  // force reflow for animation replay
   void mainLine.offsetWidth;
   mainLine.textContent = t;
   subLine.textContent = s || "";
   mainLine.classList.add("fade");
   subLine.classList.add("fade");
 }
-
 function setMode(mode){
-  // reset
   rgbScan.classList.remove("on");
   mainLine.classList.remove("glitch");
   splitBlock.classList.add("hidden");
   contractBlock.classList.add("hidden");
 
-  if(mode === "voidOn"){
-    voidOverlay.classList.add("on");
-  }else{
-    voidOverlay.classList.remove("on");
-  }
+  if(mode === "voidOn") voidOverlay.classList.add("on");
+  else voidOverlay.classList.remove("on");
 
   if(mode === "glitch"){
     rgbScan.classList.add("on");
     mainLine.classList.add("glitch");
   }
-
   if(mode === "split"){
     splitBlock.classList.remove("hidden");
   }
-
   if(mode === "contract"){
     splitBlock.classList.remove("hidden");
     contractBlock.classList.remove("hidden");
   }
 }
-
 function flash(color){
-  // quick tasteful flash overlay on cinema background
   const c = document.querySelector(".cinema");
   const old = c.style.boxShadow;
   if(color === "gold"){
@@ -674,30 +874,21 @@ function flash(color){
 
 function run(){
   clearTimeout(timer);
-
   const s = sequence[step];
   if(!s){
-    // end: ensure contract visible
     setMode("contract");
     setText("Scan your face. Reveal your soul.", "");
     wakeBtn.textContent = "CONTINUE";
     successSfx();
     return;
   }
-
   setMode(s.mode);
   setText(s.text, s.sub);
-
-  // sound cues
-  if(s.mode === "glitch"){ glitchSfx(); }
-  else { tone(660, 0.028, "sine", 0.03); }
-
-  if(s.flash){ flash(s.flash); }
-
+  if(s.mode === "glitch") glitchSfx(); else tone(660, 0.028, "sine", 0.03);
+  if(s.flash) flash(s.flash);
   step++;
   timer = setTimeout(run, s.ms);
 }
-
 function startSequence(from=0){
   clearTimeout(timer);
   step = from;
@@ -705,20 +896,15 @@ function startSequence(from=0){
   run();
 }
 
-/* Buttons */
 wakeBtn.addEventListener("click", ()=>{
   ensureAudio();
   clickSfx();
-
-  // If we are already at contract stage, this becomes "Continue"
   const atContract = !contractBlock.classList.contains("hidden");
   if(atContract){
-    // For now: go to Screen 2 later.
-    // We'll wire this to your actual Screen 2 profile/scan screen next.
-    alert("Next: Screen 2 (Character Profile / Bio-Gate). We'll build it next.");
+    showScreen("profile");
+    loadProfile(true);
     return;
   }
-  // Otherwise: skip to contract quickly
   setMode("contract");
   setText("Scan your face. Reveal your soul.", "");
   wakeBtn.textContent = "CONTINUE";
@@ -731,30 +917,28 @@ replayBtn.addEventListener("click", ()=>{
   startSequence(0);
 });
 
+continueBtn.addEventListener("click", ()=>{
+  ensureAudio(); clickSfx();
+  showScreen("profile");
+  loadProfile(true);
+});
+
 startSequence(0);
 
-/* =========================
-   Reticle movement (tilt / mouse)
-========================= */
+/* Reticle movement */
 const reticle = document.getElementById("reticle");
-let rx = 0, ry = 0;
 function setReticle(x, y){
-  // clamp small motion
   const mx = Math.max(-10, Math.min(10, x));
   const my = Math.max(-10, Math.min(10, y));
   reticle.style.transform = `translate(calc(-50% + ${mx}px), calc(-50% + ${my}px))`;
 }
-
 window.addEventListener("deviceorientation", (e)=>{
-  // gamma: left/right, beta: front/back
   if(e.gamma == null || e.beta == null) return;
-  rx = (e.gamma / 45) * 10;
-  ry = (e.beta / 45) * 10;
+  const rx = (e.gamma / 45) * 10;
+  const ry = (e.beta / 45) * 10;
   setReticle(rx, ry);
 }, true);
-
 document.addEventListener("mousemove", (e)=>{
-  // desktop fallback
   const w = window.innerWidth, h = window.innerHeight;
   const nx = (e.clientX / w - 0.5) * 20;
   const ny = (e.clientY / h - 0.5) * 20;
@@ -768,7 +952,6 @@ document.addEventListener("mousemove", (e)=>{
 function initData(){
   return (tg && tg.initData) ? tg.initData : "debug_mode";
 }
-
 const emailInput = document.getElementById("emailInput");
 const saveEmailBtn = document.getElementById("saveEmailBtn");
 const emailHint = document.getElementById("emailHint");
@@ -776,14 +959,12 @@ const emailHint = document.getElementById("emailHint");
 saveEmailBtn.addEventListener("click", async ()=>{
   ensureAudio();
   clickSfx();
-
   const email = (emailInput.value || "").trim();
   if(!email){
     emailHint.textContent = "Enter an email first.";
     errorSfx();
     return;
   }
-
   showLoader(true, "saving email…");
   try{
     const res = await fetch(`${API_URL}/profile/email`,{
@@ -807,9 +988,7 @@ saveEmailBtn.addEventListener("click", async ()=>{
   }
 });
 
-/* =========================
-   Official website button
-========================= */
+/* Official button */
 document.getElementById("officialBtn").addEventListener("click", ()=>{
   ensureAudio(); clickSfx();
   const url = "https://www.dglitch.gg/";
@@ -822,12 +1001,119 @@ document.getElementById("officialBtn").addEventListener("click", ()=>{
 });
 
 /* =========================
-   Next button (go to Screen 2 later)
+   Screen 2 — Profile (with backend hook)
 ========================= */
-document.getElementById("nextBtn").addEventListener("click", ()=>{
+const pAvatar = document.getElementById("pAvatar");
+const pName = document.getElementById("pName");
+const pFaction = document.getElementById("pFaction");
+const pEnergy = document.getElementById("pEnergy");
+const pAP = document.getElementById("pAP");
+const pStars = document.getElementById("pStars");
+const pBossKills = document.getElementById("pBossKills");
+const pRefCount = document.getElementById("pRefCount");
+const pRefLink = document.getElementById("pRefLink");
+const profileHint = document.getElementById("profileHint");
+
+function factionDotColor(f){
+  if(f === "EUPHORIA") return "var(--gold)";
+  if(f === "DISSONANCE") return "var(--red)";
+  return "var(--green)";
+}
+
+async function loadProfile(showToast=false){
+  profileHint.textContent = "";
+  showLoader(true, "loading profile…");
+  try{
+    // Expect your backend to return { status, user, referrals_count, referral_code, referral_link }
+    // For now, we call /auth/login to get user basics.
+    const res = await fetch(`${API_URL}/auth/login`,{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ initData: initData() })
+    });
+    const data = await res.json();
+    const u = data.user || {};
+
+    // avatar fallback
+    if(u.bio_lock_url) pAvatar.src = u.bio_lock_url;
+    else pAvatar.src = "data:image/svg+xml;utf8," + encodeURIComponent(`
+      <svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>
+        <defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='1'>
+          <stop offset='0' stop-color='#00d9ff'/><stop offset='1' stop-color='#7c3aed'/>
+        </linearGradient></defs>
+        <rect width='200' height='200' rx='40' fill='url(#g)'/>
+        <text x='50%' y='52%' text-anchor='middle' font-family='Arial' font-size='56' font-weight='900' fill='white'>A</text>
+      </svg>
+    `);
+
+    pName.textContent = u.username || "AGENT";
+    const f = (u.faction || "UNSORTED").toUpperCase();
+    pFaction.textContent = `${f} • Rank ${u.role || "CITIZEN"}`;
+
+    // energy display
+    const energy = (u.energy != null) ? u.energy : 30;
+    const cap = 30;
+    pEnergy.textContent = `Energy: ${energy}/${cap}`;
+    // set dot color
+    const dot = document.querySelector(".tag .dot");
+    if(dot) dot.style.background = factionDotColor(f);
+
+    pAP.textContent = (u.ap != null) ? u.ap : 0;
+    pStars.textContent = (u.stars_total != null) ? u.stars_total : 0;
+    pBossKills.textContent = (u.boss_kills != null) ? u.boss_kills : 0;
+
+    // referrals mock (until backend endpoint exists)
+    const refCount = (data.referrals_count != null) ? data.referrals_count : 0;
+    pRefCount.textContent = refCount;
+
+    // referral link/code mock
+    const uid = u.user_id || 0;
+    const refLink = (uid && uid !== 0)
+      ? `https://t.me/AzeuqerBot?start=ref_${uid}`
+      : "https://t.me/AzeuqerBot";
+    pRefLink.textContent = refLink;
+
+    if(showToast){
+      successSfx();
+    }
+  }catch(e){
+    profileHint.textContent = "Profile load failed (backend offline?)";
+    errorSfx();
+  }finally{
+    showLoader(false);
+  }
+}
+
+/* Buttons on profile */
+document.getElementById("refreshProfileBtn").addEventListener("click", ()=>loadProfile(true));
+document.getElementById("copyRefBtn").addEventListener("click", async ()=>{
   ensureAudio(); clickSfx();
-  alert("Next: Screen 2 (Character Profile Screen). We'll build it next.");
+  const text = pRefLink.textContent || "";
+  try{
+    await navigator.clipboard.writeText(text);
+    profileHint.textContent = "Copied referral link.";
+    successSfx();
+  }catch(e){
+    profileHint.textContent = "Copy failed (clipboard blocked).";
+    errorSfx();
+  }
 });
+
+document.getElementById("backToIntroBtn").addEventListener("click", ()=>showScreen("intro"));
+document.getElementById("goNextBtn").addEventListener("click", ()=>{
+  ensureAudio(); clickSfx();
+  alert("Next up: Boss Fight, Hall of Fame, Marketplace (we’ll build these as Screen 3/4/5).");
+});
+
+/* Bottom nav */
+document.getElementById("navIntro").addEventListener("click", ()=>showScreen("intro"));
+document.getElementById("navProfile").addEventListener("click", ()=>{
+  showScreen("profile");
+  loadProfile(false);
+});
+
+/* Initial marquee height fix after load */
+updateMarqueeHeight();
 </script>
 </body>
 </html>
