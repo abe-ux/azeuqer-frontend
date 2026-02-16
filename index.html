@@ -1,1119 +1,343 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>AZEUQER — Screens 1 + 2</title>
+<meta charset="UTF-8">
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover"
+/>
+<title>AZEUQER — Intro · Profile · Scan</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
-  :root{
-    --bg0:#fbfdff;
-    --bg1:#f2f7ff;
-    --ink:#071225;
-    --muted:#5b6b86;
+:root{
+  --bg:#f7fbff;
+  --card:#ffffff;
+  --ink:#0b1324;
+  --muted:#5c6b86;
 
-    --cyan:#00d9ff;
-    --violet:#7c3aed;
-    --pink:#ff2bd6;
-    --gold:#ffcc33;
-    --red:#ff2d2d;
-    --green:#18f59c;
+  --cyan:#00d9ff;
+  --violet:#7c3aed;
+  --pink:#ff2bd6;
+  --gold:#ffcc33;
+  --red:#ff2d2d;
+  --green:#18f59c;
 
-    --card:#ffffffcc;
-    --line:#d9e6ff;
+  --line:#dbe7ff;
+  --radius:22px;
+  --shadow:0 14px 32px rgba(10,20,40,.10);
 
-    --shadow: 0 18px 44px rgba(8,18,37,0.10);
-    --shadow2: 0 10px 26px rgba(8,18,37,0.08);
-    --radius: 24px;
+  --marqueeH:56px;
+}
 
-    --marqueeH: 56px; /* JS will update this */
-  }
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:
+    radial-gradient(900px 600px at 20% -10%, #fff 0%, var(--bg) 40%),
+    radial-gradient(700px 700px at 80% 90%, rgba(124,58,237,.10), transparent 60%);
+  font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  color:var(--ink);
+  overflow:hidden;
+}
 
-  html, body { height:100%; margin:0; }
-  body{
-    background:
-      radial-gradient(1100px 900px at 10% 0%, #ffffff 0%, var(--bg0) 35%, var(--bg1) 100%),
-      radial-gradient(800px 800px at 90% 20%, rgba(0,217,255,0.12) 0%, transparent 60%),
-      radial-gradient(900px 900px at 70% 80%, rgba(255,43,214,0.10) 0%, transparent 60%);
-    color: var(--ink);
-    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-    overflow:hidden;
-  }
+/* ===== APP ROOT ===== */
+.app{
+  position:fixed;
+  inset:0;
+  padding-top:env(safe-area-inset-top);
+  padding-bottom:env(safe-area-inset-bottom);
+}
 
-  /* App safe-area */
-  .app{
-    position:fixed;
-    inset:0;
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-  }
+/* ===== MARQUEE ===== */
+.marquee{
+  position:fixed;
+  top:env(safe-area-inset-top);
+  left:0; right:0;
+  z-index:90;
+  background:rgba(255,255,255,.8);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.marquee .track{
+  display:flex;
+  gap:40px;
+  padding:10px 14px;
+  white-space:nowrap;
+  font-weight:900;
+  animation:scroll 16s linear infinite;
+}
+@keyframes scroll{
+  from{transform:translateX(0)}
+  to{transform:translateX(-50%)}
+}
+.pill{
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:6px 12px;
+  background:#fff;
+}
 
-  /* Sponsor marquee (editable) */
-  .marquee{
-    position:fixed;
-    top: env(safe-area-inset-top);
-    left: env(safe-area-inset-left);
-    right: env(safe-area-inset-right);
-    z-index:80;
-    background: rgba(255,255,255,0.72);
-    border-bottom:1px solid var(--line);
-    backdrop-filter: blur(12px);
-    overflow:hidden;
-  }
-  .marquee .track{
-    display:flex;
-    gap: 44px;
-    white-space: nowrap;
-    padding: 10px 14px;
-    font-weight: 900;
-    color:#22314c;
-    animation: scroll 16s linear infinite;
-    will-change: transform;
-  }
-  .pill{
-    border:1px solid var(--line);
-    background:#fff;
-    padding:6px 10px;
-    border-radius:999px;
-    box-shadow: 0 12px 20px rgba(0,0,0,0.04);
-  }
-  @keyframes scroll{
-    from { transform: translateX(0); }
-    to   { transform: translateX(-50%); }
-  }
+/* ===== ROUTER AREA ===== */
+.screens{
+  position:absolute;
+  inset:0;
+  padding-top:calc(var(--marqueeH) + 8px);
+}
+.screen{
+  position:absolute;
+  inset:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding:14px;
+  display:none;
+}
+.screen.active{display:block}
 
-  /* Top utilities */
-  .topbar{
-    position:fixed;
-    top: calc(env(safe-area-inset-top) + var(--marqueeH) + 8px);
-    right: env(safe-area-inset-right);
-    z-index:90;
-    display:flex;
-    gap:10px;
-    padding: 10px;
-    pointer-events:none;
-  }
-  .iconbtn{
-    pointer-events:auto;
-    width: 44px; height:44px;
-    border-radius: 14px;
-    border:1px solid var(--line);
-    background:#fff;
-    box-shadow: var(--shadow2);
-    display:flex; align-items:center; justify-content:center;
-    cursor:pointer;
-    user-select:none;
-  }
-  .iconbtn:active{ transform: scale(.98); }
+.wrap{max-width:520px;margin:0 auto;padding-bottom:120px}
 
-  /* Router screens area */
-  .screens{
-    position:absolute;
-    inset:0;
-    /* IMPORTANT: push content below the marquee so nothing is covered */
-    padding-top: calc(var(--marqueeH) + 10px);
-    box-sizing:border-box;
-  }
+/* ===== COMMON UI ===== */
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  margin-bottom:14px;
+}
+.card-inner{padding:18px}
 
-  /* Each screen scrolls independently and safely in Telegram */
-  .screen{
-    position:absolute;
-    inset:0;
-    overflow-y:auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-    padding: 0 16px 18px;
-    display:none;
-  }
-  .screen.active{ display:block; }
+h1,h2,h3{margin:0}
+.muted{color:var(--muted);font-weight:700}
 
-  .wrap{
-    max-width: 560px;
-    margin: 0 auto;
-    padding: 14px 0 110px;
-  }
+.btn{
+  width:100%;
+  border:0;
+  border-radius:16px;
+  padding:14px;
+  font-weight:900;
+  cursor:pointer;
+  background:linear-gradient(135deg,var(--cyan),var(--violet));
+  color:#fff;
+}
+.btn.secondary{
+  background:#fff;
+  color:var(--ink);
+  border:1px solid var(--line);
+}
+.row{display:flex;gap:10px;margin-top:10px}
 
-  /* Cards */
-  .card{
-    position:relative;
-    background: var(--card);
-    border:1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow:hidden;
-  }
-  .card-inner{ padding: 18px; }
+/* ===== SCREEN 1 — INTRO ===== */
+.introText{
+  font-size:28px;
+  font-weight:1000;
+  text-align:center;
+  letter-spacing:-.02em;
+  margin:24px 0;
+}
+.glitch{
+  text-shadow:2px 0 var(--pink),-2px 0 var(--cyan);
+}
 
-  .brand{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap: 12px;
-  }
-  .logo{
-    font-weight: 1000;
-    letter-spacing: -0.02em;
-    font-size: 22px;
-  }
-  .badge{
-    font-weight:900;
-    font-size: 12px;
-    color:#0b3b2a;
-    border:1px solid rgba(24,245,156,0.35);
-    background: rgba(24,245,156,0.14);
-    padding: 6px 10px;
-    border-radius:999px;
-  }
+/* ===== SCREEN 2 — PROFILE ===== */
+.statGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+.stat{
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:12px;
+  background:#fff;
+}
+.stat .k{font-size:12px;color:var(--muted);font-weight:900}
+.stat .v{font-size:18px;font-weight:1000;margin-top:6px}
 
-  /* Cinematic area */
-  .cinema{
-    margin-top: 14px;
-    border-radius: 22px;
-    padding: 16px;
-    border: 1px solid var(--line);
-    background:
-      radial-gradient(900px 450px at 50% 0%, rgba(0,217,255,0.12) 0%, transparent 60%),
-      linear-gradient(135deg, rgba(124,58,237,0.10), rgba(255,43,214,0.08));
-    position: relative;
-    overflow:hidden;
-    min-height: 320px;
-  }
+/* ===== SCREEN 3 — SCAN / SWIPE ===== */
+.scanCard{
+  text-align:center;
+}
+.scanImg{
+  width:100%;
+  aspect-ratio:3/4;
+  border-radius:20px;
+  border:1px solid var(--line);
+  background:linear-gradient(135deg,#e0f7ff,#ede9fe);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:32px;
+  font-weight:1000;
+}
+.scanActions{
+  display:flex;
+  gap:14px;
+  margin-top:14px;
+}
+.voteBtn{
+  flex:1;
+  border-radius:18px;
+  padding:16px;
+  font-size:18px;
+  font-weight:1000;
+  cursor:pointer;
+  border:0;
+}
+.voteBtn.light{background:var(--gold)}
+.voteBtn.spite{background:var(--red);color:#fff}
 
-  .line{
-    text-align:center;
-    font-weight: 1000;
-    letter-spacing: -0.02em;
-    font-size: 28px;
-    line-height: 1.15;
-    margin: 6px 0 0;
-    padding: 10px 6px;
-  }
-  .subline{
-    text-align:center;
-    color: var(--muted);
-    font-weight: 800;
-    margin: 8px 0 0;
-  }
-
-  .fade{ animation: fadeIn 480ms ease-out both; }
-  @keyframes fadeIn{
-    from{ opacity:0; transform: translateY(6px); }
-    to{ opacity:1; transform: translateY(0); }
-  }
-
-  /* Glitch moment */
-  .glitch{
-    position: relative;
-    text-shadow:
-      2px 0 rgba(255,43,214,0.70),
-      -2px 0 rgba(0,217,255,0.70);
-    animation: glitchShake 250ms ease-in-out 2;
-  }
-  @keyframes glitchShake{
-    0%{ transform: translate(0,0); }
-    25%{ transform: translate(1px,-1px); }
-    50%{ transform: translate(-1px,1px); }
-    75%{ transform: translate(1px,1px); }
-    100%{ transform: translate(0,0); }
-  }
-  .rgb-scan{
-    position:absolute;
-    inset:-40px;
-    background:
-      linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.03), rgba(0,0,255,0.06)),
-      linear-gradient(rgba(0,0,0,0) 50%, rgba(0,0,0,0.06) 50%);
-    background-size: 3px 100%, 100% 2px;
-    mix-blend-mode: multiply;
-    opacity: 0;
-    pointer-events:none;
-    transition: opacity 160ms ease;
-  }
-  .rgb-scan.on{ opacity: 1; }
-
-  /* “Void” overlay for the first moments */
-  .voidOverlay{
-    position:absolute;
-    inset:0;
-    background: radial-gradient(900px 500px at 50% 30%, rgba(255,255,255,0.06) 0%, rgba(0,0,0,0.94) 62%, rgba(0,0,0,0.98) 100%);
-    transition: opacity 600ms ease;
-    pointer-events:none;
-    opacity: 0;
-  }
-  .voidOverlay.on{ opacity: 1; }
-
-  /* Promise split */
-  .split{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 14px;
-  }
-  .pane{
-    border-radius: 18px;
-    border: 1px solid var(--line);
-    padding: 14px;
-    background:#fff;
-    box-shadow: var(--shadow2);
-  }
-  .pane h3{ margin:0 0 8px; font-weight: 1000; letter-spacing: -0.01em; }
-  .pane p{ margin:0; color: var(--muted); font-weight: 800; line-height: 1.3; }
-  .pane.red{ background: linear-gradient(135deg, rgba(255,45,45,0.16), rgba(255,43,214,0.10)); }
-  .pane.gold{ background: linear-gradient(135deg, rgba(255,204,51,0.20), rgba(0,217,255,0.08)); }
-
-  /* Contract block */
-  .contract{
-    margin-top: 14px;
-    border-radius: 22px;
-    border: 1px solid var(--line);
-    background:#fff;
-    box-shadow: var(--shadow2);
-    padding: 14px;
-    overflow:hidden;
-    position:relative;
-  }
-
-  /* Biometric reticle */
-  .reticleWrap{
-    position: relative;
-    height: 140px;
-    border-radius: 18px;
-    border: 1px dashed rgba(24,245,156,0.50);
-    background:
-      radial-gradient(120px 120px at 50% 50%, rgba(24,245,156,0.18) 0%, transparent 60%),
-      linear-gradient(180deg, rgba(24,245,156,0.06), rgba(0,0,0,0));
-    overflow:hidden;
-  }
-  .reticle{
-    position:absolute;
-    left:50%;
-    top:50%;
-    width: 120px;
-    height: 120px;
-    transform: translate(-50%,-50%);
-    border-radius: 999px;
-    border: 2px solid rgba(24,245,156,0.85);
-    box-shadow:
-      0 0 0 6px rgba(24,245,156,0.12),
-      0 0 26px rgba(24,245,156,0.22);
-    will-change: transform;
-  }
-  .reticle:before, .reticle:after{
-    content:"";
-    position:absolute;
-    inset: 12px;
-    border-radius: 999px;
-    border: 1px solid rgba(24,245,156,0.35);
-  }
-  .retLine{
-    position:absolute;
-    left:50%;
-    top:50%;
-    width: 140px;
-    height: 2px;
-    background: rgba(24,245,156,0.65);
-    transform: translate(-50%,-50%);
-    opacity: .45;
-  }
-  .retLine.v{ width:2px; height: 140px; }
-  .retPulse{
-    position:absolute;
-    inset:0;
-    background: radial-gradient(140px 140px at 50% 50%, rgba(24,245,156,0.16) 0%, transparent 60%);
-    animation: pulse 1.1s ease-in-out infinite;
-    opacity: .65;
-  }
-  @keyframes pulse{
-    0%,100%{ transform: scale(1); opacity: .55; }
-    50%{ transform: scale(1.03); opacity: .85; }
-  }
-
-  /* Inputs + buttons */
-  .input{
-    width:100%;
-    box-sizing:border-box;
-    margin-top: 12px;
-    padding: 14px 14px;
-    border-radius: 16px;
-    border:1px solid var(--line);
-    outline:none;
-    background:#fff;
-    font-weight: 800;
-    font-size: 15px;
-  }
-
-  .btn{
-    width: 100%;
-    border: 0;
-    border-radius: 16px;
-    padding: 14px 14px;
-    font-weight: 1000;
-    cursor: pointer;
-    color:#fff;
-    background: linear-gradient(135deg, var(--cyan), var(--violet));
-    box-shadow: 0 14px 28px rgba(124,58,237,0.18);
-    margin-top: 10px;
-  }
-  .btn:active{ transform: scale(.99); }
-  .btnSecondary{
-    background:#fff;
-    color:#22314c;
-    border:1px solid var(--line);
-    box-shadow: var(--shadow2);
-  }
-  .btnDanger{
-    background: linear-gradient(135deg, var(--red), var(--pink));
-    box-shadow: 0 14px 28px rgba(255,45,45,0.14);
-  }
-
-  .row{ display:flex; gap: 10px; margin-top:10px; }
-  .row > *{ flex:1; }
-
-  .tiny{
-    margin-top: 10px;
-    font-size: 12px;
-    color: var(--muted);
-    font-weight: 800;
-    text-align:center;
-  }
-  .link{ color:#1d4ed8; font-weight: 1000; text-decoration:none; }
-
-  .hidden{ display:none !important; }
-
-  /* Loader */
-  #loader{
-    position:fixed;
-    inset:0;
-    z-index:200;
-    display:none;
-    align-items:center;
-    justify-content:center;
-    background: rgba(255,255,255,0.66);
-    backdrop-filter: blur(10px);
-  }
-  #loader .box{
-    width: min(520px, calc(100% - 32px));
-    border-radius: var(--radius);
-    border: 1px solid var(--line);
-    background:#fff;
-    box-shadow: var(--shadow);
-    padding: 18px;
-    text-align:center;
-  }
-  #loader .spin{
-    width: 44px; height:44px;
-    border-radius:999px;
-    border: 4px solid rgba(124,58,237,0.16);
-    border-top-color: rgba(124,58,237,0.85);
-    margin: 0 auto 10px;
-    animation: sp 1s linear infinite;
-  }
-  @keyframes sp{ to{ transform: rotate(360deg); } }
-
-  /* Screen 2 (Profile) layout */
-  .grid2{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-top: 12px;
-  }
-  .stat{
-    border:1px solid var(--line);
-    background:#fff;
-    border-radius: 18px;
-    padding: 12px;
-    box-shadow: var(--shadow2);
-  }
-  .stat .k{ color: var(--muted); font-weight: 900; font-size: 12px; }
-  .stat .v{ font-weight: 1100; font-size: 18px; margin-top: 6px; letter-spacing:-0.02em; }
-
-  .profileTop{
-    display:flex;
-    gap: 12px;
-    align-items:center;
-    margin-top: 10px;
-  }
-  .avatar{
-    width: 72px; height:72px;
-    border-radius: 20px;
-    border:1px solid var(--line);
-    background: linear-gradient(135deg, rgba(0,217,255,0.18), rgba(124,58,237,0.12));
-    box-shadow: var(--shadow2);
-    overflow:hidden;
-    flex: 0 0 auto;
-  }
-  .avatar img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .pname{ font-weight:1100; font-size: 20px; letter-spacing:-0.02em; margin:0; }
-  .pfaction{
-    margin-top: 4px;
-    font-weight: 1000;
-    color: var(--muted);
-  }
-  .tag{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    padding: 6px 10px;
-    border-radius: 999px;
-    border:1px solid var(--line);
-    background:#fff;
-    box-shadow: var(--shadow2);
-    font-weight: 1000;
-    font-size: 12px;
-    margin-top: 8px;
-  }
-  .tag .dot{ width: 10px; height:10px; border-radius:999px; background: var(--green); box-shadow: 0 0 0 4px rgba(24,245,156,0.15); }
-
-  .invGrid{
-    display:grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-top: 12px;
-  }
-  .invItem{
-    border:1px solid var(--line);
-    background:#fff;
-    border-radius: 16px;
-    padding: 12px;
-    text-align:center;
-    font-weight: 1000;
-    font-size: 12px;
-    color:#22314c;
-    box-shadow: var(--shadow2);
-  }
-
-  .footerNav{
-    position: fixed;
-    left: env(safe-area-inset-left);
-    right: env(safe-area-inset-right);
-    bottom: env(safe-area-inset-bottom);
-    z-index: 85;
-    padding: 10px 12px;
-    pointer-events:none;
-  }
-  .footerNav .bar{
-    pointer-events:auto;
-    display:flex;
-    gap: 10px;
-    padding: 10px;
-    border-radius: 20px;
-    border: 1px solid var(--line);
-    background: rgba(255,255,255,0.72);
-    backdrop-filter: blur(12px);
-    box-shadow: var(--shadow);
-  }
-  .navbtn{
-    flex:1;
-    border:1px solid var(--line);
-    background:#fff;
-    border-radius: 16px;
-    padding: 12px 10px;
-    font-weight: 1100;
-    cursor:pointer;
-    box-shadow: var(--shadow2);
-  }
-  .navbtn:active{ transform: scale(.99); }
+/* ===== BOTTOM NAV ===== */
+.footer{
+  position:fixed;
+  bottom:env(safe-area-inset-bottom);
+  left:0;right:0;
+  padding:10px;
+}
+.footer .bar{
+  display:flex;
+  gap:10px;
+  background:rgba(255,255,255,.85);
+  backdrop-filter:blur(10px);
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:10px;
+}
+.navbtn{
+  flex:1;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px;
+  background:#fff;
+  font-weight:900;
+}
 </style>
 </head>
 
 <body>
 <div class="app">
 
-  <!-- Marquee: EDIT THIS TEXT ANYTIME -->
-  <div class="marquee" id="marquee">
-    <div class="track" id="marqueeTrack" aria-hidden="true">
-      <span class="pill">SPONSORS: DGLITCH • PARTNERS: YOUR-NAME-HERE •</span>
-      <span class="pill">SPONSORS: DGLITCH • PARTNERS: YOUR-NAME-HERE •</span>
-      <span class="pill">SPONSORS: DGLITCH • PARTNERS: YOUR-NAME-HERE •</span>
-      <span class="pill">SPONSORS: DGLITCH • PARTNERS: YOUR-NAME-HERE •</span>
+<!-- MARQUEE -->
+<div class="marquee" id="marquee">
+  <div class="track">
+    <span class="pill">SPONSORS · DGLITCH · PARTNERS · COMING SOON</span>
+    <span class="pill">SPONSORS · DGLITCH · PARTNERS · COMING SOON</span>
+  </div>
+</div>
+
+<!-- ROUTER -->
+<div class="screens">
+
+<!-- SCREEN 1 -->
+<div class="screen active" id="intro">
+  <div class="wrap">
+    <div class="card">
+      <div class="card-inner">
+        <div class="introText">You are invisible.</div>
+        <div class="introText glitch">WAKE UP.</div>
+        <button class="btn" onclick="go('profile')">ENTER</button>
+      </div>
     </div>
   </div>
+</div>
 
-  <div class="topbar">
-    <div class="iconbtn" id="soundBtn" title="Sound">🔊</div>
-  </div>
-
-  <div id="loader">
-    <div class="box">
-      <div class="spin"></div>
-      <div style="font-weight:1000;">SYNCING…</div>
-      <div id="loaderMsg" class="tiny">working</div>
-    </div>
-  </div>
-
-  <div class="screens">
-
-    <!-- =========================
-         SCREEN 1: INTRO SEQUENCE
-    ========================== -->
-    <div class="screen active" id="screenIntro" data-screen="intro">
-      <div class="wrap">
-        <div class="card">
-          <div class="rgb-scan" id="rgbScan"></div>
-          <div class="voidOverlay" id="voidOverlay"></div>
-
-          <div class="card-inner">
-            <div class="brand">
-              <div class="logo">AZEUQER</div>
-              <div class="badge">WAKE-UP CALL</div>
-            </div>
-
-            <div class="cinema">
-              <div class="line fade" id="mainLine">You are invisible.</div>
-              <div class="subline fade" id="subLine">No buttons. No logo. Just truth.</div>
-
-              <div class="split hidden" id="splitBlock">
-                <div class="pane red">
-                  <h3 style="color:#a11;">DISSONANCE</h3>
-                  <p>Chaos. Heat. Truth-with-teeth.</p>
-                </div>
-                <div class="pane gold">
-                  <h3 style="color:#a16207;">EUPHORIA</h3>
-                  <p>Order. Shine. Calm dominance.</p>
-                </div>
-              </div>
-
-              <div class="contract hidden" id="contractBlock">
-                <div style="font-weight:1000; font-size:18px; letter-spacing:-0.01em;">
-                  To enter the Citadel, you must be judged.
-                </div>
-                <div style="color:var(--muted); font-weight:800; margin-top:6px;">
-                  Are you <span style="color:var(--gold); font-weight:1000;">Order</span> or
-                  <span style="color:var(--red); font-weight:1000;">Chaos</span>?
-                </div>
-
-                <div style="margin-top:12px;" class="reticleWrap" id="reticleWrap">
-                  <div class="retPulse"></div>
-                  <div class="reticle" id="reticle"></div>
-                  <div class="retLine"></div>
-                  <div class="retLine v"></div>
-                </div>
-
-                <input class="input" id="emailInput" type="email" placeholder="Enter e-mail (+500 AP)" />
-                <button class="btn btnSecondary" id="saveEmailBtn">Enter E-mail</button>
-
-                <div class="row">
-                  <button class="btn" id="continueBtn">Continue</button>
-                  <button class="btn btnSecondary" id="officialBtn">Official</button>
-                </div>
-
-                <div class="tiny">
-                  Official site:
-                  <a class="link" href="https://www.dglitch.gg/" target="_blank" rel="noopener">https://www.dglitch.gg/</a>
-                </div>
-
-                <div class="tiny" id="emailHint"></div>
-              </div>
-            </div>
-
-            <div class="row">
-              <button class="btn btnDanger" id="wakeBtn">WAKE UP</button>
-              <button class="btn btnSecondary" id="replayBtn">Replay</button>
-            </div>
-
-            <div class="tiny">
-              Tip: tap anything once to unlock sound in mobile browsers.
-            </div>
-          </div>
+<!-- SCREEN 2 -->
+<div class="screen" id="profile">
+  <div class="wrap">
+    <div class="card">
+      <div class="card-inner">
+        <h2>Your Profile</h2>
+        <div class="statGrid">
+          <div class="stat"><div class="k">Energy</div><div class="v" id="energy">30 / 30</div></div>
+          <div class="stat"><div class="k">Scans Today</div><div class="v" id="scans">0 / 20</div></div>
+          <div class="stat"><div class="k">AP</div><div class="v" id="ap">0</div></div>
+          <div class="stat"><div class="k">Faction</div><div class="v">UNSORTED</div></div>
+        </div>
+        <div class="row">
+          <button class="btn secondary" onclick="go('intro')">Back</button>
+          <button class="btn" onclick="go('scan')">Start Scanning</button>
         </div>
       </div>
     </div>
+  </div>
+</div>
 
-    <!-- =========================
-         SCREEN 2: CHARACTER PROFILE
-    ========================== -->
-    <div class="screen" id="screenProfile" data-screen="profile">
-      <div class="wrap">
-        <div class="card">
-          <div class="card-inner">
-            <div class="brand">
-              <div class="logo">Your Passport</div>
-              <div class="badge">PROFILE</div>
-            </div>
-
-            <div class="profileTop">
-              <div class="avatar">
-                <img id="pAvatar" alt="avatar" src="" />
-              </div>
-              <div style="flex:1;">
-                <p class="pname" id="pName">AGENT</p>
-                <div class="pfaction" id="pFaction">UNSORTED • Rank —</div>
-                <div class="tag"><span class="dot"></span><span id="pEnergy">Energy: 30/30</span></div>
-              </div>
-            </div>
-
-            <div class="grid2">
-              <div class="stat">
-                <div class="k">AP (Azeuqer Points)</div>
-                <div class="v" id="pAP">0</div>
-              </div>
-              <div class="stat">
-                <div class="k">Telegram Stars</div>
-                <div class="v" id="pStars">0</div>
-              </div>
-              <div class="stat">
-                <div class="k">Boss Kills</div>
-                <div class="v" id="pBossKills">0</div>
-              </div>
-              <div class="stat">
-                <div class="k">Referrals</div>
-                <div class="v" id="pRefCount">0</div>
-              </div>
-            </div>
-
-            <div style="margin-top:12px;">
-              <div class="stat" style="padding:12px;">
-                <div class="k">Referral Link / Code</div>
-                <div class="v" style="font-size:14px; font-weight:1000; line-height:1.2; word-break:break-all;" id="pRefLink">—</div>
-                <div class="row">
-                  <button class="btn btnSecondary" id="copyRefBtn">Copy</button>
-                  <button class="btn" id="refreshProfileBtn">Refresh</button>
-                </div>
-              </div>
-            </div>
-
-            <div style="margin-top:12px;">
-              <div style="font-weight:1100; letter-spacing:-0.02em; font-size:16px;">Inventory</div>
-              <div class="tiny" style="text-align:left; margin-top:6px;">(Mock for now — backend will fill this.)</div>
-              <div class="invGrid" id="invGrid">
-                <div class="invItem">Starter Sigil</div>
-                <div class="invItem">Energy Potion</div>
-                <div class="invItem">Mystery Crate</div>
-              </div>
-            </div>
-
-            <div class="row" style="margin-top:14px;">
-              <button class="btn btnSecondary" id="backToIntroBtn">Back</button>
-              <button class="btn" id="goNextBtn">Next Screens</button>
-            </div>
-
-            <div class="tiny" id="profileHint"></div>
-          </div>
+<!-- SCREEN 3 -->
+<div class="screen" id="scan">
+  <div class="wrap">
+    <div class="card scanCard">
+      <div class="card-inner">
+        <div class="scanImg" id="scanImg">USER</div>
+        <div class="scanActions">
+          <button class="voteBtn spite" onclick="vote('spite')">SPITE</button>
+          <button class="voteBtn light" onclick="vote('light')">LIGHT</button>
+        </div>
+        <div class="muted" id="scanInfo" style="margin-top:10px">
+          Scan 1 of 10 · Energy OK
+        </div>
+        <div class="row">
+          <button class="btn secondary" onclick="go('profile')">Profile</button>
         </div>
       </div>
     </div>
-
   </div>
+</div>
 
-  <!-- Bottom quick nav (optional, nice for Telegram) -->
-  <div class="footerNav">
-    <div class="bar">
-      <button class="navbtn" id="navIntro">Intro</button>
-      <button class="navbtn" id="navProfile">Profile</button>
-    </div>
+</div>
+
+<!-- NAV -->
+<div class="footer">
+  <div class="bar">
+    <button class="navbtn" onclick="go('intro')">Intro</button>
+    <button class="navbtn" onclick="go('profile')">Profile</button>
+    <button class="navbtn" onclick="go('scan')">Scan</button>
   </div>
+</div>
 
 </div>
 
 <script>
-/* =========================
-   Telegram WebApp tweaks
-========================= */
-const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
-try{
-  if(tg){
-    tg.ready();
-    tg.expand();
-    if(tg.disableVerticalSwipes) tg.disableVerticalSwipes();
-  }
-}catch(e){}
-
-/* =========================
-   Config (hook to backend later)
-========================= */
-const API_URL = "https://azeuqer-backend.onrender.com";
-
-/* =========================
-   Fix marquee overlap automatically
-========================= */
-function updateMarqueeHeight(){
-  const m = document.getElementById("marquee");
-  const h = m ? Math.ceil(m.getBoundingClientRect().height) : 56;
-  document.documentElement.style.setProperty("--marqueeH", h + "px");
-}
-window.addEventListener("resize", updateMarqueeHeight);
-setTimeout(updateMarqueeHeight, 50);
-setTimeout(updateMarqueeHeight, 300);
-
-/* =========================
-   Router (show/hide screens)
-========================= */
-function showScreen(name){
-  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-  const el = document.querySelector(`.screen[data-screen="${name}"]`);
-  if(el) el.classList.add("active");
-  // scroll to top of screen content
-  if(el) el.scrollTop = 0;
-  clickSfx();
+/* Telegram */
+if(window.Telegram?.WebApp){
+  Telegram.WebApp.ready();
+  Telegram.WebApp.expand();
 }
 
-/* =========================
-   Loader
-========================= */
-function showLoader(on, msg=""){
-  const l = document.getElementById("loader");
-  const m = document.getElementById("loaderMsg");
-  if(on){ l.style.display="flex"; m.textContent = msg || "working"; }
-  else { l.style.display="none"; }
+/* Marquee height fix */
+function fixMarquee(){
+  const h=document.getElementById('marquee').getBoundingClientRect().height;
+  document.documentElement.style.setProperty('--marqueeH',h+'px');
+}
+setTimeout(fixMarquee,50);
+window.addEventListener('resize',fixMarquee);
+
+/* Router */
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 }
 
-/* =========================
-   Sound (subtle dopamine SFX)
-========================= */
-let soundOn = true;
-let audioCtx = null;
+/* Scan Logic (Simulated) */
+let scans=0;
+let energy=30;
+let ap=0;
+let bossRoll=Math.floor(Math.random()*10)+11;
 
-function ensureAudio(){
-  if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  if(audioCtx.state === "suspended") audioCtx.resume();
-}
-function tone(freq=660, dur=0.05, type="sine", gain=0.055){
-  if(!soundOn) return;
-  ensureAudio();
-  const o = audioCtx.createOscillator();
-  const g = audioCtx.createGain();
-  o.type = type; o.frequency.value = freq;
-  g.gain.value = gain;
-  o.connect(g); g.connect(audioCtx.destination);
-  o.start();
-  g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
-  o.stop(audioCtx.currentTime + dur);
-}
-function clickSfx(){ tone(740,0.03,"triangle",0.05); }
-function successSfx(){ tone(880,0.05,"sine",0.06); setTimeout(()=>tone(1320,0.04,"sine",0.05), 60); }
-function glitchSfx(){ tone(120,0.06,"sawtooth",0.04); setTimeout(()=>tone(220,0.05,"square",0.03), 60); }
-function errorSfx(){ tone(220,0.07,"square",0.04); }
+function vote(type){
+  scans++;
+  ap++;
+  if(scans>20){ energy--; }
+  document.getElementById('scans').textContent=`${scans} / 20`;
+  document.getElementById('energy').textContent=`${energy} / 30`;
+  document.getElementById('ap').textContent=ap;
 
-const soundBtn = document.getElementById("soundBtn");
-soundBtn.addEventListener("click", ()=>{
-  ensureAudio();
-  soundOn = !soundOn;
-  soundBtn.textContent = soundOn ? "🔊" : "🔇";
-  clickSfx();
-});
-
-/* Unlock sound on first gesture (mobile) */
-window.addEventListener("pointerdown", ()=>{ try{ ensureAudio(); }catch(e){} }, { once:true });
-
-/* =========================
-   Screen 1 — Intro Sequence
-========================= */
-const mainLine = document.getElementById("mainLine");
-const subLine = document.getElementById("subLine");
-const rgbScan = document.getElementById("rgbScan");
-const voidOverlay = document.getElementById("voidOverlay");
-
-const splitBlock = document.getElementById("splitBlock");
-const contractBlock = document.getElementById("contractBlock");
-
-const wakeBtn = document.getElementById("wakeBtn");
-const replayBtn = document.getElementById("replayBtn");
-const continueBtn = document.getElementById("continueBtn");
-
-let timer = null;
-let step = 0;
-
-const sequence = [
-  { mode:"voidOn", text:"You are invisible.", sub:"No buttons. No logo. Just truth.", ms:1300 },
-  { mode:"voidOn", text:"The Algorithm ignores you.", sub:"", ms:950 },
-  { mode:"voidOn", text:"Society filters you.", sub:"", ms:950 },
-  { mode:"voidOn", text:"Reality forgets you.", sub:"", ms:950 },
-  { mode:"glitch", text:"WAKE UP.", sub:"", ms:950 },
-  { mode:"split", text:"Here, you are the Asset.", sub:"", ms:1100 },
-  { mode:"split", text:"Here, your face is the Currency.", sub:"", ms:1100 },
-  { mode:"split", text:"We do not want your money.", sub:"", ms:1100 },
-  { mode:"split", text:"We want your Truth.", sub:"", ms:1200 },
-  { mode:"contract", text:"To enter the Citadel, you must be judged.", sub:"", ms:900 },
-  { mode:"contract", text:"Are you Order?", sub:"(Gold flash)", ms:850, flash:"gold" },
-  { mode:"contract", text:"Or are you Chaos?", sub:"(Red flash)", ms:850, flash:"red" },
-  { mode:"contract", text:"Scan your face. Reveal your soul.", sub:"", ms:900 }
-];
-
-function setText(t, s=""){
-  mainLine.classList.remove("fade");
-  subLine.classList.remove("fade");
-  void mainLine.offsetWidth;
-  mainLine.textContent = t;
-  subLine.textContent = s || "";
-  mainLine.classList.add("fade");
-  subLine.classList.add("fade");
-}
-function setMode(mode){
-  rgbScan.classList.remove("on");
-  mainLine.classList.remove("glitch");
-  splitBlock.classList.add("hidden");
-  contractBlock.classList.add("hidden");
-
-  if(mode === "voidOn") voidOverlay.classList.add("on");
-  else voidOverlay.classList.remove("on");
-
-  if(mode === "glitch"){
-    rgbScan.classList.add("on");
-    mainLine.classList.add("glitch");
-  }
-  if(mode === "split"){
-    splitBlock.classList.remove("hidden");
-  }
-  if(mode === "contract"){
-    splitBlock.classList.remove("hidden");
-    contractBlock.classList.remove("hidden");
+  if(scans===bossRoll){
+    document.getElementById('scanInfo').textContent="⚠ BOSS SIGNAL DETECTED";
+  }else{
+    document.getElementById('scanInfo').textContent=
+      `Scan ${Math.min(scans,10)} of 10 · ${scans>20?'Energy Used':'Free Scan'}`;
   }
 }
-function flash(color){
-  const c = document.querySelector(".cinema");
-  const old = c.style.boxShadow;
-  if(color === "gold"){
-    c.style.boxShadow = "0 0 0 6px rgba(255,204,51,0.22), 0 18px 44px rgba(8,18,37,0.10)";
-  }else if(color === "red"){
-    c.style.boxShadow = "0 0 0 6px rgba(255,45,45,0.18), 0 18px 44px rgba(8,18,37,0.10)";
-  }
-  setTimeout(()=>{ c.style.boxShadow = old; }, 220);
-}
-
-function run(){
-  clearTimeout(timer);
-  const s = sequence[step];
-  if(!s){
-    setMode("contract");
-    setText("Scan your face. Reveal your soul.", "");
-    wakeBtn.textContent = "CONTINUE";
-    successSfx();
-    return;
-  }
-  setMode(s.mode);
-  setText(s.text, s.sub);
-  if(s.mode === "glitch") glitchSfx(); else tone(660, 0.028, "sine", 0.03);
-  if(s.flash) flash(s.flash);
-  step++;
-  timer = setTimeout(run, s.ms);
-}
-function startSequence(from=0){
-  clearTimeout(timer);
-  step = from;
-  wakeBtn.textContent = "WAKE UP";
-  run();
-}
-
-wakeBtn.addEventListener("click", ()=>{
-  ensureAudio();
-  clickSfx();
-  const atContract = !contractBlock.classList.contains("hidden");
-  if(atContract){
-    showScreen("profile");
-    loadProfile(true);
-    return;
-  }
-  setMode("contract");
-  setText("Scan your face. Reveal your soul.", "");
-  wakeBtn.textContent = "CONTINUE";
-  successSfx();
-});
-
-replayBtn.addEventListener("click", ()=>{
-  ensureAudio();
-  clickSfx();
-  startSequence(0);
-});
-
-continueBtn.addEventListener("click", ()=>{
-  ensureAudio(); clickSfx();
-  showScreen("profile");
-  loadProfile(true);
-});
-
-startSequence(0);
-
-/* Reticle movement */
-const reticle = document.getElementById("reticle");
-function setReticle(x, y){
-  const mx = Math.max(-10, Math.min(10, x));
-  const my = Math.max(-10, Math.min(10, y));
-  reticle.style.transform = `translate(calc(-50% + ${mx}px), calc(-50% + ${my}px))`;
-}
-window.addEventListener("deviceorientation", (e)=>{
-  if(e.gamma == null || e.beta == null) return;
-  const rx = (e.gamma / 45) * 10;
-  const ry = (e.beta / 45) * 10;
-  setReticle(rx, ry);
-}, true);
-document.addEventListener("mousemove", (e)=>{
-  const w = window.innerWidth, h = window.innerHeight;
-  const nx = (e.clientX / w - 0.5) * 20;
-  const ny = (e.clientY / h - 0.5) * 20;
-  setReticle(nx, ny);
-});
-
-/* =========================
-   Email Save (+500 AP)
-   Backend endpoint: POST /profile/email
-========================= */
-function initData(){
-  return (tg && tg.initData) ? tg.initData : "debug_mode";
-}
-const emailInput = document.getElementById("emailInput");
-const saveEmailBtn = document.getElementById("saveEmailBtn");
-const emailHint = document.getElementById("emailHint");
-
-saveEmailBtn.addEventListener("click", async ()=>{
-  ensureAudio();
-  clickSfx();
-  const email = (emailInput.value || "").trim();
-  if(!email){
-    emailHint.textContent = "Enter an email first.";
-    errorSfx();
-    return;
-  }
-  showLoader(true, "saving email…");
-  try{
-    const res = await fetch(`${API_URL}/profile/email`,{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ initData: initData(), email })
-    });
-    const data = await res.json();
-    if(data.status === "ok"){
-      emailHint.textContent = "Saved. +500 AP applied (first time only).";
-      successSfx();
-    }else{
-      emailHint.textContent = "Email save failed: " + (data.msg || "unknown");
-      errorSfx();
-    }
-  }catch(e){
-    emailHint.textContent = "Email save failed: network error";
-    errorSfx();
-  }finally{
-    showLoader(false);
-  }
-});
-
-/* Official button */
-document.getElementById("officialBtn").addEventListener("click", ()=>{
-  ensureAudio(); clickSfx();
-  const url = "https://www.dglitch.gg/";
-  try{
-    if(tg && tg.openLink) tg.openLink(url);
-    else window.open(url, "_blank", "noopener");
-  }catch(e){
-    window.open(url, "_blank", "noopener");
-  }
-});
-
-/* =========================
-   Screen 2 — Profile (with backend hook)
-========================= */
-const pAvatar = document.getElementById("pAvatar");
-const pName = document.getElementById("pName");
-const pFaction = document.getElementById("pFaction");
-const pEnergy = document.getElementById("pEnergy");
-const pAP = document.getElementById("pAP");
-const pStars = document.getElementById("pStars");
-const pBossKills = document.getElementById("pBossKills");
-const pRefCount = document.getElementById("pRefCount");
-const pRefLink = document.getElementById("pRefLink");
-const profileHint = document.getElementById("profileHint");
-
-function factionDotColor(f){
-  if(f === "EUPHORIA") return "var(--gold)";
-  if(f === "DISSONANCE") return "var(--red)";
-  return "var(--green)";
-}
-
-async function loadProfile(showToast=false){
-  profileHint.textContent = "";
-  showLoader(true, "loading profile…");
-  try{
-    // Expect your backend to return { status, user, referrals_count, referral_code, referral_link }
-    // For now, we call /auth/login to get user basics.
-    const res = await fetch(`${API_URL}/auth/login`,{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ initData: initData() })
-    });
-    const data = await res.json();
-    const u = data.user || {};
-
-    // avatar fallback
-    if(u.bio_lock_url) pAvatar.src = u.bio_lock_url;
-    else pAvatar.src = "data:image/svg+xml;utf8," + encodeURIComponent(`
-      <svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>
-        <defs><linearGradient id='g' x1='0' x2='1' y1='0' y2='1'>
-          <stop offset='0' stop-color='#00d9ff'/><stop offset='1' stop-color='#7c3aed'/>
-        </linearGradient></defs>
-        <rect width='200' height='200' rx='40' fill='url(#g)'/>
-        <text x='50%' y='52%' text-anchor='middle' font-family='Arial' font-size='56' font-weight='900' fill='white'>A</text>
-      </svg>
-    `);
-
-    pName.textContent = u.username || "AGENT";
-    const f = (u.faction || "UNSORTED").toUpperCase();
-    pFaction.textContent = `${f} • Rank ${u.role || "CITIZEN"}`;
-
-    // energy display
-    const energy = (u.energy != null) ? u.energy : 30;
-    const cap = 30;
-    pEnergy.textContent = `Energy: ${energy}/${cap}`;
-    // set dot color
-    const dot = document.querySelector(".tag .dot");
-    if(dot) dot.style.background = factionDotColor(f);
-
-    pAP.textContent = (u.ap != null) ? u.ap : 0;
-    pStars.textContent = (u.stars_total != null) ? u.stars_total : 0;
-    pBossKills.textContent = (u.boss_kills != null) ? u.boss_kills : 0;
-
-    // referrals mock (until backend endpoint exists)
-    const refCount = (data.referrals_count != null) ? data.referrals_count : 0;
-    pRefCount.textContent = refCount;
-
-    // referral link/code mock
-    const uid = u.user_id || 0;
-    const refLink = (uid && uid !== 0)
-      ? `https://t.me/AzeuqerBot?start=ref_${uid}`
-      : "https://t.me/AzeuqerBot";
-    pRefLink.textContent = refLink;
-
-    if(showToast){
-      successSfx();
-    }
-  }catch(e){
-    profileHint.textContent = "Profile load failed (backend offline?)";
-    errorSfx();
-  }finally{
-    showLoader(false);
-  }
-}
-
-/* Buttons on profile */
-document.getElementById("refreshProfileBtn").addEventListener("click", ()=>loadProfile(true));
-document.getElementById("copyRefBtn").addEventListener("click", async ()=>{
-  ensureAudio(); clickSfx();
-  const text = pRefLink.textContent || "";
-  try{
-    await navigator.clipboard.writeText(text);
-    profileHint.textContent = "Copied referral link.";
-    successSfx();
-  }catch(e){
-    profileHint.textContent = "Copy failed (clipboard blocked).";
-    errorSfx();
-  }
-});
-
-document.getElementById("backToIntroBtn").addEventListener("click", ()=>showScreen("intro"));
-document.getElementById("goNextBtn").addEventListener("click", ()=>{
-  ensureAudio(); clickSfx();
-  alert("Next up: Boss Fight, Hall of Fame, Marketplace (we’ll build these as Screen 3/4/5).");
-});
-
-/* Bottom nav */
-document.getElementById("navIntro").addEventListener("click", ()=>showScreen("intro"));
-document.getElementById("navProfile").addEventListener("click", ()=>{
-  showScreen("profile");
-  loadProfile(false);
-});
-
-/* Initial marquee height fix after load */
-updateMarqueeHeight();
 </script>
 </body>
 </html>
