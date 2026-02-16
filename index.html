@@ -1,102 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta
-  name="viewport"
-  content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover"
-/>
-<title>AZEUQER — Intro · Profile · Scan</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
+<title>AZEUQER — Titanium Foundation</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
+/* ===========================
+   GLOBAL DESIGN (GEN Z CLEAN)
+=========================== */
 :root{
-  --bg:#f7fbff;
+  --bg:#f4f7fb;
   --card:#ffffff;
-  --ink:#0b1324;
-  --muted:#5c6b86;
-
-  --cyan:#00d9ff;
-  --violet:#7c3aed;
-  --pink:#ff2bd6;
+  --ink:#0d1220;
+  --muted:#6b7a99;
+  --cyan:#00e5ff;
+  --violet:#7c4dff;
+  --pink:#ff3bd4;
   --gold:#ffcc33;
-  --red:#ff2d2d;
+  --red:#ff3b3b;
   --green:#18f59c;
-
-  --line:#dbe7ff;
+  --line:#e3ecff;
   --radius:22px;
-  --shadow:0 14px 32px rgba(10,20,40,.10);
-
-  --marqueeH:56px;
+  --shadow:0 12px 28px rgba(10,20,40,.12);
+  --marqueeH:54px;
 }
-
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
 body{
-  background:
-    radial-gradient(900px 600px at 20% -10%, #fff 0%, var(--bg) 40%),
-    radial-gradient(700px 700px at 80% 90%, rgba(124,58,237,.10), transparent 60%);
+  background:linear-gradient(180deg,#ffffff,#eef3ff);
   font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial;
   color:var(--ink);
   overflow:hidden;
 }
 
-/* ===== APP ROOT ===== */
-.app{
-  position:fixed;
-  inset:0;
-  padding-top:env(safe-area-inset-top);
-  padding-bottom:env(safe-area-inset-bottom);
-}
-
-/* ===== MARQUEE ===== */
+/* ===========================
+   MARQUEE (SAFE)
+=========================== */
 .marquee{
   position:fixed;
   top:env(safe-area-inset-top);
-  left:0; right:0;
-  z-index:90;
-  background:rgba(255,255,255,.8);
-  backdrop-filter:blur(12px);
+  left:0;right:0;
+  height:var(--marqueeH);
+  background:#fff;
   border-bottom:1px solid var(--line);
+  z-index:100;
+  overflow:hidden;
 }
-.marquee .track{
+.marquee-track{
   display:flex;
   gap:40px;
-  padding:10px 14px;
+  padding:14px;
   white-space:nowrap;
   font-weight:900;
-  animation:scroll 16s linear infinite;
+  animation:scroll 18s linear infinite;
 }
 @keyframes scroll{
   from{transform:translateX(0)}
   to{transform:translateX(-50%)}
 }
-.pill{
-  border:1px solid var(--line);
-  border-radius:999px;
-  padding:6px 12px;
-  background:#fff;
-}
 
-/* ===== ROUTER AREA ===== */
-.screens{
-  position:absolute;
+/* ===========================
+   APP ROOT
+=========================== */
+.app{
+  position:fixed;
   inset:0;
-  padding-top:calc(var(--marqueeH) + 8px);
+  padding-top:calc(var(--marqueeH) + env(safe-area-inset-top));
 }
 .screen{
   position:absolute;
   inset:0;
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
-  padding:14px;
+  padding:16px;
   display:none;
 }
 .screen.active{display:block}
+.wrap{max-width:540px;margin:0 auto;padding-bottom:120px}
 
-.wrap{max-width:520px;margin:0 auto;padding-bottom:120px}
-
-/* ===== COMMON UI ===== */
+/* ===========================
+   UI COMPONENTS
+=========================== */
 .card{
   background:var(--card);
   border:1px solid var(--line);
@@ -105,15 +91,14 @@ body{
   margin-bottom:14px;
 }
 .card-inner{padding:18px}
-
 h1,h2,h3{margin:0}
 .muted{color:var(--muted);font-weight:700}
 
 .btn{
   width:100%;
-  border:0;
   border-radius:16px;
   padding:14px;
+  border:none;
   font-weight:900;
   cursor:pointer;
   background:linear-gradient(135deg,var(--cyan),var(--violet));
@@ -124,219 +109,180 @@ h1,h2,h3{margin:0}
   color:var(--ink);
   border:1px solid var(--line);
 }
-.row{display:flex;gap:10px;margin-top:10px}
+.row{display:flex;gap:10px;margin-top:12px}
 
-/* ===== SCREEN 1 — INTRO ===== */
-.introText{
-  font-size:28px;
-  font-weight:1000;
-  text-align:center;
-  letter-spacing:-.02em;
-  margin:24px 0;
-}
-.glitch{
-  text-shadow:2px 0 var(--pink),-2px 0 var(--cyan);
-}
-
-/* ===== SCREEN 2 — PROFILE ===== */
-.statGrid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  margin-top:12px;
-}
-.stat{
-  border:1px solid var(--line);
-  border-radius:18px;
-  padding:12px;
-  background:#fff;
-}
-.stat .k{font-size:12px;color:var(--muted);font-weight:900}
-.stat .v{font-size:18px;font-weight:1000;margin-top:6px}
-
-/* ===== SCREEN 3 — SCAN / SWIPE ===== */
-.scanCard{
-  text-align:center;
-}
-.scanImg{
-  width:100%;
-  aspect-ratio:3/4;
-  border-radius:20px;
-  border:1px solid var(--line);
-  background:linear-gradient(135deg,#e0f7ff,#ede9fe);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:32px;
-  font-weight:1000;
-}
-.scanActions{
-  display:flex;
-  gap:14px;
-  margin-top:14px;
-}
-.voteBtn{
-  flex:1;
-  border-radius:18px;
-  padding:16px;
-  font-size:18px;
-  font-weight:1000;
-  cursor:pointer;
-  border:0;
-}
-.voteBtn.light{background:var(--gold)}
-.voteBtn.spite{background:var(--red);color:#fff}
-
-/* ===== BOTTOM NAV ===== */
+/* ===========================
+   NAV
+=========================== */
 .footer{
   position:fixed;
   bottom:env(safe-area-inset-bottom);
   left:0;right:0;
   padding:10px;
 }
-.footer .bar{
+.footer-bar{
   display:flex;
-  gap:10px;
-  background:rgba(255,255,255,.85);
-  backdrop-filter:blur(10px);
-  border:1px solid var(--line);
+  gap:8px;
+  background:#fff;
   border-radius:20px;
   padding:10px;
+  border:1px solid var(--line);
 }
 .navbtn{
   flex:1;
-  border:1px solid var(--line);
   border-radius:14px;
+  border:1px solid var(--line);
   padding:12px;
   background:#fff;
   font-weight:900;
+}
+
+/* ===========================
+   SPECIAL
+=========================== */
+.glitch{text-shadow:2px 0 var(--pink),-2px 0 var(--cyan)}
+.scan-img{
+  width:100%;
+  aspect-ratio:3/4;
+  border-radius:20px;
+  background:linear-gradient(135deg,#dff7ff,#ede7ff);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:32px;
+  font-weight:1000;
+}
+.hpbar{
+  height:14px;border-radius:999px;background:#eee;overflow:hidden;
+}
+.hpfill{
+  height:100%;background:linear-gradient(90deg,var(--red),var(--pink));
+  width:100%;
 }
 </style>
 </head>
 
 <body>
+<div class="marquee">
+  <div class="marquee-track">
+    <span>SPONSORS · DGLITCH · PARTNERS · COMING SOON</span>
+    <span>SPONSORS · DGLITCH · PARTNERS · COMING SOON</span>
+  </div>
+</div>
+
 <div class="app">
 
-<!-- MARQUEE -->
-<div class="marquee" id="marquee">
-  <div class="track">
-    <span class="pill">SPONSORS · DGLITCH · PARTNERS · COMING SOON</span>
-    <span class="pill">SPONSORS · DGLITCH · PARTNERS · COMING SOON</span>
-  </div>
-</div>
-
-<!-- ROUTER -->
-<div class="screens">
-
-<!-- SCREEN 1 -->
+<!-- ================= INTRO ================= -->
 <div class="screen active" id="intro">
   <div class="wrap">
-    <div class="card">
-      <div class="card-inner">
-        <div class="introText">You are invisible.</div>
-        <div class="introText glitch">WAKE UP.</div>
-        <button class="btn" onclick="go('profile')">ENTER</button>
-      </div>
-    </div>
+    <div class="card"><div class="card-inner">
+      <h1 class="glitch" style="text-align:center">You are invisible.</h1>
+      <h2 style="text-align:center;margin-top:12px">WAKE UP.</h2>
+      <button class="btn" onclick="go('create')">ENTER THE CITADEL</button>
+    </div></div>
   </div>
 </div>
 
-<!-- SCREEN 2 -->
+<!-- ================= CREATE ================= -->
+<div class="screen" id="create">
+  <div class="wrap">
+    <div class="card"><div class="card-inner">
+      <h2>Character Creation</h2>
+      <p class="muted">Face verification & archetype</p>
+      <div class="scan-img">CAMERA</div>
+      <button class="btn" onclick="go('profile')">CONFIRM IDENTITY</button>
+    </div></div>
+  </div>
+</div>
+
+<!-- ================= PROFILE ================= -->
 <div class="screen" id="profile">
   <div class="wrap">
-    <div class="card">
-      <div class="card-inner">
-        <h2>Your Profile</h2>
-        <div class="statGrid">
-          <div class="stat"><div class="k">Energy</div><div class="v" id="energy">30 / 30</div></div>
-          <div class="stat"><div class="k">Scans Today</div><div class="v" id="scans">0 / 20</div></div>
-          <div class="stat"><div class="k">AP</div><div class="v" id="ap">0</div></div>
-          <div class="stat"><div class="k">Faction</div><div class="v">UNSORTED</div></div>
-        </div>
-        <div class="row">
-          <button class="btn secondary" onclick="go('intro')">Back</button>
-          <button class="btn" onclick="go('scan')">Start Scanning</button>
-        </div>
+    <div class="card"><div class="card-inner">
+      <h2>Your Profile</h2>
+      <p class="muted">Energy · AP · Faction</p>
+      <p>Energy: <b id="energy">30</b></p>
+      <p>AP: <b id="ap">0</b></p>
+      <p>Faction: <b id="faction">UNSORTED</b></p>
+      <div class="row">
+        <button class="btn secondary" onclick="go('scan')">SCAN</button>
+        <button class="btn secondary" onclick="go('inventory')">INVENTORY</button>
       </div>
-    </div>
+    </div></div>
   </div>
 </div>
 
-<!-- SCREEN 3 -->
+<!-- ================= SCAN ================= -->
 <div class="screen" id="scan">
   <div class="wrap">
-    <div class="card scanCard">
-      <div class="card-inner">
-        <div class="scanImg" id="scanImg">USER</div>
-        <div class="scanActions">
-          <button class="voteBtn spite" onclick="vote('spite')">SPITE</button>
-          <button class="voteBtn light" onclick="vote('light')">LIGHT</button>
-        </div>
-        <div class="muted" id="scanInfo" style="margin-top:10px">
-          Scan 1 of 10 · Energy OK
-        </div>
-        <div class="row">
-          <button class="btn secondary" onclick="go('profile')">Profile</button>
-        </div>
+    <div class="card"><div class="card-inner">
+      <h2>Judgement</h2>
+      <div class="scan-img" id="scanFace">USER</div>
+      <div class="row">
+        <button class="btn secondary" onclick="vote('SPITE')">SPITE</button>
+        <button class="btn" onclick="vote('LIGHT')">LIGHT</button>
       </div>
-    </div>
+      <p class="muted" id="scanInfo"></p>
+    </div></div>
+  </div>
+</div>
+
+<!-- ================= BOSS ================= -->
+<div class="screen" id="boss">
+  <div class="wrap">
+    <div class="card"><div class="card-inner">
+      <h2>BOSS ENCOUNTER</h2>
+      <div class="hpbar"><div class="hpfill" id="hp"></div></div>
+      <button class="btn" onclick="attack()">ATTACK</button>
+    </div></div>
+  </div>
+</div>
+
+<!-- ================= INVENTORY ================= -->
+<div class="screen" id="inventory">
+  <div class="wrap">
+    <div class="card"><div class="card-inner">
+      <h2>Inventory</h2>
+      <p class="muted">Items · Durability</p>
+    </div></div>
   </div>
 </div>
 
 </div>
 
-<!-- NAV -->
 <div class="footer">
-  <div class="bar">
+  <div class="footer-bar">
     <button class="navbtn" onclick="go('intro')">Intro</button>
     <button class="navbtn" onclick="go('profile')">Profile</button>
     <button class="navbtn" onclick="go('scan')">Scan</button>
   </div>
 </div>
 
-</div>
-
 <script>
-/* Telegram */
-if(window.Telegram?.WebApp){
-  Telegram.WebApp.ready();
-  Telegram.WebApp.expand();
-}
+if(window.Telegram?.WebApp){Telegram.WebApp.ready();Telegram.WebApp.expand();}
 
-/* Marquee height fix */
-function fixMarquee(){
-  const h=document.getElementById('marquee').getBoundingClientRect().height;
-  document.documentElement.style.setProperty('--marqueeH',h+'px');
-}
-setTimeout(fixMarquee,50);
-window.addEventListener('resize',fixMarquee);
+let scans=0,energy=30,ap=0,bossAt=Math.floor(Math.random()*10)+11,hp=100;
 
-/* Router */
 function go(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-/* Scan Logic (Simulated) */
-let scans=0;
-let energy=30;
-let ap=0;
-let bossRoll=Math.floor(Math.random()*10)+11;
-
-function vote(type){
-  scans++;
-  ap++;
-  if(scans>20){ energy--; }
-  document.getElementById('scans').textContent=`${scans} / 20`;
-  document.getElementById('energy').textContent=`${energy} / 30`;
+function vote(t){
+  scans++;ap++;if(scans>20)energy--;
+  document.getElementById('energy').textContent=energy;
   document.getElementById('ap').textContent=ap;
-
-  if(scans===bossRoll){
-    document.getElementById('scanInfo').textContent="⚠ BOSS SIGNAL DETECTED";
-  }else{
-    document.getElementById('scanInfo').textContent=
-      `Scan ${Math.min(scans,10)} of 10 · ${scans>20?'Energy Used':'Free Scan'}`;
+  document.getElementById('scanInfo').textContent=`Scan ${scans}/20`;
+  if(scans===10){
+    document.getElementById('faction').textContent=Math.random()>0.5?'EUPHORIA':'DISSONANCE';
   }
+  if(scans>=bossAt){go('boss');}
+}
+
+function attack(){
+  hp-=Math.random()*20;
+  if(hp<=0){hp=100;go('profile');}
+  document.getElementById('hp').style.width=hp+'%';
 }
 </script>
 </body>
