@@ -3,86 +3,127 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>AZEUQER — Titanium Foundation</title>
+<title>AZEUQER — Titanium Shell (All Screens in One File)</title>
+
+<!-- Telegram WebApp -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<!-- Phaser (for Boss / visuals later; loaded now so the shell is ready) -->
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
 
 <style>
-/* ===========================
-   GLOBAL DESIGN (GEN Z CLEAN)
-=========================== */
+/* =========================================================
+   AZEUQER — GEN Z CLEAN / BRIGHT UI + TELEGRAM SAFE LAYOUT
+   - Always-visible sponsor marquee that does NOT cover content
+   - Screens are scrollable safely within Telegram
+   - Bottom nav never covers content (safe padding)
+========================================================= */
 :root{
-  --bg:#f4f7fb;
+  --bg:#f4f7ff;
+  --bg2:#ffffff;
   --card:#ffffff;
-  --ink:#0d1220;
-  --muted:#6b7a99;
-  --cyan:#00e5ff;
+  --ink:#0c1325;
+  --muted:#6a7aa6;
+
+  --line:#e2ecff;
+  --shadow:0 14px 34px rgba(10,20,40,.12);
+
+  --cyan:#00e6ff;
   --violet:#7c4dff;
-  --pink:#ff3bd4;
+  --pink:#ff2bd6;
   --gold:#ffcc33;
   --red:#ff3b3b;
   --green:#18f59c;
-  --line:#e3ecff;
+
   --radius:22px;
-  --shadow:0 12px 28px rgba(10,20,40,.12);
-  --marqueeH:54px;
-}
-*{box-sizing:border-box}
-html,body{margin:0;height:100%}
-body{
-  background:linear-gradient(180deg,#ffffff,#eef3ff);
-  font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial;
-  color:var(--ink);
-  overflow:hidden;
+
+  --marqueeH:56px;
+  --navH:76px;
+
+  --safeTop: env(safe-area-inset-top);
+  --safeBottom: env(safe-area-inset-bottom);
+
+  --contentTop: calc(var(--marqueeH) + var(--safeTop));
+  --contentBottom: calc(var(--navH) + var(--safeBottom));
 }
 
-/* ===========================
-   MARQUEE (SAFE)
-=========================== */
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  overflow:hidden;
+  background:
+    radial-gradient(1100px 600px at 20% -10%, #ffffff 0%, var(--bg) 40%),
+    radial-gradient(900px 700px at 85% 80%, rgba(124,77,255,.14), transparent 60%),
+    linear-gradient(180deg,#ffffff,#f1f6ff);
+  font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  color:var(--ink);
+}
+
+a{color:inherit}
+.hidden{display:none !important}
+
+/* ===== Sponsor / Partner Marquee (fixed, safe height) ===== */
 .marquee{
   position:fixed;
-  top:env(safe-area-inset-top);
+  top:var(--safeTop);
   left:0;right:0;
   height:var(--marqueeH);
-  background:#fff;
+  background:rgba(255,255,255,.88);
+  backdrop-filter: blur(12px);
   border-bottom:1px solid var(--line);
-  z-index:100;
+  z-index:1000;
   overflow:hidden;
 }
 .marquee-track{
+  height:100%;
   display:flex;
-  gap:40px;
-  padding:14px;
+  align-items:center;
+  gap:44px;
+  padding:0 14px;
   white-space:nowrap;
-  font-weight:900;
-  animation:scroll 18s linear infinite;
+  font-weight:950;
+  letter-spacing:.02em;
+  animation:marquee 18s linear infinite;
 }
-@keyframes scroll{
+@keyframes marquee{
   from{transform:translateX(0)}
   to{transform:translateX(-50%)}
 }
+.pill{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 14px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:#fff;
+  box-shadow: 0 10px 20px rgba(0,0,0,.05);
+}
+.dot{
+  width:10px;height:10px;border-radius:50%;
+  background:linear-gradient(135deg,var(--cyan),var(--pink));
+}
 
-/* ===========================
-   APP ROOT
-=========================== */
+/* ===== App Root ===== */
 .app{
   position:fixed;
   inset:0;
-  padding-top:calc(var(--marqueeH) + env(safe-area-inset-top));
+  padding-top:var(--contentTop);
+  padding-bottom:var(--contentBottom);
 }
+
+/* ===== Screen Router ===== */
 .screen{
   position:absolute;
   inset:0;
   overflow-y:auto;
   -webkit-overflow-scrolling:touch;
-  padding:16px;
+  padding:16px 14px;
   display:none;
 }
 .screen.active{display:block}
-.wrap{max-width:540px;margin:0 auto;padding-bottom:120px}
+.wrap{max-width:560px;margin:0 auto;padding-bottom:20px}
 
-/* ===========================
-   UI COMPONENTS
-=========================== */
+/* ===== Shared UI ===== */
 .card{
   background:var(--card);
   border:1px solid var(--line);
@@ -92,198 +133,1576 @@ body{
 }
 .card-inner{padding:18px}
 h1,h2,h3{margin:0}
-.muted{color:var(--muted);font-weight:700}
+.muted{color:var(--muted);font-weight:750;line-height:1.3}
+.hr{height:1px;background:var(--line);margin:14px 0}
+
+.row{display:flex;gap:10px;margin-top:12px}
+.col{flex:1}
 
 .btn{
   width:100%;
-  border-radius:16px;
-  padding:14px;
   border:none;
-  font-weight:900;
+  border-radius:18px;
+  padding:14px 14px;
+  font-weight:950;
   cursor:pointer;
   background:linear-gradient(135deg,var(--cyan),var(--violet));
   color:#fff;
+  box-shadow:0 10px 18px rgba(0,230,255,.12);
+  transition:transform .06s ease;
 }
+.btn:active{transform:scale(.985)}
 .btn.secondary{
   background:#fff;
   color:var(--ink);
   border:1px solid var(--line);
+  box-shadow:none;
 }
-.row{display:flex;gap:10px;margin-top:12px}
+.btn.danger{
+  background:linear-gradient(135deg,var(--red),var(--pink));
+}
+.btn.gold{
+  background:linear-gradient(135deg,var(--gold),var(--pink));
+  color:#10121a;
+}
 
-/* ===========================
-   NAV
-=========================== */
-.footer{
+.small{font-size:12px}
+.big{font-size:22px;font-weight:1000}
+.glitch{text-shadow:2px 0 var(--pink),-2px 0 var(--cyan)}
+.center{text-align:center}
+
+/* ===== Bottom Nav (fixed; safe) ===== */
+.nav{
   position:fixed;
-  bottom:env(safe-area-inset-bottom);
   left:0;right:0;
+  bottom:var(--safeBottom);
+  height:var(--navH);
+  z-index:1000;
   padding:10px;
 }
-.footer-bar{
+.navbar{
+  height:100%;
+  background:rgba(255,255,255,.9);
+  backdrop-filter: blur(12px);
+  border:1px solid var(--line);
+  border-radius:22px;
   display:flex;
   gap:8px;
-  background:#fff;
-  border-radius:20px;
   padding:10px;
-  border:1px solid var(--line);
+  box-shadow:0 18px 40px rgba(10,20,40,.10);
 }
 .navbtn{
   flex:1;
-  border-radius:14px;
   border:1px solid var(--line);
-  padding:12px;
+  border-radius:16px;
   background:#fff;
-  font-weight:900;
+  font-weight:950;
+  padding:12px 10px;
+  cursor:pointer;
+}
+.navbtn.active{
+  border-color: rgba(0,230,255,.55);
+  box-shadow:0 0 0 4px rgba(0,230,255,.12);
 }
 
-/* ===========================
-   SPECIAL
-=========================== */
-.glitch{text-shadow:2px 0 var(--pink),-2px 0 var(--cyan)}
-.scan-img{
+/* ===== HUD strip (used in scan/boss/profile top rows) ===== */
+.hud{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:12px 14px;
+  border-radius:18px;
+  background:linear-gradient(135deg,#ffffff,rgba(124,77,255,.08));
+  border:1px solid var(--line);
+}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 10px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:#fff;
+  font-weight:950;
+}
+.badge .mini{
+  width:10px;height:10px;border-radius:50%;
+  background:linear-gradient(135deg,var(--cyan),var(--violet));
+}
+
+/* ===== Intro Sequence styling ===== */
+.sequence{
+  min-height: 440px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:18px;
+}
+.seqText{
+  font-size:26px;
+  font-weight:1000;
+  letter-spacing:-.02em;
+  text-align:center;
+}
+.seqSub{
+  font-size:14px;
+  color:var(--muted);
+  font-weight:800;
+  text-align:center;
+  max-width:420px;
+}
+.split{
+  width:100%;
+  height:180px;
+  border-radius:22px;
+  border:1px solid var(--line);
+  overflow:hidden;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+}
+.split .left{
+  background:linear-gradient(135deg,rgba(255,59,59,.28),rgba(255,43,214,.22));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:1000;
+}
+.split .right{
+  background:linear-gradient(135deg,rgba(255,204,51,.28),rgba(0,230,255,.14));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:1000;
+}
+.reticle{
+  width:220px;height:220px;border-radius:50%;
+  border:2px solid rgba(24,245,156,.7);
+  box-shadow:0 0 0 10px rgba(24,245,156,.10);
+  position:relative;
+}
+.reticle:before,.reticle:after{
+  content:"";
+  position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+}
+.reticle:before{width:140px;height:140px;border:1px dashed rgba(24,245,156,.85)}
+.reticle:after{width:18px;height:18px;background:rgba(24,245,156,.85)}
+/* Camera */
+.videoBox{
+  margin-top:10px;
+  border-radius:22px;
+  border:1px solid var(--line);
+  overflow:hidden;
+  background:#fff;
+}
+video{width:100%;display:block}
+.canvasHidden{display:none}
+.field{
+  width:100%;
+  padding:14px;
+  border-radius:16px;
+  border:1px solid var(--line);
+  font-weight:850;
+  outline:none;
+}
+
+/* Scan */
+.cardFace{
   width:100%;
   aspect-ratio:3/4;
-  border-radius:20px;
-  background:linear-gradient(135deg,#dff7ff,#ede7ff);
+  border-radius:22px;
+  border:1px solid var(--line);
+  background:linear-gradient(135deg,#dff8ff,#efeaff);
   display:flex;
   align-items:center;
   justify-content:center;
-  font-size:32px;
-  font-weight:1000;
+  overflow:hidden;
+  position:relative;
 }
-.hpbar{
-  height:14px;border-radius:999px;background:#eee;overflow:hidden;
-}
-.hpfill{
-  height:100%;background:linear-gradient(90deg,var(--red),var(--pink));
+.cardFace img{
   width:100%;
+  height:100%;
+  object-fit:cover;
 }
+.cardOverlay{
+  position:absolute;
+  left:0;right:0;bottom:0;
+  padding:14px;
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.55));
+  color:#fff;
+}
+.actions{
+  display:flex;
+  gap:12px;
+  margin-top:12px;
+}
+.vote{
+  flex:1;
+  border:none;
+  border-radius:18px;
+  padding:16px;
+  font-weight:1000;
+  cursor:pointer;
+}
+.vote.light{background:linear-gradient(135deg,var(--gold),#ffe8a6)}
+.vote.spite{background:linear-gradient(135deg,var(--red),var(--pink));color:#fff}
+.counterRow{
+  display:flex;gap:10px;flex-wrap:wrap;margin-top:10px
+}
+
+/* Boss */
+.bossArena{
+  border-radius:22px;
+  border:1px solid var(--line);
+  background:radial-gradient(400px 240px at 50% 40%, rgba(255,59,59,.20), transparent 60%),
+             radial-gradient(500px 260px at 50% 80%, rgba(0,230,255,.12), transparent 60%),
+             #fff;
+  overflow:hidden;
+  position:relative;
+}
+.bossCanvas{
+  width:100%;
+  height:320px;
+}
+.hpWrap{margin-top:12px}
+.hpBar{
+  height:14px;border-radius:999px;background:#eef2ff;overflow:hidden;border:1px solid var(--line)
+}
+.hpFill{
+  height:100%;
+  width:100%;
+  background:linear-gradient(90deg,var(--red),var(--pink));
+}
+.sponsorStrip{
+  display:flex;gap:10px;flex-wrap:wrap;margin-top:12px
+}
+.logo{
+  padding:10px 12px;border-radius:999px;border:1px solid var(--line);
+  background:#fff;font-weight:950;
+}
+
+/* Inventory grid */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+.item{
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:12px;
+  background:#fff;
+  cursor:pointer;
+  min-height:84px;
+  display:flex;flex-direction:column;justify-content:space-between;
+}
+.item.equipped{
+  border-color: rgba(0,230,255,.65);
+  box-shadow:0 0 0 4px rgba(0,230,255,.14);
+}
+.item .name{font-weight:1000}
+.item .meta{font-size:12px;color:var(--muted);font-weight:850}
+
+/* Hall of Fame */
+.hofTop{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px
+}
+.hofCard{
+  border:1px solid var(--line);
+  border-radius:22px;
+  overflow:hidden;
+  background:#fff;
+}
+.hofImg{
+  height:180px;
+  background:linear-gradient(135deg,#dff8ff,#efeaff);
+  display:flex;align-items:center;justify-content:center;
+  font-size:30px;font-weight:1000;
+}
+.hofBody{padding:12px}
+.hofName{font-weight:1000}
+.hofTag{font-size:12px;color:var(--muted);font-weight:850}
+
+/* Marketplace lists */
+.list{
+  display:flex;flex-direction:column;gap:10px;margin-top:12px
+}
+.rowItem{
+  border:1px solid var(--line);
+  border-radius:20px;
+  padding:12px;
+  background:#fff;
+  display:flex;justify-content:space-between;align-items:center;gap:10px
+}
+.rowItem .title{font-weight:1000}
+.rowItem .sub{font-size:12px;color:var(--muted);font-weight:850}
+
+/* Loader */
+.loader{
+  position:fixed;
+  inset:0;
+  z-index:2000;
+  background:rgba(255,255,255,.78);
+  backdrop-filter: blur(10px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:12px;
+}
+.loader.active{display:flex}
+.spinner{
+  width:42px;height:42px;border-radius:50%;
+  border:4px solid #eaf0ff;
+  border-top-color: var(--violet);
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 
 <body>
-<div class="marquee">
-  <div class="marquee-track">
-    <span>SPONSORS · DGLITCH · PARTNERS · COMING SOON</span>
-    <span>SPONSORS · DGLITCH · PARTNERS · COMING SOON</span>
+
+<!-- Sponsor / Partner marquee (editable) -->
+<div class="marquee" id="marquee">
+  <div class="marquee-track" id="marqueeTrack">
+    <span class="pill"><span class="dot"></span>SPONSORS · PARTNERS · DGLITCH.GG</span>
+    <span class="pill"><span class="dot"></span>SPONSORS · PARTNERS · DGLITCH.GG</span>
+    <span class="pill"><span class="dot"></span>SPONSORS · PARTNERS · DGLITCH.GG</span>
+    <span class="pill"><span class="dot"></span>SPONSORS · PARTNERS · DGLITCH.GG</span>
   </div>
 </div>
 
-<div class="app">
-
-<!-- ================= INTRO ================= -->
-<div class="screen active" id="intro">
-  <div class="wrap">
-    <div class="card"><div class="card-inner">
-      <h1 class="glitch" style="text-align:center">You are invisible.</h1>
-      <h2 style="text-align:center;margin-top:12px">WAKE UP.</h2>
-      <button class="btn" onclick="go('create')">ENTER THE CITADEL</button>
-    </div></div>
-  </div>
+<!-- Loader -->
+<div class="loader" id="loader">
+  <div class="spinner"></div>
+  <div class="muted" id="loaderMsg">LOADING...</div>
 </div>
 
-<!-- ================= CREATE ================= -->
-<div class="screen" id="create">
-  <div class="wrap">
-    <div class="card"><div class="card-inner">
-      <h2>Character Creation</h2>
-      <p class="muted">Face verification & archetype</p>
-      <div class="scan-img">CAMERA</div>
-      <button class="btn" onclick="go('profile')">CONFIRM IDENTITY</button>
-    </div></div>
-  </div>
-</div>
+<!-- App Root -->
+<div class="app" id="app">
 
-<!-- ================= PROFILE ================= -->
-<div class="screen" id="profile">
-  <div class="wrap">
-    <div class="card"><div class="card-inner">
-      <h2>Your Profile</h2>
-      <p class="muted">Energy · AP · Faction</p>
-      <p>Energy: <b id="energy">30</b></p>
-      <p>AP: <b id="ap">0</b></p>
-      <p>Faction: <b id="faction">UNSORTED</b></p>
-      <div class="row">
-        <button class="btn secondary" onclick="go('scan')">SCAN</button>
-        <button class="btn secondary" onclick="go('inventory')">INVENTORY</button>
+  <!-- ==============================
+       SCREEN: INTRO SEQUENCE
+  =============================== -->
+  <section class="screen active" id="screen_intro" data-title="Intro">
+    <div class="wrap">
+      <div class="card">
+        <div class="card-inner">
+          <div class="hud">
+            <div class="badge"><span class="mini"></span>AZEUQER</div>
+            <button class="btn secondary" id="btnSoundToggle">🔊 Sound: ON</button>
+          </div>
+
+          <div class="sequence" id="introSequence">
+            <!-- Filled by JS -->
+          </div>
+
+          <div class="row">
+            <button class="btn secondary" onclick="openOfficial()">Official Site</button>
+            <button class="btn" id="btnIntroNext">Continue</button>
+          </div>
+
+          <div class="hr"></div>
+          <div class="small muted">
+            *Telegram-safe. Bright theme. Sponsor marquee won’t cover content.*
+          </div>
+        </div>
       </div>
-    </div></div>
-  </div>
-</div>
+    </div>
+  </section>
 
-<!-- ================= SCAN ================= -->
-<div class="screen" id="scan">
-  <div class="wrap">
-    <div class="card"><div class="card-inner">
-      <h2>Judgement</h2>
-      <div class="scan-img" id="scanFace">USER</div>
-      <div class="row">
-        <button class="btn secondary" onclick="vote('SPITE')">SPITE</button>
-        <button class="btn" onclick="vote('LIGHT')">LIGHT</button>
+  <!-- ==============================
+       SCREEN: CHARACTER CREATION
+       - Email input
+       - Live camera scan (no gallery)
+       - Archetype sliders placeholder
+  =============================== -->
+  <section class="screen" id="screen_create" data-title="Create">
+    <div class="wrap">
+      <div class="card">
+        <div class="card-inner">
+          <div class="hud">
+            <div class="badge"><span class="mini"></span>Bio-Gate</div>
+            <div class="badge">AP: <span id="hudAPCreate">0</span></div>
+          </div>
+
+          <h2 style="margin-top:12px">Scan your face. Reveal your soul.</h2>
+          <p class="muted">Live camera scan only. No gallery uploads.</p>
+
+          <div class="hr"></div>
+
+          <label class="muted small">E-mail (adds 500 AP)</label>
+          <input class="field" id="emailInput" type="email" placeholder="you@domain.com" autocomplete="email" />
+          <button class="btn gold" style="margin-top:10px" id="btnSaveEmail">Save E-mail (+500 AP)</button>
+
+          <div class="hr"></div>
+
+          <button class="btn" id="btnOpenCamera">Open Front Camera</button>
+          <div class="videoBox hidden" id="videoBox">
+            <video id="video" autoplay playsinline muted></video>
+            <div class="row">
+              <button class="btn" id="btnCapture">Capture & Lock</button>
+              <button class="btn secondary" id="btnCloseCamera">Close</button>
+            </div>
+            <div class="small muted" id="camDebug" style="margin-top:8px"></div>
+          </div>
+          <canvas id="canvas" class="canvasHidden"></canvas>
+
+          <div class="hr"></div>
+
+          <h3>Vessel (Archetype)</h3>
+          <p class="muted small">Binary sliders (cosmetic only). Full function wired later in Prompt build.</p>
+
+          <div class="card" style="box-shadow:none">
+            <div class="card-inner">
+              <div class="muted small">Work: <b id="sWorkLabel">Lazy</b></div>
+              <input type="range" min="0" max="1" step="1" value="0" id="sWork" style="width:100%" />
+              <div class="muted small" style="margin-top:10px">Pace: <b id="sPaceLabel">Slow</b></div>
+              <input type="range" min="0" max="1" step="1" value="0" id="sPace" style="width:100%" />
+              <div class="muted small" style="margin-top:10px">Mind: <b id="sMindLabel">Smart</b></div>
+              <input type="range" min="0" max="1" step="1" value="0" id="sMind" style="width:100%" />
+              <div class="muted small" style="margin-top:10px">Vibe: <b id="sVibeLabel">Nerd</b></div>
+              <input type="range" min="0" max="1" step="1" value="0" id="sVibe" style="width:100%" />
+            </div>
+          </div>
+
+          <div class="row">
+            <button class="btn secondary" onclick="route('screen_intro')">Back</button>
+            <button class="btn" onclick="route('screen_profile')">Continue</button>
+          </div>
+        </div>
       </div>
-      <p class="muted" id="scanInfo"></p>
-    </div></div>
-  </div>
+    </div>
+  </section>
+
+  <!-- ==============================
+       SCREEN: PROFILE (DASHBOARD)
+       - Energy
+       - Referrals
+       - Referral link/code
+       - Faction & Rank
+       - Inventory
+       - Boss killed
+       - Stars
+       - AP
+  =============================== -->
+  <section class="screen" id="screen_profile" data-title="Profile">
+    <div class="wrap">
+      <div class="card">
+        <div class="card-inner">
+          <div class="hud">
+            <div class="badge"><span class="mini"></span>Profile</div>
+            <div class="badge">Energy: <span id="hudEnergy">30</span>/30</div>
+            <div class="badge">AP: <span id="hudAP">0</span></div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="row">
+            <div class="col">
+              <div class="muted small">Faction</div>
+              <div class="big" id="profileFaction">UNSORTED</div>
+            </div>
+            <div class="col">
+              <div class="muted small">Rank</div>
+              <div class="big" id="profileRank">CITIZEN</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <div class="muted small">Referrals</div>
+              <div class="big" id="profileRefCount">0</div>
+            </div>
+            <div class="col">
+              <div class="muted small">Boss Killed</div>
+              <div class="big" id="profileBossKills">0</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <div class="muted small">Telegram Stars</div>
+              <div class="big" id="profileStars">0</div>
+            </div>
+            <div class="col">
+              <div class="muted small">E-mail</div>
+              <div class="big" id="profileEmail">—</div>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="muted small">Your referral link/code</div>
+          <div class="card" style="box-shadow:none;margin-top:10px">
+            <div class="card-inner">
+              <div style="font-weight:1000" id="refLink">t.me/AzeuqerBot?start=ref_12345</div>
+              <div class="row">
+                <button class="btn secondary" onclick="copyRef()">Copy</button>
+                <button class="btn secondary" onclick="shareRef()">Share</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <button class="btn" onclick="route('screen_scan')">Start Scanning</button>
+            <button class="btn secondary" onclick="route('screen_hof')">Hall of Fame</button>
+          </div>
+
+          <div class="row">
+            <button class="btn secondary" onclick="route('screen_inventory')">Inventory</button>
+            <button class="btn secondary" onclick="route('screen_market')">Market</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==============================
+       SCREEN: SCAN/SWIPE LOOP
+       - 10 required to progress
+       - 20 free/day
+       - Energy burns after free
+       - 1 energy regen/5min (lazy calc placeholder)
+       - Boss randomly appears between 11th-20th
+  =============================== -->
+  <section class="screen" id="screen_scan" data-title="Scan">
+    <div class="wrap">
+      <div class="card">
+        <div class="card-inner">
+          <div class="hud">
+            <div class="badge"><span class="mini"></span>Judgement</div>
+            <div class="badge">Energy: <span id="scanEnergy">30</span>/30</div>
+            <div class="badge">Scans: <span id="scanCount">0</span>/20</div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="cardFace" id="faceCard">
+            <img id="faceImg" alt="face" />
+            <div class="cardOverlay">
+              <div style="font-weight:1000" id="faceName">TARGET</div>
+              <div class="small" id="faceMeta">Active · VERIFIED</div>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="vote spite" id="btnSpite">💀 SPITE</button>
+            <button class="vote light" id="btnLight">⚡ LIGHT</button>
+          </div>
+
+          <div class="counterRow">
+            <span class="badge">Light: <span id="lightCount">0</span></span>
+            <span class="badge">Spite: <span id="spiteCount">0</span></span>
+            <span class="badge">AP: <span id="scanAP">0</span></span>
+          </div>
+
+          <div class="hr"></div>
+          <div class="muted" id="scanInfo">
+            Complete 10 scans to be sorted. Boss can spawn between scan 11–20.
+          </div>
+
+          <div class="row">
+            <button class="btn secondary" onclick="route('screen_profile')">Back</button>
+            <button class="btn secondary" onclick="route('screen_shop')">Potions / Energy</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==============================
+       SCREEN: BOSS FIGHT
+       - Animated boss (placeholder canvas ready for Phaser)
+       - HP bar
+       - Sponsor logos
+       - Stats: STR/AGI/INT/VIT
+  =============================== -->
+  <section class="screen" id="screen_boss" data-title="Boss">
+    <div class="wrap">
+      <div class="card">
+        <div class="card-inner">
+          <div class="hud">
+            <div class="badge"><span class="mini"></span>Boss Fight</div>
+            <div class="badge">Energy: <span id="bossEnergy">30</span>/30</div>
+            <div class="badge">AP: <span id="bossAP">0</span></div>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="bossArena">
+            <div id="phaserMount" class="bossCanvas"></div>
+          </div>
+
+          <div class="hpWrap">
+            <div class="muted small">Boss HP</div>
+            <div class="hpBar"><div class="hpFill" id="bossHPFill"></div></div>
+            <div class="muted small" style="margin-top:6px">
+              <span id="bossHPText">100 / 100</span>
+            </div>
+          </div>
+
+          <div class="sponsorStrip">
+            <div class="logo">Sponsor: <b id="bossSponsor">DGLITCH</b></div>
+            <div class="logo">Partner: <b>COMING</b></div>
+            <div class="logo">Drop: <b id="bossDrop">???</b></div>
+          </div>
+
+          <div class="hr"></div>
+
+          <h3>Your Stats</h3>
+          <div class="counterRow">
+            <span class="badge">STR: <span id="stSTR">0</span></span>
+            <span class="badge">AGI: <span id="stAGI">0</span></span>
+            <span class="badge">INT: <span id="stINT">0</span></span>
+            <span class="badge">VIT: <span id="stVIT">0</span></span>
+          </div>
+
+          <div class="row">
+            <button class="btn danger" id="btnAttack">ATTACK</button>
+            <button class="btn secondary" id="btnHeal">HP POTION</button>
+          </div>
+
+          <div class="row">
+            <button class="btn secondary" onclick="exitBoss()">Run (Back)</button>
+          </div>
+
+          <div class="muted small" id="bossLog" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==============================
+       SCREEN: HALL OF FAME
+       - Top Euphorian & Dissonant images
+       - #2, #3 as text
+  =============================== -->
+  <section class="screen" id="screen_hof" data-title="Hall">
+    <div class="wrap">
+      <div class="card">
+        <div class="card-inner">
+          <div class="hud">
+            <div class="badge"><span class="mini"></span>Hall of Fame</div>
+            <button class="btn secondary" onclick="route('screen_profile')">Back</button>
+          </div>
+
+          <div class="hofTop">
+            <div class="hofCard">
+              <div class="hofImg" id="hofE1">🟡</div>
+              <div class="hofBody">
+                <div class="hofName" id="hofEName1">Top Euphorian</div>
+                <div class="hofTag" id="hofETag1">#1 · LIGHT</div>
+              </div>
+            </div>
+            <div class="hofCard">
+              <div class="hofImg" id="hofD1">🔴</div>
+              <div class="hofBody">
+                <div class="hofName" id="hofDName1">Top Dissonant</div>
+                <div class="hofTag" id="hofDTag1">#1 · SPITE</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+          <h3>Top 2 & 3</h3>
+          <div class="list">
+            <div class="rowItem">
+              <div>
+                <div class="title">🟡 Euphorian #2</div>
+                <div class="sub" id="hofE2">—</div>
+              </div>
+              <div class="badge">LIGHT</div>
+            </div>
+            <div class="rowItem">
+              <div>
+                <div class="title">🟡 Euphorian #3</div>
+                <div class="sub" id="hofE3">—</div>
+              </div>
+              <div class="badge">LIGHT</div>
+            </div>
+            <div class="rowItem">
+              <div>
+                <div class="title">🔴 Dissonant #2</div>
+                <div class="sub" id="hofD2">—</div>
+              </div>
+              <div class="badge">SPITE</div>
+            </div>
+            <div class="rowItem">
+              <div>
+                <div class="title">🔴 Dissonant #3</div>
+                <div class="sub" id="hofD3">—</div>
+              </div>
+              <div class="badge">SPITE</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==============================
+       SCREEN: INVENTORY
+       - Equipment + durability
+       - Equip logic: atomic by slot (client)
+  =============================== -->
+  <section class="screen" id="screen_inventory" data-title="Inventory">
+    <div class="wrap">
+      <div class="card">
+        <div class="card-inner">
+          <div class="hud">
+            <div class="badge"><span class="mini"></span>Inventory</div>
+            <button class="btn secondary" onclick="route('screen_profile')">Back</button>
+          </div>
+
+          <div class="hr"></div>
+          <div class="muted">Tap an item to equip (atomic per slot).</div>
+
+          <div class="hr"></div>
+          <div class="grid" id="invGrid"></div>
+
+          <div class="hr"></div>
+          <div class="row">
+            <button class="btn secondary" onclick="repairAll()">Repair (AP/Stars later)</button>
+            <button class="btn secondary" onclick="route('screen_shop')">Potions Shop</button>
+          </div>
+
+          <div class="muted small" id="invMsg" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==============================
+       SCREEN: MARKETPLACE
+       - Players for rent
+       - Equipment for sale
+       - Placeholder lists (wired later)
+  =============================== -->
+  <section class="screen" id="screen_market" data-title="Market">
+    <div class="wrap">
+      <div class="card">
+        <div class="card-inner">
+          <div class="hud">
+            <div class="badge"><span class="mini"></span>Market</div>
+            <button class="btn secondary" onclick="route('screen_profile')">Back</button>
+          </div>
+
+          <div class="hr"></div>
+          <h3>Players for Rent</h3>
+          <div class="list" id="rentList"></div>
+
+          <div class="hr"></div>
+          <h3>Equipment for Sale</h3>
+          <div class="list" id="saleList"></div>
+
+          <div class="hr"></div>
+          <div class="muted small">
+            *Taxing, expiries, caps, and Stars conversion are wired in the full functional step.*
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==============================
+       SCREEN: SHOP (Potions/Energy)
+  =============================== -->
+  <section class="screen" id="screen_shop" data-title="Shop">
+    <div class="wrap">
+      <div class="card">
+        <div class="card-inner">
+          <div class="hud">
+            <div class="badge"><span class="mini"></span>Shop</div>
+            <button class="btn secondary" onclick="route('screen_scan')">Back</button>
+          </div>
+
+          <div class="hr"></div>
+          <h3>Potions</h3>
+          <div class="list">
+            <div class="rowItem">
+              <div>
+                <div class="title">HP Potion</div>
+                <div class="sub">Restores 100% HP (price doubles each buy / day)</div>
+              </div>
+              <button class="btn secondary" style="width:auto" onclick="buyPotion('HP')">Buy</button>
+            </div>
+            <div class="rowItem">
+              <div>
+                <div class="title">Energy Potion</div>
+                <div class="sub">+5 Energy (price doubles each buy / day)</div>
+              </div>
+              <button class="btn secondary" style="width:auto" onclick="buyPotion('ENERGY')">Buy</button>
+            </div>
+          </div>
+
+          <div class="hr"></div>
+          <h3>Energy</h3>
+          <div class="muted small">
+            Lazy regen: 1 energy / 5 minutes (computed on-read).
+          </div>
+
+          <div class="row">
+            <button class="btn secondary" onclick="route('screen_profile')">Profile</button>
+            <button class="btn secondary" onclick="route('screen_inventory')">Inventory</button>
+          </div>
+
+          <div class="muted small" id="shopMsg" style="margin-top:10px"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==============================
+       SCREEN: SETTINGS
+       - Sound toggle
+       - Partner marquee editor (editable)
+  =============================== -->
+  <section class="screen" id="screen_settings" data-title="Settings">
+    <div class="wrap">
+      <div class="card">
+        <div class="card-inner">
+          <div class="hud">
+            <div class="badge"><span class="mini"></span>Settings</div>
+            <button class="btn secondary" onclick="route('screen_profile')">Back</button>
+          </div>
+
+          <div class="hr"></div>
+          <h3>Sound</h3>
+          <button class="btn" id="btnSoundToggle2">🔊 Sound: ON</button>
+          <div class="muted small" style="margin-top:10px">
+            Subtle dopamine-friendly micro SFX (non-annoying). Works after first tap.
+          </div>
+
+          <div class="hr"></div>
+          <h3>Sponsor / Partner ticker</h3>
+          <div class="muted small">Edit text (updates marquee instantly).</div>
+          <input class="field" id="marqueeEdit" placeholder="SPONSORS · PARTNERS · DGLITCH.GG" />
+          <button class="btn secondary" style="margin-top:10px" onclick="applyMarquee()">Apply</button>
+
+          <div class="hr"></div>
+          <a href="https://www.dglitch.gg/" target="_blank" rel="noopener noreferrer" class="btn secondary" style="display:block;text-align:center;text-decoration:none">
+            Open Official Website
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
 </div>
 
-<!-- ================= BOSS ================= -->
-<div class="screen" id="boss">
-  <div class="wrap">
-    <div class="card"><div class="card-inner">
-      <h2>BOSS ENCOUNTER</h2>
-      <div class="hpbar"><div class="hpfill" id="hp"></div></div>
-      <button class="btn" onclick="attack()">ATTACK</button>
-    </div></div>
-  </div>
-</div>
-
-<!-- ================= INVENTORY ================= -->
-<div class="screen" id="inventory">
-  <div class="wrap">
-    <div class="card"><div class="card-inner">
-      <h2>Inventory</h2>
-      <p class="muted">Items · Durability</p>
-    </div></div>
-  </div>
-</div>
-
-</div>
-
-<div class="footer">
-  <div class="footer-bar">
-    <button class="navbtn" onclick="go('intro')">Intro</button>
-    <button class="navbtn" onclick="go('profile')">Profile</button>
-    <button class="navbtn" onclick="go('scan')">Scan</button>
+<!-- Bottom Nav -->
+<div class="nav">
+  <div class="navbar" id="navbar">
+    <button class="navbtn active" data-go="screen_intro">Intro</button>
+    <button class="navbtn" data-go="screen_create">Create</button>
+    <button class="navbtn" data-go="screen_profile">Profile</button>
+    <button class="navbtn" data-go="screen_scan">Scan</button>
+    <button class="navbtn" data-go="screen_settings">Settings</button>
   </div>
 </div>
 
 <script>
-if(window.Telegram?.WebApp){Telegram.WebApp.ready();Telegram.WebApp.expand();}
+/* =========================================================
+   TITANIUM SHELL — STRUCTURE ONLY
+   (This is the "actual HTML that will contain the codes
+    for each section/area/screens".)
 
-let scans=0,energy=30,ap=0,bossAt=Math.floor(Math.random()*10)+11,hp=100;
+   NEXT: we will implement each module one by one in full.
+========================================================= */
 
-function go(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-
-function vote(t){
-  scans++;ap++;if(scans>20)energy--;
-  document.getElementById('energy').textContent=energy;
-  document.getElementById('ap').textContent=ap;
-  document.getElementById('scanInfo').textContent=`Scan ${scans}/20`;
-  if(scans===10){
-    document.getElementById('faction').textContent=Math.random()>0.5?'EUPHORIA':'DISSONANCE';
+/* ===== Telegram WebApp Setup ===== */
+const tg = window.Telegram?.WebApp || null;
+try{
+  if(tg){
+    tg.ready();
+    tg.expand();
+    tg.disableClosingConfirmation();
+    tg.setHeaderColor?.('#ffffff');
+    tg.setBackgroundColor?.('#f4f7ff');
   }
-  if(scans>=bossAt){go('boss');}
+}catch(e){}
+
+/* ===== GLOBAL STATE (placeholder; wired fully later) ===== */
+const STATE = {
+  user: {
+    id: 12345,
+    username: "Citizen",
+    email: null,
+    ap: 0,
+    stars: 0,
+    energy: 30,
+    energyMax: 30,
+    energyLastTS: Date.now(),
+    referrals: 0,
+    faction: "UNSORTED",
+    rank: "CITIZEN",
+    bossKills: 0
+  },
+  scan: {
+    scansToday: 0,
+    freeScansLimit: 20,
+    requiredToSort: 10,
+    light: 0,
+    spite: 0,
+    bossSpawnAt: null
+  },
+  audio: {
+    enabled: true,
+    unlocked: false
+  },
+  inventory: [],
+  market: {
+    rentals: [],
+    sales: []
+  },
+  hof: {
+    topE: {name:"Top Euphorian", tag:"#1 · LIGHT"},
+    topD: {name:"Top Dissonant", tag:"#1 · SPITE"},
+    e2:"—", e3:"—", d2:"—", d3:"—"
+  },
+  fake: {
+    faces: [],
+    bosses: []
+  }
+};
+
+/* =========================================================
+   ROUTER (Telegram-safe show/hide)
+========================================================= */
+function route(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if(el) el.classList.add('active');
+  // nav highlight
+  document.querySelectorAll('.navbtn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.go === id);
+  });
+  // reset scroll to top (Telegram UX)
+  try{ el?.scrollTo({top:0,behavior:'instant'});}catch(e){ try{el.scrollTop=0;}catch(_){} }
 }
 
-function attack(){
-  hp-=Math.random()*20;
-  if(hp<=0){hp=100;go('profile');}
-  document.getElementById('hp').style.width=hp+'%';
+/* nav binding */
+document.getElementById('navbar').addEventListener('click', (e)=>{
+  const btn = e.target.closest('.navbtn');
+  if(!btn) return;
+  route(btn.dataset.go);
+});
+
+/* =========================================================
+   INTRO SEQUENCE (structure only; full logic later)
+========================================================= */
+const INTRO = [
+  { type:"text", big:"You are invisible.", sub:"" },
+  { type:"text", big:"The Algorithm ignores you.", sub:"Society filters you. Reality forgets you." },
+  { type:"text", big:"WAKE UP.", sub:"" },
+  { type:"split", big:"Here, you are the Asset.", sub:"Here, your face is the Currency. We want your Truth." },
+  { type:"reticle", big:"To enter the Citadel, you must be judged.", sub:"Are you Order? Or are you Chaos?" },
+  { type:"cta", big:"Scan your face. Reveal your soul.", sub:"Enter e-mail to claim +500 AP." }
+];
+
+let introStep = 0;
+function renderIntro(){
+  const root = document.getElementById('introSequence');
+  const s = INTRO[introStep];
+  root.innerHTML = "";
+
+  const big = document.createElement('div');
+  big.className = "seqText glitch";
+  big.textContent = s.big || "";
+  root.appendChild(big);
+
+  if(s.type === "split"){
+    const split = document.createElement('div');
+    split.className = "split";
+    split.innerHTML = `<div class="left">DISSONANCE</div><div class="right">EUPHORIA</div>`;
+    root.appendChild(split);
+  }
+  if(s.type === "reticle"){
+    const r = document.createElement('div');
+    r.className = "reticle";
+    root.appendChild(r);
+  }
+
+  const sub = document.createElement('div');
+  sub.className = "seqSub";
+  sub.textContent = s.sub || "";
+  root.appendChild(sub);
+
+  // CTA hint
+  if(s.type === "cta"){
+    const hint = document.createElement('div');
+    hint.className = "muted small center";
+    hint.style.marginTop = "10px";
+    hint.textContent = "Continue to Bio-Gate to scan + enter email.";
+    root.appendChild(hint);
+  }
+
+  document.getElementById('btnIntroNext').textContent =
+    (introStep >= INTRO.length - 1) ? "Proceed to Bio-Gate" : "Continue";
 }
+
+document.getElementById('btnIntroNext').addEventListener('click', ()=>{
+  unlockAudio();
+  if(introStep >= INTRO.length - 1){
+    route('screen_create');
+  }else{
+    introStep++;
+    renderIntro();
+    sfx('tap');
+  }
+});
+
+/* =========================================================
+   OFFICIAL SITE
+========================================================= */
+function openOfficial(){
+  unlockAudio();
+  sfx('tap');
+  window.open("https://www.dglitch.gg/","_blank","noopener,noreferrer");
+}
+
+/* =========================================================
+   AUDIO (structure; full sound pack later)
+========================================================= */
+let audioCtx = null;
+function unlockAudio(){
+  if(STATE.audio.unlocked) return;
+  try{
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    STATE.audio.unlocked = true;
+  }catch(e){}
+}
+function sfx(kind){
+  if(!STATE.audio.enabled) return;
+  if(!STATE.audio.unlocked) return;
+  if(!audioCtx) return;
+
+  // Subtle micro-sfx (simple oscillator now; full samples later)
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = "sine";
+
+  const now = audioCtx.currentTime;
+  let f1 = 440, f2 = 880, dur = 0.08, vol = 0.05;
+
+  if(kind === 'tap'){ f1=520; f2=780; dur=0.06; vol=0.04; }
+  if(kind === 'confirm'){ f1=440; f2=980; dur=0.10; vol=0.05; }
+  if(kind === 'error'){ f1=180; f2=120; dur=0.12; vol=0.06; }
+  if(kind === 'coin'){ f1=700; f2=1200; dur=0.08; vol=0.05; }
+
+  o.frequency.setValueAtTime(f1, now);
+  o.frequency.exponentialRampToValueAtTime(f2, now + dur);
+
+  g.gain.setValueAtTime(0.0001, now);
+  g.gain.exponentialRampToValueAtTime(vol, now + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+
+  o.connect(g); g.connect(audioCtx.destination);
+  o.start(now);
+  o.stop(now + dur + 0.02);
+}
+
+/* sound toggles */
+function toggleSound(){
+  unlockAudio();
+  STATE.audio.enabled = !STATE.audio.enabled;
+  document.getElementById('btnSoundToggle').textContent = STATE.audio.enabled ? "🔊 Sound: ON" : "🔇 Sound: OFF";
+  document.getElementById('btnSoundToggle2').textContent = STATE.audio.enabled ? "🔊 Sound: ON" : "🔇 Sound: OFF";
+  sfx('tap');
+}
+document.getElementById('btnSoundToggle').addEventListener('click', toggleSound);
+document.getElementById('btnSoundToggle2').addEventListener('click', toggleSound);
+
+/* =========================================================
+   CAMERA (structure; full enforcement + backend later)
+   - Live camera getUserMedia
+   - No gallery
+========================================================= */
+let cameraStream = null;
+
+async function openCamera(){
+  unlockAudio();
+  const debug = document.getElementById('camDebug');
+  debug.textContent = "";
+  try{
+    setLoading(true,"Opening camera...");
+    const videoEl = document.getElementById('video');
+    videoEl.setAttribute("playsinline","");
+    videoEl.muted = true;
+
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "user" } },
+      audio: false
+    });
+
+    videoEl.srcObject = cameraStream;
+    await videoEl.play();
+    document.getElementById('videoBox').classList.remove('hidden');
+    sfx('confirm');
+  }catch(err){
+    debug.textContent = "Camera blocked / unavailable in this environment.";
+    sfx('error');
+  }finally{
+    setLoading(false);
+  }
+}
+
+function closeCamera(){
+  try{
+    const v = document.getElementById('video');
+    v.pause();
+    v.srcObject = null;
+  }catch(e){}
+  if(cameraStream){
+    cameraStream.getTracks().forEach(t=>t.stop());
+    cameraStream=null;
+  }
+  document.getElementById('videoBox').classList.add('hidden');
+  sfx('tap');
+}
+
+function captureCamera(){
+  const v = document.getElementById('video');
+  if(!v.videoWidth){ sfx('error'); return; }
+  const c = document.getElementById('canvas');
+  c.width = v.videoWidth;
+  c.height = v.videoHeight;
+  c.getContext('2d').drawImage(v,0,0);
+  // Placeholder: backend upload later
+  STATE.user.ap += 0; // bio-lock reward is handled by backend later
+  syncHUD();
+  sfx('confirm');
+  closeCamera();
+}
+
+document.getElementById('btnOpenCamera').addEventListener('click', openCamera);
+document.getElementById('btnCloseCamera').addEventListener('click', closeCamera);
+document.getElementById('btnCapture').addEventListener('click', captureCamera);
+
+/* =========================================================
+   EMAIL SAVE (structure; backend later)
+========================================================= */
+document.getElementById('btnSaveEmail').addEventListener('click', ()=>{
+  unlockAudio();
+  const email = (document.getElementById('emailInput').value || "").trim();
+  if(!email || !email.includes("@")){
+    sfx('error');
+    return;
+  }
+  // Placeholder: call backend later; for shell we simulate
+  if(!STATE.user.email){
+    STATE.user.email = email;
+    STATE.user.ap += 500;
+    sfx('coin');
+  }else{
+    STATE.user.email = email;
+    sfx('tap');
+  }
+  syncHUD();
+});
+
+/* =========================================================
+   SLIDERS (structure; full vessel asset later)
+========================================================= */
+function bindSlider(id, label, a, b){
+  const el = document.getElementById(id);
+  const out = document.getElementById(label);
+  const update = ()=> out.textContent = (parseInt(el.value,10)===0? a : b);
+  el.addEventListener('input', update);
+  update();
+}
+bindSlider('sWork','sWorkLabel','Lazy','Diligent');
+bindSlider('sPace','sPaceLabel','Slow','Fast');
+bindSlider('sMind','sMindLabel','Smart','Tough');
+bindSlider('sVibe','sVibeLabel','Nerd','Cool');
+
+/* =========================================================
+   SCAN / BOSS / INVENTORY / MARKET / HOF
+   (structure: placeholders; full functions later)
+========================================================= */
+function syncHUD(){
+  document.getElementById('hudAP').textContent = STATE.user.ap;
+  document.getElementById('hudAPCreate').textContent = STATE.user.ap;
+
+  document.getElementById('hudEnergy').textContent = STATE.user.energy;
+  document.getElementById('scanEnergy').textContent = STATE.user.energy;
+  document.getElementById('bossEnergy').textContent = STATE.user.energy;
+
+  document.getElementById('scanAP').textContent = STATE.user.ap;
+  document.getElementById('bossAP').textContent = STATE.user.ap;
+
+  document.getElementById('profileFaction').textContent = STATE.user.faction;
+  document.getElementById('profileRank').textContent = STATE.user.rank;
+  document.getElementById('profileRefCount').textContent = STATE.user.referrals;
+  document.getElementById('profileBossKills').textContent = STATE.user.bossKills;
+  document.getElementById('profileStars').textContent = STATE.user.stars;
+  document.getElementById('profileEmail').textContent = STATE.user.email || "—";
+
+  document.getElementById('scanCount').textContent = STATE.scan.scansToday;
+}
+function setLoading(on,msg="LOADING..."){
+  const l = document.getElementById('loader');
+  l.classList.toggle('active',!!on);
+  document.getElementById('loaderMsg').textContent = msg;
+}
+
+/* Referral link */
+function buildRef(){
+  const code = STATE.user.id;
+  const link = `t.me/AzeuqerBot?start=ref_${code}`;
+  document.getElementById('refLink').textContent = link;
+}
+async function copyRef(){
+  unlockAudio();
+  try{
+    await navigator.clipboard.writeText(document.getElementById('refLink').textContent);
+    sfx('confirm');
+  }catch(e){
+    sfx('error');
+  }
+}
+function shareRef(){
+  unlockAudio();
+  sfx('tap');
+  const text = document.getElementById('refLink').textContent;
+  if(tg?.openTelegramLink){
+    tg.openTelegramLink("https://t.me/share/url?url="+encodeURIComponent("https://"+text));
+  }else{
+    window.open("https://t.me/share/url?url="+encodeURIComponent("https://"+text),"_blank","noopener,noreferrer");
+  }
+}
+
+/* Fake data placeholders for shell */
+function seedShellData(){
+  // faces
+  const names = [
+    "Nova","Kai","Mika","Zed","Luna","Ari","Kira","Juno","Rin","Sol",
+    "Vex","Echo","Nyx","Raya","Tao","Skye","Lex","Milo","Sage","Ivy"
+  ];
+  STATE.fake.faces = names.map((n,i)=>({
+    id: 9000+i,
+    name: n,
+    url: `https://picsum.photos/seed/azeuqer_${i}/700/900`
+  }));
+  // bosses
+  STATE.fake.bosses = Array.from({length:20},(_,i)=>({
+    id: 5000+i,
+    name: `Boss #${i+1}`,
+    sponsor: (i%2===0) ? "DGLITCH" : "PARTNER",
+    drop: (i%3===0) ? "MYTHIC CRATE" : "RARE CRATE"
+  }));
+
+  // inventory
+  STATE.inventory = [
+    {id:"HEAD_NEON", slot:"HEAD", name:"Neon Halo", dur:100, equipped:true, rarity:"EPIC"},
+    {id:"CHEST_DGL", slot:"CHEST", name:"DGLITCH Jacket", dur:100, equipped:false, rarity:"RARE"},
+    {id:"ACC_VOID", slot:"ACC", name:"Void Charm", dur:72, equipped:true, rarity:"MYTHIC"},
+    {id:"FOOT_RUN", slot:"FOOT", name:"Runner Steps", dur:95, equipped:false, rarity:"UNCOMMON"},
+    {id:"LOWER_CLOUD", slot:"LOWER", name:"Cloud Drift", dur:88, equipped:false, rarity:"RARE"},
+    {id:"ACC_SIGIL", slot:"ACC", name:"Sigil Ring", dur:51, equipped:false, rarity:"RARE"}
+  ];
+
+  // market
+  STATE.market.rentals = [
+    {name:"Mercenary: Nyx", price:"300 AP", sub:"+50% stats · expires 00:00 UTC"},
+    {name:"Mercenary: Zed", price:"1 ⭐", sub:"+50% stats · fatigue limit"}
+  ];
+  STATE.market.sales = [
+    {name:"Neon Halo (EPIC)", price:"2 ⭐ / 600 AP", sub:"Durability 100/100"},
+    {name:"Void Charm (MYTHIC)", price:"6 ⭐ / 1800 AP", sub:"Special FX glow"}
+  ];
+
+  // hall of fame placeholders
+  document.getElementById('hofEName1').textContent = "EUPHORIA · NOVA";
+  document.getElementById('hofDName1').textContent = "DISSONANCE · NYX";
+  document.getElementById('hofE2').textContent = "Kai";
+  document.getElementById('hofE3').textContent = "Luna";
+  document.getElementById('hofD2').textContent = "Vex";
+  document.getElementById('hofD3').textContent = "Echo";
+}
+
+/* render inventory shell */
+function renderInventory(){
+  const grid = document.getElementById('invGrid');
+  grid.innerHTML = "";
+  STATE.inventory.forEach(it=>{
+    const d = document.createElement('div');
+    d.className = "item" + (it.equipped ? " equipped" : "");
+    d.innerHTML = `
+      <div class="name">${it.name}</div>
+      <div class="meta">${it.slot} · ${it.rarity} · Dur ${it.dur}/100</div>
+    `;
+    d.onclick = ()=>equipItem(it.id);
+    grid.appendChild(d);
+  });
+}
+
+/* atomic equip (client shell) */
+function equipItem(id){
+  unlockAudio();
+  const it = STATE.inventory.find(x=>x.id===id);
+  if(!it){ sfx('error'); return; }
+  // atomic by slot
+  STATE.inventory.forEach(x=>{
+    if(x.slot===it.slot) x.equipped=false;
+  });
+  it.equipped=true;
+  renderInventory();
+  document.getElementById('invMsg').textContent = `Equipped: ${it.name}`;
+  sfx('confirm');
+}
+
+/* repair placeholder */
+function repairAll(){
+  unlockAudio();
+  STATE.inventory.forEach(x=>x.dur=100);
+  renderInventory();
+  document.getElementById('invMsg').textContent = "All items repaired (simulation).";
+  sfx('coin');
+}
+
+/* market shell render */
+function renderMarket(){
+  const r = document.getElementById('rentList');
+  const s = document.getElementById('saleList');
+  r.innerHTML = "";
+  s.innerHTML = "";
+  STATE.market.rentals.forEach(x=>{
+    const el = document.createElement('div');
+    el.className="rowItem";
+    el.innerHTML = `
+      <div>
+        <div class="title">${x.name}</div>
+        <div class="sub">${x.sub}</div>
+      </div>
+      <div class="badge">${x.price}</div>
+    `;
+    r.appendChild(el);
+  });
+  STATE.market.sales.forEach(x=>{
+    const el = document.createElement('div');
+    el.className="rowItem";
+    el.innerHTML = `
+      <div>
+        <div class="title">${x.name}</div>
+        <div class="sub">${x.sub}</div>
+      </div>
+      <div class="badge">${x.price}</div>
+    `;
+    s.appendChild(el);
+  });
+}
+
+/* shop placeholder buys */
+const shopState = { hpBuys:0, energyBuys:0 };
+function buyPotion(type){
+  unlockAudio();
+  if(type==="HP"){
+    shopState.hpBuys++;
+    document.getElementById('shopMsg').textContent = `HP Potion purchased (x${shopState.hpBuys} today).`;
+  }else{
+    shopState.energyBuys++;
+    STATE.user.energy = Math.min(STATE.user.energyMax, STATE.user.energy + 5);
+    syncHUD();
+    document.getElementById('shopMsg').textContent = `Energy Potion purchased (x${shopState.energyBuys} today). +5 Energy.`;
+  }
+  sfx('coin');
+}
+
+/* Scan binding */
+document.getElementById('btnLight').addEventListener('click', ()=>scanVote("LIGHT"));
+document.getElementById('btnSpite').addEventListener('click', ()=>scanVote("SPITE"));
+
+let faceIndex = 0;
+function renderFace(){
+  const f = STATE.fake.faces[faceIndex % STATE.fake.faces.length];
+  document.getElementById('faceImg').src = f.url;
+  document.getElementById('faceName').textContent = f.name;
+  document.getElementById('faceMeta').textContent = `Active · VERIFIED · ID ${f.id}`;
+}
+function rollBossSpawn(){
+  // boss randomly between scan 11 and 20 (inclusive)
+  const n = Math.floor(Math.random()*10) + 11;
+  STATE.scan.bossSpawnAt = n;
+}
+function scanVote(kind){
+  unlockAudio();
+  // placeholder: full rules later
+  STATE.scan.scansToday++;
+  if(kind==="LIGHT") STATE.scan.light++;
+  else STATE.scan.spite++;
+
+  // free vs energy cost
+  if(STATE.scan.scansToday > STATE.scan.freeScansLimit){
+    if(STATE.user.energy <= 0){
+      document.getElementById('scanInfo').textContent = "No energy. Buy or wait for regen.";
+      sfx('error');
+      return;
+    }
+    STATE.user.energy -= 1;
+  }
+
+  // reward
+  STATE.user.ap += 1;
+
+  // sort at 10
+  if(STATE.scan.scansToday === STATE.scan.requiredToSort){
+    if(STATE.scan.light > STATE.scan.spite) STATE.user.faction = "EUPHORIA";
+    else if(STATE.scan.spite > STATE.scan.light) STATE.user.faction = "DISSONANCE";
+    else STATE.user.faction = (Math.random()<0.5) ? "EUPHORIA" : "DISSONANCE";
+  }
+
+  // boss spawn between 11-20
+  if(STATE.scan.bossSpawnAt && STATE.scan.scansToday === STATE.scan.bossSpawnAt){
+    sfx('confirm');
+    enterBoss();
+  }else{
+    sfx('tap');
+  }
+
+  // advance
+  faceIndex++;
+  renderFace();
+  // UI
+  document.getElementById('lightCount').textContent = STATE.scan.light;
+  document.getElementById('spiteCount').textContent = STATE.scan.spite;
+  syncHUD();
+
+  const msg = `Scan ${STATE.scan.scansToday}/${STATE.scan.freeScansLimit} free. Boss can spawn at ${STATE.scan.bossSpawnAt}.`;
+  document.getElementById('scanInfo').textContent = msg;
+}
+
+/* Boss (shell) */
+let boss = null;
+let bossHP = 100;
+function enterBoss(){
+  // pick boss
+  boss = STATE.fake.bosses[Math.floor(Math.random()*STATE.fake.bosses.length)];
+  bossHP = 100;
+
+  document.getElementById('bossSponsor').textContent = boss.sponsor;
+  document.getElementById('bossDrop').textContent = boss.drop;
+
+  updateBossUI();
+  document.getElementById('bossLog').textContent = `Ambush: ${boss.name}`;
+  route('screen_boss');
+}
+function updateBossUI(){
+  document.getElementById('bossHPFill').style.width = bossHP + "%";
+  document.getElementById('bossHPText').textContent = `${Math.max(0,Math.round(bossHP))} / 100`;
+
+  // stats placeholders
+  document.getElementById('stSTR').textContent = 0;
+  document.getElementById('stAGI').textContent = 0;
+  document.getElementById('stINT').textContent = 0;
+  document.getElementById('stVIT').textContent = 0;
+}
+function exitBoss(){
+  sfx('tap');
+  route('screen_scan');
+}
+
+document.getElementById('btnAttack').addEventListener('click', ()=>{
+  unlockAudio();
+  // placeholder: full combat later
+  const dmg = Math.floor(Math.random()*18) + 6;
+  bossHP -= dmg;
+  document.getElementById('bossLog').textContent = `You dealt ${dmg} damage.`;
+
+  // item durability degrade placeholder
+  STATE.inventory.forEach(x=>{
+    if(x.equipped) x.dur = Math.max(0, x.dur - 2);
+  });
+
+  if(bossHP <= 0){
+    STATE.user.ap += 10;
+    STATE.user.bossKills += 1;
+    // add loot placeholder
+    STATE.inventory.push({
+      id:`LOOT_${Date.now()}`, slot:"ACC", name:`${boss.drop}`, dur:100, equipped:false, rarity:(boss.drop.includes("MYTHIC")?"MYTHIC":"RARE")
+    });
+    renderInventory();
+    syncHUD();
+    document.getElementById('bossLog').textContent = `VICTORY! Loot: ${boss.drop} (+10 AP)`;
+    sfx('coin');
+    setTimeout(()=>route('screen_profile'), 700);
+    return;
+  }
+
+  updateBossUI();
+  sfx('tap');
+});
+
+document.getElementById('btnHeal').addEventListener('click', ()=>{
+  unlockAudio();
+  document.getElementById('bossLog').textContent = "HP Potion used (simulation).";
+  sfx('confirm');
+});
+
+/* Settings marquee edit */
+function applyMarquee(){
+  unlockAudio();
+  const txt = (document.getElementById('marqueeEdit').value || "").trim();
+  if(!txt){ sfx('error'); return; }
+  const track = document.getElementById('marqueeTrack');
+  track.innerHTML = `
+    <span class="pill"><span class="dot"></span>${escapeHtml(txt)}</span>
+    <span class="pill"><span class="dot"></span>${escapeHtml(txt)}</span>
+    <span class="pill"><span class="dot"></span>${escapeHtml(txt)}</span>
+    <span class="pill"><span class="dot"></span>${escapeHtml(txt)}</span>
+  `;
+  sfx('confirm');
+}
+
+/* helpers */
+function escapeHtml(s){
+  return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+
+/* =========================================================
+   INTEGRITY CHECK (router + required elements)
+   - No summarizing; this is runtime protection
+========================================================= */
+function integrityCheck(){
+  const requiredScreens = [
+    "screen_intro","screen_create","screen_profile","screen_scan",
+    "screen_boss","screen_inventory","screen_hof","screen_market",
+    "screen_shop","screen_settings"
+  ];
+  for(const id of requiredScreens){
+    if(!document.getElementById(id)){
+      console.error("Missing screen:", id);
+    }
+  }
+  // ensure marquee/nav safe padding (auto adjust if needed)
+  try{
+    const mh = document.getElementById('marquee').getBoundingClientRect().height || 56;
+    document.documentElement.style.setProperty('--marqueeH', mh + "px");
+  }catch(e){}
+}
+
+/* boot */
+function boot(){
+  integrityCheck();
+  seedShellData();
+  buildRef();
+  renderIntro();
+  renderFace();
+  renderInventory();
+  renderMarket();
+  rollBossSpawn();
+  syncHUD();
+
+  // set marquee editor default
+  document.getElementById('marqueeEdit').value = "SPONSORS · PARTNERS · DGLITCH.GG";
+}
+boot();
+
+/* periodic safe checks (not heavy) */
+setInterval(integrityCheck, 5000);
+window.addEventListener('resize', integrityCheck);
 </script>
+
 </body>
 </html>
