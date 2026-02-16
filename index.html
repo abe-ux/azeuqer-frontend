@@ -1,1708 +1,4427 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
-<title>AZEUQER — Titanium Shell (All Screens in One File)</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#F6F8FF" />
 
-<!-- Telegram WebApp -->
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<!-- Phaser (for Boss / visuals later; loaded now so the shell is ready) -->
-<script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+  <title>AZEUQER V23 — Titanium Build</title>
 
-<style>
-/* =========================================================
-   AZEUQER — GEN Z CLEAN / BRIGHT UI + TELEGRAM SAFE LAYOUT
-   - Always-visible sponsor marquee that does NOT cover content
-   - Screens are scrollable safely within Telegram
-   - Bottom nav never covers content (safe padding)
-========================================================= */
-:root{
-  --bg:#f4f7ff;
-  --bg2:#ffffff;
-  --card:#ffffff;
-  --ink:#0c1325;
-  --muted:#6a7aa6;
+  <!-- Fonts: Gen-Z clean, game-ready -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&family=Inter:wght@500;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
 
-  --line:#e2ecff;
-  --shadow:0 14px 34px rgba(10,20,40,.12);
+  <style>
+    /* =========================================================
+      AZEUQER V23 — TITANIUM ATMOSPHERE (GLOBAL VARIABLES)
+      - Bright, clean, visceral (NOT dark/faded)
+      - Faction palettes: EUPHORIA (Order/Gold), DISSONANCE (Chaos/Red)
+      - Telegram safe-area aware
+    ========================================================= */
 
-  --cyan:#00e6ff;
-  --violet:#7c4dff;
-  --pink:#ff2bd6;
-  --gold:#ffcc33;
-  --red:#ff3b3b;
-  --green:#18f59c;
+    :root {
+      /* ---------- Safe areas (Telegram) ---------- */
+      --safeTop: env(safe-area-inset-top);
+      --safeBottom: env(safe-area-inset-bottom);
 
-  --radius:22px;
+      /* Fixed UI heights (can be measured & overwritten by JS later) */
+      --marqueeH: 56px;   /* sponsors ticker */
+      --navH: 74px;       /* bottom nav */
 
-  --marqueeH:56px;
-  --navH:76px;
+      /* Content padding so ticker/nav never cover screens */
+      --contentTop: calc(var(--safeTop) + var(--marqueeH));
+      --contentBottom: calc(var(--safeBottom) + var(--navH));
 
-  --safeTop: env(safe-area-inset-top);
-  --safeBottom: env(safe-area-inset-bottom);
+      /* ---------- Typography ---------- */
+      --font-head: "Space Grotesk", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      --font-body: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
 
-  --contentTop: calc(var(--marqueeH) + var(--safeTop));
-  --contentBottom: calc(var(--navH) + var(--safeBottom));
-}
+      /* ---------- Base surfaces (bright) ---------- */
+      --bg: #F6F8FF;        /* app background */
+      --surface: #FFFFFF;   /* cards */
+      --surface2: #F0F5FF;  /* soft panels */
+      --ink: #0B1020;       /* primary text */
+      --muted: #5E6B89;     /* secondary text */
+      --line: rgba(20, 35, 70, 0.10);
 
-*{box-sizing:border-box}
-html,body{height:100%;margin:0}
-body{
-  overflow:hidden;
-  background:
-    radial-gradient(1100px 600px at 20% -10%, #ffffff 0%, var(--bg) 40%),
-    radial-gradient(900px 700px at 85% 80%, rgba(124,77,255,.14), transparent 60%),
-    linear-gradient(180deg,#ffffff,#f1f6ff);
-  font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial;
-  color:var(--ink);
-}
+      /* ---------- Neon accents (dopamine, subtle) ---------- */
+      --neon-cyan: #00E6FF;
+      --neon-violet: #7C4DFF;
+      --neon-pink: #FF2BD6;
+      --neon-mint: #18F59C;
 
-a{color:inherit}
-.hidden{display:none !important}
+      /* ---------- Faction colors (SPEC) ---------- */
+      /* EUPHORIA (Order / Gold Theme) */
+      --euph-1: #FFD24A;
+      --euph-2: #FFB800;
+      --euph-glow: rgba(255, 200, 60, 0.45);
 
-/* ===== Sponsor / Partner Marquee (fixed, safe height) ===== */
-.marquee{
-  position:fixed;
-  top:var(--safeTop);
-  left:0;right:0;
-  height:var(--marqueeH);
-  background:rgba(255,255,255,.88);
-  backdrop-filter: blur(12px);
-  border-bottom:1px solid var(--line);
-  z-index:1000;
-  overflow:hidden;
-}
-.marquee-track{
-  height:100%;
-  display:flex;
-  align-items:center;
-  gap:44px;
-  padding:0 14px;
-  white-space:nowrap;
-  font-weight:950;
-  letter-spacing:.02em;
-  animation:marquee 18s linear infinite;
-}
-@keyframes marquee{
-  from{transform:translateX(0)}
-  to{transform:translateX(-50%)}
-}
-.pill{
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
-  padding:10px 14px;
-  border-radius:999px;
-  border:1px solid var(--line);
-  background:#fff;
-  box-shadow: 0 10px 20px rgba(0,0,0,.05);
-}
-.dot{
-  width:10px;height:10px;border-radius:50%;
-  background:linear-gradient(135deg,var(--cyan),var(--pink));
-}
+      /* DISSONANCE (Chaos / Red Theme) */
+      --diss-1: #FF3B3B;
+      --diss-2: #FF006A;
+      --diss-glow: rgba(255, 40, 90, 0.40);
 
-/* ===== App Root ===== */
-.app{
-  position:fixed;
-  inset:0;
-  padding-top:var(--contentTop);
-  padding-bottom:var(--contentBottom);
-}
+      /* ---------- States ---------- */
+      --ok: #18F59C;
+      --warn: #FFB020;
+      --bad: #FF3B3B;
 
-/* ===== Screen Router ===== */
-.screen{
-  position:absolute;
-  inset:0;
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-  padding:16px 14px;
-  display:none;
-}
-.screen.active{display:block}
-.wrap{max-width:560px;margin:0 auto;padding-bottom:20px}
+      /* ---------- Radii & shadows (idle-MMO polish) ---------- */
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --radius-sm: 14px;
 
-/* ===== Shared UI ===== */
-.card{
-  background:var(--card);
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  margin-bottom:14px;
-}
-.card-inner{padding:18px}
-h1,h2,h3{margin:0}
-.muted{color:var(--muted);font-weight:750;line-height:1.3}
-.hr{height:1px;background:var(--line);margin:14px 0}
+      --shadow-1: 0 12px 30px rgba(10, 20, 40, 0.10);
+      --shadow-2: 0 20px 50px rgba(10, 20, 40, 0.14);
 
-.row{display:flex;gap:10px;margin-top:12px}
-.col{flex:1}
+      /* ---------- Motion (visceral, non-annoying) ---------- */
+      --ease-out: cubic-bezier(.2, .8, .2, 1);
+      --ease-pop: cubic-bezier(.2, 1.2, .2, 1);
+      --dur-fast: 140ms;
+      --dur-med: 260ms;
 
-.btn{
-  width:100%;
-  border:none;
-  border-radius:18px;
-  padding:14px 14px;
-  font-weight:950;
-  cursor:pointer;
-  background:linear-gradient(135deg,var(--cyan),var(--violet));
-  color:#fff;
-  box-shadow:0 10px 18px rgba(0,230,255,.12);
-  transition:transform .06s ease;
-}
-.btn:active{transform:scale(.985)}
-.btn.secondary{
-  background:#fff;
-  color:var(--ink);
-  border:1px solid var(--line);
-  box-shadow:none;
-}
-.btn.danger{
-  background:linear-gradient(135deg,var(--red),var(--pink));
-}
-.btn.gold{
-  background:linear-gradient(135deg,var(--gold),var(--pink));
-  color:#10121a;
-}
+      /* ---------- Atomic Inventory (UI hooks) ---------- */
+      --equip-ring: rgba(0, 230, 255, 0.45);
+      --equip-glow: rgba(0, 230, 255, 0.18);
 
-.small{font-size:12px}
-.big{font-size:22px;font-weight:1000}
-.glitch{text-shadow:2px 0 var(--pink),-2px 0 var(--cyan)}
-.center{text-align:center}
+      /* ---------- Brand / Partner ticker ---------- */
+      --ticker-bg: rgba(255, 255, 255, 0.86);
+      --ticker-blur: 14px;
 
-/* ===== Bottom Nav (fixed; safe) ===== */
-.nav{
-  position:fixed;
-  left:0;right:0;
-  bottom:var(--safeBottom);
-  height:var(--navH);
-  z-index:1000;
-  padding:10px;
-}
-.navbar{
-  height:100%;
-  background:rgba(255,255,255,.9);
-  backdrop-filter: blur(12px);
-  border:1px solid var(--line);
-  border-radius:22px;
-  display:flex;
-  gap:8px;
-  padding:10px;
-  box-shadow:0 18px 40px rgba(10,20,40,.10);
-}
-.navbtn{
-  flex:1;
-  border:1px solid var(--line);
-  border-radius:16px;
-  background:#fff;
-  font-weight:950;
-  padding:12px 10px;
-  cursor:pointer;
-}
-.navbtn.active{
-  border-color: rgba(0,230,255,.55);
-  box-shadow:0 0 0 4px rgba(0,230,255,.12);
-}
+      /* ---------- Boss / Loot FX hooks (visual only) ---------- */
+      --loot-common: rgba(0,0,0,0.08);
+      --loot-rare: rgba(124, 77, 255, 0.22);
+      --loot-epic: rgba(255, 43, 214, 0.22);
+      --loot-mythic: rgba(255, 184, 0, 0.26);
+    }
 
-/* ===== HUD strip (used in scan/boss/profile top rows) ===== */
-.hud{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:10px;
-  padding:12px 14px;
-  border-radius:18px;
-  background:linear-gradient(135deg,#ffffff,rgba(124,77,255,.08));
-  border:1px solid var(--line);
-}
-.badge{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  padding:8px 10px;
-  border-radius:999px;
-  border:1px solid var(--line);
-  background:#fff;
-  font-weight:950;
-}
-.badge .mini{
-  width:10px;height:10px;border-radius:50%;
-  background:linear-gradient(135deg,var(--cyan),var(--violet));
-}
+    /* =========================================================
+      Global resets (Telegram-safe scrolling will be applied per screen)
+    ========================================================= */
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      background:
+        radial-gradient(1000px 600px at 18% -10%, #FFFFFF 0%, var(--bg) 45%),
+        radial-gradient(900px 700px at 90% 82%, rgba(124, 77, 255, 0.12), transparent 60%),
+        linear-gradient(180deg, #FFFFFF, var(--bg));
+      color: var(--ink);
+      font-family: var(--font-body);
+      overflow: hidden; /* screens manage their own scroll */
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
 
-/* ===== Intro Sequence styling ===== */
-.sequence{
-  min-height: 440px;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  gap:18px;
-}
-.seqText{
-  font-size:26px;
-  font-weight:1000;
-  letter-spacing:-.02em;
-  text-align:center;
-}
-.seqSub{
-  font-size:14px;
-  color:var(--muted);
-  font-weight:800;
-  text-align:center;
-  max-width:420px;
-}
-.split{
-  width:100%;
-  height:180px;
-  border-radius:22px;
-  border:1px solid var(--line);
-  overflow:hidden;
-  display:grid;
-  grid-template-columns:1fr 1fr;
-}
-.split .left{
-  background:linear-gradient(135deg,rgba(255,59,59,.28),rgba(255,43,214,.22));
-  display:flex;align-items:center;justify-content:center;
-  font-weight:1000;
-}
-.split .right{
-  background:linear-gradient(135deg,rgba(255,204,51,.28),rgba(0,230,255,.14));
-  display:flex;align-items:center;justify-content:center;
-  font-weight:1000;
-}
-.reticle{
-  width:220px;height:220px;border-radius:50%;
-  border:2px solid rgba(24,245,156,.7);
-  box-shadow:0 0 0 10px rgba(24,245,156,.10);
-  position:relative;
-}
-.reticle:before,.reticle:after{
-  content:"";
-  position:absolute;left:50%;top:50%;
-  transform:translate(-50%,-50%);
-  border-radius:50%;
-}
-.reticle:before{width:140px;height:140px;border:1px dashed rgba(24,245,156,.85)}
-.reticle:after{width:18px;height:18px;background:rgba(24,245,156,.85)}
-/* Camera */
-.videoBox{
-  margin-top:10px;
-  border-radius:22px;
-  border:1px solid var(--line);
-  overflow:hidden;
-  background:#fff;
-}
-video{width:100%;display:block}
-.canvasHidden{display:none}
-.field{
-  width:100%;
-  padding:14px;
-  border-radius:16px;
-  border:1px solid var(--line);
-  font-weight:850;
-  outline:none;
-}
-
-/* Scan */
-.cardFace{
-  width:100%;
-  aspect-ratio:3/4;
-  border-radius:22px;
-  border:1px solid var(--line);
-  background:linear-gradient(135deg,#dff8ff,#efeaff);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-  position:relative;
-}
-.cardFace img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-.cardOverlay{
-  position:absolute;
-  left:0;right:0;bottom:0;
-  padding:14px;
-  background:linear-gradient(180deg,transparent,rgba(0,0,0,.55));
-  color:#fff;
-}
-.actions{
-  display:flex;
-  gap:12px;
-  margin-top:12px;
-}
-.vote{
-  flex:1;
-  border:none;
-  border-radius:18px;
-  padding:16px;
-  font-weight:1000;
-  cursor:pointer;
-}
-.vote.light{background:linear-gradient(135deg,var(--gold),#ffe8a6)}
-.vote.spite{background:linear-gradient(135deg,var(--red),var(--pink));color:#fff}
-.counterRow{
-  display:flex;gap:10px;flex-wrap:wrap;margin-top:10px
-}
-
-/* Boss */
-.bossArena{
-  border-radius:22px;
-  border:1px solid var(--line);
-  background:radial-gradient(400px 240px at 50% 40%, rgba(255,59,59,.20), transparent 60%),
-             radial-gradient(500px 260px at 50% 80%, rgba(0,230,255,.12), transparent 60%),
-             #fff;
-  overflow:hidden;
-  position:relative;
-}
-.bossCanvas{
-  width:100%;
-  height:320px;
-}
-.hpWrap{margin-top:12px}
-.hpBar{
-  height:14px;border-radius:999px;background:#eef2ff;overflow:hidden;border:1px solid var(--line)
-}
-.hpFill{
-  height:100%;
-  width:100%;
-  background:linear-gradient(90deg,var(--red),var(--pink));
-}
-.sponsorStrip{
-  display:flex;gap:10px;flex-wrap:wrap;margin-top:12px
-}
-.logo{
-  padding:10px 12px;border-radius:999px;border:1px solid var(--line);
-  background:#fff;font-weight:950;
-}
-
-/* Inventory grid */
-.grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-}
-.item{
-  border:1px solid var(--line);
-  border-radius:18px;
-  padding:12px;
-  background:#fff;
-  cursor:pointer;
-  min-height:84px;
-  display:flex;flex-direction:column;justify-content:space-between;
-}
-.item.equipped{
-  border-color: rgba(0,230,255,.65);
-  box-shadow:0 0 0 4px rgba(0,230,255,.14);
-}
-.item .name{font-weight:1000}
-.item .meta{font-size:12px;color:var(--muted);font-weight:850}
-
-/* Hall of Fame */
-.hofTop{
-  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px
-}
-.hofCard{
-  border:1px solid var(--line);
-  border-radius:22px;
-  overflow:hidden;
-  background:#fff;
-}
-.hofImg{
-  height:180px;
-  background:linear-gradient(135deg,#dff8ff,#efeaff);
-  display:flex;align-items:center;justify-content:center;
-  font-size:30px;font-weight:1000;
-}
-.hofBody{padding:12px}
-.hofName{font-weight:1000}
-.hofTag{font-size:12px;color:var(--muted);font-weight:850}
-
-/* Marketplace lists */
-.list{
-  display:flex;flex-direction:column;gap:10px;margin-top:12px
-}
-.rowItem{
-  border:1px solid var(--line);
-  border-radius:20px;
-  padding:12px;
-  background:#fff;
-  display:flex;justify-content:space-between;align-items:center;gap:10px
-}
-.rowItem .title{font-weight:1000}
-.rowItem .sub{font-size:12px;color:var(--muted);font-weight:850}
-
-/* Loader */
-.loader{
-  position:fixed;
-  inset:0;
-  z-index:2000;
-  background:rgba(255,255,255,.78);
-  backdrop-filter: blur(10px);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  flex-direction:column;
-  gap:12px;
-}
-.loader.active{display:flex}
-.spinner{
-  width:42px;height:42px;border-radius:50%;
-  border:4px solid #eaf0ff;
-  border-top-color: var(--violet);
-  animation:spin 1s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-</style>
+    /* Disable tap highlight on mobile for “game feel” */
+    button, a, input { -webkit-tap-highlight-color: transparent; }
+  </style>
 </head>
-
 <body>
 
-<!-- Sponsor / Partner marquee (editable) -->
-<div class="marquee" id="marquee">
-  <div class="marquee-track" id="marqueeTrack">
-    <span class="pill"><span class="dot"></span>SPONSORS · PARTNERS · DGLITCH.GG</span>
-    <span class="pill"><span class="dot"></span>SPONSORS · PARTNERS · DGLITCH.GG</span>
-    <span class="pill"><span class="dot"></span>SPONSORS · PARTNERS · DGLITCH.GG</span>
-    <span class="pill"><span class="dot"></span>SPONSORS · PARTNERS · DGLITCH.GG</span>
+<!-- ======================================================
+  AZEUQER V23 — GLOBAL APP ROOT
+====================================================== -->
+<div id="app-root">
+
+  <!-- ======================================================
+    SPONSOR / PARTNER MARQUEE (ALWAYS VISIBLE)
+  ====================================================== -->
+  <div id="sponsor-marquee">
+    <div class="marquee-track">
+      <span>⚡ POWERED BY DGLITCH</span>
+      <span>◆ AZEUQER PARTNERS ◆</span>
+      <span>★ SPONSOR SLOT AVAILABLE ★</span>
+      <span>⚡ POWERED BY DGLITCH</span>
+      <span>◆ AZEUQER PARTNERS ◆</span>
+      <span>★ SPONSOR SLOT AVAILABLE ★</span>
+    </div>
   </div>
-</div>
 
-<!-- Loader -->
-<div class="loader" id="loader">
-  <div class="spinner"></div>
-  <div class="muted" id="loaderMsg">LOADING...</div>
-</div>
+  <!-- ======================================================
+    SCREEN STACK (ALL SCREENS LIVE HERE)
+  ====================================================== -->
+  <div id="screen-stack">
 
-<!-- App Root -->
-<div class="app" id="app">
+    <!-- SCREEN 1: INTRO (placeholder, content later) -->
+    <section id="screen-intro" class="screen active"> <!-- ======================================================
+  SCREEN 1 — THE WAKE-UP CALL
+====================================================== -->
+<div id="intro-container">
 
-  <!-- ==============================
-       SCREEN: INTRO SEQUENCE
-  =============================== -->
-  <section class="screen active" id="screen_intro" data-title="Intro">
-    <div class="wrap">
-      <div class="card">
-        <div class="card-inner">
-          <div class="hud">
-            <div class="badge"><span class="mini"></span>AZEUQER</div>
-            <button class="btn secondary" id="btnSoundToggle">🔊 Sound: ON</button>
-          </div>
+  <div id="intro-text"></div>
 
-          <div class="sequence" id="introSequence">
-            <!-- Filled by JS -->
-          </div>
-
-          <div class="row">
-            <button class="btn secondary" onclick="openOfficial()">Official Site</button>
-            <button class="btn" id="btnIntroNext">Continue</button>
-          </div>
-
-          <div class="hr"></div>
-          <div class="small muted">
-            *Telegram-safe. Bright theme. Sponsor marquee won’t cover content.*
-          </div>
-        </div>
-      </div>
+  <div id="intro-split" class="hidden">
+    <div class="split red"></div>
+    <div class="split gold"></div>
+    <div class="split-text">
+      <p>Here, you are the Asset.</p>
+      <p>Here, your face is the Currency.</p>
     </div>
-  </section>
-
-  <!-- ==============================
-       SCREEN: CHARACTER CREATION
-       - Email input
-       - Live camera scan (no gallery)
-       - Archetype sliders placeholder
-  =============================== -->
-  <section class="screen" id="screen_create" data-title="Create">
-    <div class="wrap">
-      <div class="card">
-        <div class="card-inner">
-          <div class="hud">
-            <div class="badge"><span class="mini"></span>Bio-Gate</div>
-            <div class="badge">AP: <span id="hudAPCreate">0</span></div>
-          </div>
-
-          <h2 style="margin-top:12px">Scan your face. Reveal your soul.</h2>
-          <p class="muted">Live camera scan only. No gallery uploads.</p>
-
-          <div class="hr"></div>
-
-          <label class="muted small">E-mail (adds 500 AP)</label>
-          <input class="field" id="emailInput" type="email" placeholder="you@domain.com" autocomplete="email" />
-          <button class="btn gold" style="margin-top:10px" id="btnSaveEmail">Save E-mail (+500 AP)</button>
-
-          <div class="hr"></div>
-
-          <button class="btn" id="btnOpenCamera">Open Front Camera</button>
-          <div class="videoBox hidden" id="videoBox">
-            <video id="video" autoplay playsinline muted></video>
-            <div class="row">
-              <button class="btn" id="btnCapture">Capture & Lock</button>
-              <button class="btn secondary" id="btnCloseCamera">Close</button>
-            </div>
-            <div class="small muted" id="camDebug" style="margin-top:8px"></div>
-          </div>
-          <canvas id="canvas" class="canvasHidden"></canvas>
-
-          <div class="hr"></div>
-
-          <h3>Vessel (Archetype)</h3>
-          <p class="muted small">Binary sliders (cosmetic only). Full function wired later in Prompt build.</p>
-
-          <div class="card" style="box-shadow:none">
-            <div class="card-inner">
-              <div class="muted small">Work: <b id="sWorkLabel">Lazy</b></div>
-              <input type="range" min="0" max="1" step="1" value="0" id="sWork" style="width:100%" />
-              <div class="muted small" style="margin-top:10px">Pace: <b id="sPaceLabel">Slow</b></div>
-              <input type="range" min="0" max="1" step="1" value="0" id="sPace" style="width:100%" />
-              <div class="muted small" style="margin-top:10px">Mind: <b id="sMindLabel">Smart</b></div>
-              <input type="range" min="0" max="1" step="1" value="0" id="sMind" style="width:100%" />
-              <div class="muted small" style="margin-top:10px">Vibe: <b id="sVibeLabel">Nerd</b></div>
-              <input type="range" min="0" max="1" step="1" value="0" id="sVibe" style="width:100%" />
-            </div>
-          </div>
-
-          <div class="row">
-            <button class="btn secondary" onclick="route('screen_intro')">Back</button>
-            <button class="btn" onclick="route('screen_profile')">Continue</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==============================
-       SCREEN: PROFILE (DASHBOARD)
-       - Energy
-       - Referrals
-       - Referral link/code
-       - Faction & Rank
-       - Inventory
-       - Boss killed
-       - Stars
-       - AP
-  =============================== -->
-  <section class="screen" id="screen_profile" data-title="Profile">
-    <div class="wrap">
-      <div class="card">
-        <div class="card-inner">
-          <div class="hud">
-            <div class="badge"><span class="mini"></span>Profile</div>
-            <div class="badge">Energy: <span id="hudEnergy">30</span>/30</div>
-            <div class="badge">AP: <span id="hudAP">0</span></div>
-          </div>
-
-          <div class="hr"></div>
-
-          <div class="row">
-            <div class="col">
-              <div class="muted small">Faction</div>
-              <div class="big" id="profileFaction">UNSORTED</div>
-            </div>
-            <div class="col">
-              <div class="muted small">Rank</div>
-              <div class="big" id="profileRank">CITIZEN</div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col">
-              <div class="muted small">Referrals</div>
-              <div class="big" id="profileRefCount">0</div>
-            </div>
-            <div class="col">
-              <div class="muted small">Boss Killed</div>
-              <div class="big" id="profileBossKills">0</div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col">
-              <div class="muted small">Telegram Stars</div>
-              <div class="big" id="profileStars">0</div>
-            </div>
-            <div class="col">
-              <div class="muted small">E-mail</div>
-              <div class="big" id="profileEmail">—</div>
-            </div>
-          </div>
-
-          <div class="hr"></div>
-
-          <div class="muted small">Your referral link/code</div>
-          <div class="card" style="box-shadow:none;margin-top:10px">
-            <div class="card-inner">
-              <div style="font-weight:1000" id="refLink">t.me/AzeuqerBot?start=ref_12345</div>
-              <div class="row">
-                <button class="btn secondary" onclick="copyRef()">Copy</button>
-                <button class="btn secondary" onclick="shareRef()">Share</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="row">
-            <button class="btn" onclick="route('screen_scan')">Start Scanning</button>
-            <button class="btn secondary" onclick="route('screen_hof')">Hall of Fame</button>
-          </div>
-
-          <div class="row">
-            <button class="btn secondary" onclick="route('screen_inventory')">Inventory</button>
-            <button class="btn secondary" onclick="route('screen_market')">Market</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==============================
-       SCREEN: SCAN/SWIPE LOOP
-       - 10 required to progress
-       - 20 free/day
-       - Energy burns after free
-       - 1 energy regen/5min (lazy calc placeholder)
-       - Boss randomly appears between 11th-20th
-  =============================== -->
-  <section class="screen" id="screen_scan" data-title="Scan">
-    <div class="wrap">
-      <div class="card">
-        <div class="card-inner">
-          <div class="hud">
-            <div class="badge"><span class="mini"></span>Judgement</div>
-            <div class="badge">Energy: <span id="scanEnergy">30</span>/30</div>
-            <div class="badge">Scans: <span id="scanCount">0</span>/20</div>
-          </div>
-
-          <div class="hr"></div>
-
-          <div class="cardFace" id="faceCard">
-            <img id="faceImg" alt="face" />
-            <div class="cardOverlay">
-              <div style="font-weight:1000" id="faceName">TARGET</div>
-              <div class="small" id="faceMeta">Active · VERIFIED</div>
-            </div>
-          </div>
-
-          <div class="actions">
-            <button class="vote spite" id="btnSpite">💀 SPITE</button>
-            <button class="vote light" id="btnLight">⚡ LIGHT</button>
-          </div>
-
-          <div class="counterRow">
-            <span class="badge">Light: <span id="lightCount">0</span></span>
-            <span class="badge">Spite: <span id="spiteCount">0</span></span>
-            <span class="badge">AP: <span id="scanAP">0</span></span>
-          </div>
-
-          <div class="hr"></div>
-          <div class="muted" id="scanInfo">
-            Complete 10 scans to be sorted. Boss can spawn between scan 11–20.
-          </div>
-
-          <div class="row">
-            <button class="btn secondary" onclick="route('screen_profile')">Back</button>
-            <button class="btn secondary" onclick="route('screen_shop')">Potions / Energy</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==============================
-       SCREEN: BOSS FIGHT
-       - Animated boss (placeholder canvas ready for Phaser)
-       - HP bar
-       - Sponsor logos
-       - Stats: STR/AGI/INT/VIT
-  =============================== -->
-  <section class="screen" id="screen_boss" data-title="Boss">
-    <div class="wrap">
-      <div class="card">
-        <div class="card-inner">
-          <div class="hud">
-            <div class="badge"><span class="mini"></span>Boss Fight</div>
-            <div class="badge">Energy: <span id="bossEnergy">30</span>/30</div>
-            <div class="badge">AP: <span id="bossAP">0</span></div>
-          </div>
-
-          <div class="hr"></div>
-
-          <div class="bossArena">
-            <div id="phaserMount" class="bossCanvas"></div>
-          </div>
-
-          <div class="hpWrap">
-            <div class="muted small">Boss HP</div>
-            <div class="hpBar"><div class="hpFill" id="bossHPFill"></div></div>
-            <div class="muted small" style="margin-top:6px">
-              <span id="bossHPText">100 / 100</span>
-            </div>
-          </div>
-
-          <div class="sponsorStrip">
-            <div class="logo">Sponsor: <b id="bossSponsor">DGLITCH</b></div>
-            <div class="logo">Partner: <b>COMING</b></div>
-            <div class="logo">Drop: <b id="bossDrop">???</b></div>
-          </div>
-
-          <div class="hr"></div>
-
-          <h3>Your Stats</h3>
-          <div class="counterRow">
-            <span class="badge">STR: <span id="stSTR">0</span></span>
-            <span class="badge">AGI: <span id="stAGI">0</span></span>
-            <span class="badge">INT: <span id="stINT">0</span></span>
-            <span class="badge">VIT: <span id="stVIT">0</span></span>
-          </div>
-
-          <div class="row">
-            <button class="btn danger" id="btnAttack">ATTACK</button>
-            <button class="btn secondary" id="btnHeal">HP POTION</button>
-          </div>
-
-          <div class="row">
-            <button class="btn secondary" onclick="exitBoss()">Run (Back)</button>
-          </div>
-
-          <div class="muted small" id="bossLog" style="margin-top:10px"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==============================
-       SCREEN: HALL OF FAME
-       - Top Euphorian & Dissonant images
-       - #2, #3 as text
-  =============================== -->
-  <section class="screen" id="screen_hof" data-title="Hall">
-    <div class="wrap">
-      <div class="card">
-        <div class="card-inner">
-          <div class="hud">
-            <div class="badge"><span class="mini"></span>Hall of Fame</div>
-            <button class="btn secondary" onclick="route('screen_profile')">Back</button>
-          </div>
-
-          <div class="hofTop">
-            <div class="hofCard">
-              <div class="hofImg" id="hofE1">🟡</div>
-              <div class="hofBody">
-                <div class="hofName" id="hofEName1">Top Euphorian</div>
-                <div class="hofTag" id="hofETag1">#1 · LIGHT</div>
-              </div>
-            </div>
-            <div class="hofCard">
-              <div class="hofImg" id="hofD1">🔴</div>
-              <div class="hofBody">
-                <div class="hofName" id="hofDName1">Top Dissonant</div>
-                <div class="hofTag" id="hofDTag1">#1 · SPITE</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="hr"></div>
-          <h3>Top 2 & 3</h3>
-          <div class="list">
-            <div class="rowItem">
-              <div>
-                <div class="title">🟡 Euphorian #2</div>
-                <div class="sub" id="hofE2">—</div>
-              </div>
-              <div class="badge">LIGHT</div>
-            </div>
-            <div class="rowItem">
-              <div>
-                <div class="title">🟡 Euphorian #3</div>
-                <div class="sub" id="hofE3">—</div>
-              </div>
-              <div class="badge">LIGHT</div>
-            </div>
-            <div class="rowItem">
-              <div>
-                <div class="title">🔴 Dissonant #2</div>
-                <div class="sub" id="hofD2">—</div>
-              </div>
-              <div class="badge">SPITE</div>
-            </div>
-            <div class="rowItem">
-              <div>
-                <div class="title">🔴 Dissonant #3</div>
-                <div class="sub" id="hofD3">—</div>
-              </div>
-              <div class="badge">SPITE</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==============================
-       SCREEN: INVENTORY
-       - Equipment + durability
-       - Equip logic: atomic by slot (client)
-  =============================== -->
-  <section class="screen" id="screen_inventory" data-title="Inventory">
-    <div class="wrap">
-      <div class="card">
-        <div class="card-inner">
-          <div class="hud">
-            <div class="badge"><span class="mini"></span>Inventory</div>
-            <button class="btn secondary" onclick="route('screen_profile')">Back</button>
-          </div>
-
-          <div class="hr"></div>
-          <div class="muted">Tap an item to equip (atomic per slot).</div>
-
-          <div class="hr"></div>
-          <div class="grid" id="invGrid"></div>
-
-          <div class="hr"></div>
-          <div class="row">
-            <button class="btn secondary" onclick="repairAll()">Repair (AP/Stars later)</button>
-            <button class="btn secondary" onclick="route('screen_shop')">Potions Shop</button>
-          </div>
-
-          <div class="muted small" id="invMsg" style="margin-top:10px"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==============================
-       SCREEN: MARKETPLACE
-       - Players for rent
-       - Equipment for sale
-       - Placeholder lists (wired later)
-  =============================== -->
-  <section class="screen" id="screen_market" data-title="Market">
-    <div class="wrap">
-      <div class="card">
-        <div class="card-inner">
-          <div class="hud">
-            <div class="badge"><span class="mini"></span>Market</div>
-            <button class="btn secondary" onclick="route('screen_profile')">Back</button>
-          </div>
-
-          <div class="hr"></div>
-          <h3>Players for Rent</h3>
-          <div class="list" id="rentList"></div>
-
-          <div class="hr"></div>
-          <h3>Equipment for Sale</h3>
-          <div class="list" id="saleList"></div>
-
-          <div class="hr"></div>
-          <div class="muted small">
-            *Taxing, expiries, caps, and Stars conversion are wired in the full functional step.*
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==============================
-       SCREEN: SHOP (Potions/Energy)
-  =============================== -->
-  <section class="screen" id="screen_shop" data-title="Shop">
-    <div class="wrap">
-      <div class="card">
-        <div class="card-inner">
-          <div class="hud">
-            <div class="badge"><span class="mini"></span>Shop</div>
-            <button class="btn secondary" onclick="route('screen_scan')">Back</button>
-          </div>
-
-          <div class="hr"></div>
-          <h3>Potions</h3>
-          <div class="list">
-            <div class="rowItem">
-              <div>
-                <div class="title">HP Potion</div>
-                <div class="sub">Restores 100% HP (price doubles each buy / day)</div>
-              </div>
-              <button class="btn secondary" style="width:auto" onclick="buyPotion('HP')">Buy</button>
-            </div>
-            <div class="rowItem">
-              <div>
-                <div class="title">Energy Potion</div>
-                <div class="sub">+5 Energy (price doubles each buy / day)</div>
-              </div>
-              <button class="btn secondary" style="width:auto" onclick="buyPotion('ENERGY')">Buy</button>
-            </div>
-          </div>
-
-          <div class="hr"></div>
-          <h3>Energy</h3>
-          <div class="muted small">
-            Lazy regen: 1 energy / 5 minutes (computed on-read).
-          </div>
-
-          <div class="row">
-            <button class="btn secondary" onclick="route('screen_profile')">Profile</button>
-            <button class="btn secondary" onclick="route('screen_inventory')">Inventory</button>
-          </div>
-
-          <div class="muted small" id="shopMsg" style="margin-top:10px"></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==============================
-       SCREEN: SETTINGS
-       - Sound toggle
-       - Partner marquee editor (editable)
-  =============================== -->
-  <section class="screen" id="screen_settings" data-title="Settings">
-    <div class="wrap">
-      <div class="card">
-        <div class="card-inner">
-          <div class="hud">
-            <div class="badge"><span class="mini"></span>Settings</div>
-            <button class="btn secondary" onclick="route('screen_profile')">Back</button>
-          </div>
-
-          <div class="hr"></div>
-          <h3>Sound</h3>
-          <button class="btn" id="btnSoundToggle2">🔊 Sound: ON</button>
-          <div class="muted small" style="margin-top:10px">
-            Subtle dopamine-friendly micro SFX (non-annoying). Works after first tap.
-          </div>
-
-          <div class="hr"></div>
-          <h3>Sponsor / Partner ticker</h3>
-          <div class="muted small">Edit text (updates marquee instantly).</div>
-          <input class="field" id="marqueeEdit" placeholder="SPONSORS · PARTNERS · DGLITCH.GG" />
-          <button class="btn secondary" style="margin-top:10px" onclick="applyMarquee()">Apply</button>
-
-          <div class="hr"></div>
-          <a href="https://www.dglitch.gg/" target="_blank" rel="noopener noreferrer" class="btn secondary" style="display:block;text-align:center;text-decoration:none">
-            Open Official Website
-          </a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-</div>
-
-<!-- Bottom Nav -->
-<div class="nav">
-  <div class="navbar" id="navbar">
-    <button class="navbtn active" data-go="screen_intro">Intro</button>
-    <button class="navbtn" data-go="screen_create">Create</button>
-    <button class="navbtn" data-go="screen_profile">Profile</button>
-    <button class="navbtn" data-go="screen_scan">Scan</button>
-    <button class="navbtn" data-go="screen_settings">Settings</button>
   </div>
+
+  <div id="intro-contract" class="hidden">
+    <div class="reticle"></div>
+    <p class="contract-line">To enter the Citadel, you must be judged.</p>
+    <p class="contract-line gold">Are you Order?</p>
+    <p class="contract-line red">Or are you Chaos?</p>
+
+    <div class="email-box">
+      <input id="email-input" type="email" placeholder="Enter e-mail (+500 AP)" />
+      <button id="email-btn" data-sfx="confirm">CONTINUE</button>
+      <small id="email-status"></small>
+    </div>
+  </div>
+
+  <footer class="intro-footer">
+    <a href="https://www.dglitch.gg/" target="_blank">Official Site</a>
+  </footer>
+
 </div>
+
+<style>
+  #intro-container {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 24px;
+  }
+
+  #intro-text {
+    font-size: clamp(1.2rem, 4vw, 2.2rem);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+
+  .hidden { display: none; }
+
+  /* SPLIT */
+  #intro-split {
+    position: relative;
+    width: 100%;
+    height: 50vh;
+  }
+
+  .split {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 50%;
+  }
+
+  .split.red {
+    left: 0;
+    background: linear-gradient(135deg, #ff2a2a, #b80000);
+  }
+
+  .split.gold {
+    right: 0;
+    background: linear-gradient(135deg, #ffd54a, #ffb300);
+  }
+
+  .split-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-shadow: 0 4px 20px rgba(0,0,0,.4);
+  }
+
+  /* CONTRACT */
+  .reticle {
+    width: 120px;
+    height: 120px;
+    border: 2px solid #00ff99;
+    border-radius: 50%;
+    animation: pulse 1.6s infinite;
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: .6; }
+    50% { transform: scale(1.1); opacity: 1; }
+    100% { transform: scale(1); opacity: .6; }
+  }
+
+  .contract-line { font-size: 1.1rem; }
+  .contract-line.gold { color: #ffcf33; }
+  .contract-line.red { color: #ff4444; }
+
+  .email-box {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: min(320px, 90%);
+  }
+
+  .email-box input {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    font-size: 1rem;
+  }
+
+  .email-box button {
+    padding: 12px;
+    border-radius: 10px;
+    background: #000;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .intro-footer {
+    margin-top: 24px;
+    font-size: 0.85rem;
+    opacity: .6;
+  }
+</style>
 
 <script>
-/* =========================================================
-   TITANIUM SHELL — STRUCTURE ONLY
-   (This is the "actual HTML that will contain the codes
-    for each section/area/screens".)
+(async function runIntro(){
+  const t = document.getElementById('intro-text');
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-   NEXT: we will implement each module one by one in full.
-========================================================= */
+  const lines = [
+    "You are invisible.",
+    "The Algorithm ignores you.",
+    "Society filters you.",
+    "Reality forgets you.",
+    "WAKE UP."
+  ];
 
-/* ===== Telegram WebApp Setup ===== */
-const tg = window.Telegram?.WebApp || null;
-try{
-  if(tg){
-    tg.ready();
-    tg.expand();
-    tg.disableClosingConfirmation();
-    tg.setHeaderColor?.('#ffffff');
-    tg.setBackgroundColor?.('#f4f7ff');
-  }
-}catch(e){}
-
-/* ===== GLOBAL STATE (placeholder; wired fully later) ===== */
-const STATE = {
-  user: {
-    id: 12345,
-    username: "Citizen",
-    email: null,
-    ap: 0,
-    stars: 0,
-    energy: 30,
-    energyMax: 30,
-    energyLastTS: Date.now(),
-    referrals: 0,
-    faction: "UNSORTED",
-    rank: "CITIZEN",
-    bossKills: 0
-  },
-  scan: {
-    scansToday: 0,
-    freeScansLimit: 20,
-    requiredToSort: 10,
-    light: 0,
-    spite: 0,
-    bossSpawnAt: null
-  },
-  audio: {
-    enabled: true,
-    unlocked: false
-  },
-  inventory: [],
-  market: {
-    rentals: [],
-    sales: []
-  },
-  hof: {
-    topE: {name:"Top Euphorian", tag:"#1 · LIGHT"},
-    topD: {name:"Top Dissonant", tag:"#1 · SPITE"},
-    e2:"—", e3:"—", d2:"—", d3:"—"
-  },
-  fake: {
-    faces: [],
-    bosses: []
-  }
-};
-
-/* =========================================================
-   ROUTER (Telegram-safe show/hide)
-========================================================= */
-function route(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  const el = document.getElementById(id);
-  if(el) el.classList.add('active');
-  // nav highlight
-  document.querySelectorAll('.navbtn').forEach(b=>{
-    b.classList.toggle('active', b.dataset.go === id);
-  });
-  // reset scroll to top (Telegram UX)
-  try{ el?.scrollTo({top:0,behavior:'instant'});}catch(e){ try{el.scrollTop=0;}catch(_){} }
-}
-
-/* nav binding */
-document.getElementById('navbar').addEventListener('click', (e)=>{
-  const btn = e.target.closest('.navbtn');
-  if(!btn) return;
-  route(btn.dataset.go);
-});
-
-/* =========================================================
-   INTRO SEQUENCE (structure only; full logic later)
-========================================================= */
-const INTRO = [
-  { type:"text", big:"You are invisible.", sub:"" },
-  { type:"text", big:"The Algorithm ignores you.", sub:"Society filters you. Reality forgets you." },
-  { type:"text", big:"WAKE UP.", sub:"" },
-  { type:"split", big:"Here, you are the Asset.", sub:"Here, your face is the Currency. We want your Truth." },
-  { type:"reticle", big:"To enter the Citadel, you must be judged.", sub:"Are you Order? Or are you Chaos?" },
-  { type:"cta", big:"Scan your face. Reveal your soul.", sub:"Enter e-mail to claim +500 AP." }
-];
-
-let introStep = 0;
-function renderIntro(){
-  const root = document.getElementById('introSequence');
-  const s = INTRO[introStep];
-  root.innerHTML = "";
-
-  const big = document.createElement('div');
-  big.className = "seqText glitch";
-  big.textContent = s.big || "";
-  root.appendChild(big);
-
-  if(s.type === "split"){
-    const split = document.createElement('div');
-    split.className = "split";
-    split.innerHTML = `<div class="left">DISSONANCE</div><div class="right">EUPHORIA</div>`;
-    root.appendChild(split);
-  }
-  if(s.type === "reticle"){
-    const r = document.createElement('div');
-    r.className = "reticle";
-    root.appendChild(r);
+  for (const line of lines) {
+    t.textContent = line;
+    t.style.opacity = 1;
+    await sleep(1400);
+    t.style.opacity = 0;
+    await sleep(600);
   }
 
-  const sub = document.createElement('div');
-  sub.className = "seqSub";
-  sub.textContent = s.sub || "";
-  root.appendChild(sub);
+  document.getElementById('intro-split').classList.remove('hidden');
+  await sleep(2200);
 
-  // CTA hint
-  if(s.type === "cta"){
-    const hint = document.createElement('div');
-    hint.className = "muted small center";
-    hint.style.marginTop = "10px";
-    hint.textContent = "Continue to Bio-Gate to scan + enter email.";
-    root.appendChild(hint);
-  }
+  document.getElementById('intro-split').classList.add('hidden');
+  document.getElementById('intro-contract').classList.remove('hidden');
+})();
 
-  document.getElementById('btnIntroNext').textContent =
-    (introStep >= INTRO.length - 1) ? "Proceed to Bio-Gate" : "Continue";
-}
+document.getElementById('email-btn').onclick = async () => {
+  const email = document.getElementById('email-input').value;
+  const status = document.getElementById('email-status');
 
-document.getElementById('btnIntroNext').addEventListener('click', ()=>{
-  unlockAudio();
-  if(introStep >= INTRO.length - 1){
-    route('screen_create');
-  }else{
-    introStep++;
-    renderIntro();
-    sfx('tap');
-  }
-});
-
-/* =========================================================
-   OFFICIAL SITE
-========================================================= */
-function openOfficial(){
-  unlockAudio();
-  sfx('tap');
-  window.open("https://www.dglitch.gg/","_blank","noopener,noreferrer");
-}
-
-/* =========================================================
-   AUDIO (structure; full sound pack later)
-========================================================= */
-let audioCtx = null;
-function unlockAudio(){
-  if(STATE.audio.unlocked) return;
-  try{
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    STATE.audio.unlocked = true;
-  }catch(e){}
-}
-function sfx(kind){
-  if(!STATE.audio.enabled) return;
-  if(!STATE.audio.unlocked) return;
-  if(!audioCtx) return;
-
-  // Subtle micro-sfx (simple oscillator now; full samples later)
-  const o = audioCtx.createOscillator();
-  const g = audioCtx.createGain();
-  o.type = "sine";
-
-  const now = audioCtx.currentTime;
-  let f1 = 440, f2 = 880, dur = 0.08, vol = 0.05;
-
-  if(kind === 'tap'){ f1=520; f2=780; dur=0.06; vol=0.04; }
-  if(kind === 'confirm'){ f1=440; f2=980; dur=0.10; vol=0.05; }
-  if(kind === 'error'){ f1=180; f2=120; dur=0.12; vol=0.06; }
-  if(kind === 'coin'){ f1=700; f2=1200; dur=0.08; vol=0.05; }
-
-  o.frequency.setValueAtTime(f1, now);
-  o.frequency.exponentialRampToValueAtTime(f2, now + dur);
-
-  g.gain.setValueAtTime(0.0001, now);
-  g.gain.exponentialRampToValueAtTime(vol, now + 0.01);
-  g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-
-  o.connect(g); g.connect(audioCtx.destination);
-  o.start(now);
-  o.stop(now + dur + 0.02);
-}
-
-/* sound toggles */
-function toggleSound(){
-  unlockAudio();
-  STATE.audio.enabled = !STATE.audio.enabled;
-  document.getElementById('btnSoundToggle').textContent = STATE.audio.enabled ? "🔊 Sound: ON" : "🔇 Sound: OFF";
-  document.getElementById('btnSoundToggle2').textContent = STATE.audio.enabled ? "🔊 Sound: ON" : "🔇 Sound: OFF";
-  sfx('tap');
-}
-document.getElementById('btnSoundToggle').addEventListener('click', toggleSound);
-document.getElementById('btnSoundToggle2').addEventListener('click', toggleSound);
-
-/* =========================================================
-   CAMERA (structure; full enforcement + backend later)
-   - Live camera getUserMedia
-   - No gallery
-========================================================= */
-let cameraStream = null;
-
-async function openCamera(){
-  unlockAudio();
-  const debug = document.getElementById('camDebug');
-  debug.textContent = "";
-  try{
-    setLoading(true,"Opening camera...");
-    const videoEl = document.getElementById('video');
-    videoEl.setAttribute("playsinline","");
-    videoEl.muted = true;
-
-    cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "user" } },
-      audio: false
-    });
-
-    videoEl.srcObject = cameraStream;
-    await videoEl.play();
-    document.getElementById('videoBox').classList.remove('hidden');
-    sfx('confirm');
-  }catch(err){
-    debug.textContent = "Camera blocked / unavailable in this environment.";
-    sfx('error');
-  }finally{
-    setLoading(false);
-  }
-}
-
-function closeCamera(){
-  try{
-    const v = document.getElementById('video');
-    v.pause();
-    v.srcObject = null;
-  }catch(e){}
-  if(cameraStream){
-    cameraStream.getTracks().forEach(t=>t.stop());
-    cameraStream=null;
-  }
-  document.getElementById('videoBox').classList.add('hidden');
-  sfx('tap');
-}
-
-function captureCamera(){
-  const v = document.getElementById('video');
-  if(!v.videoWidth){ sfx('error'); return; }
-  const c = document.getElementById('canvas');
-  c.width = v.videoWidth;
-  c.height = v.videoHeight;
-  c.getContext('2d').drawImage(v,0,0);
-  // Placeholder: backend upload later
-  STATE.user.ap += 0; // bio-lock reward is handled by backend later
-  syncHUD();
-  sfx('confirm');
-  closeCamera();
-}
-
-document.getElementById('btnOpenCamera').addEventListener('click', openCamera);
-document.getElementById('btnCloseCamera').addEventListener('click', closeCamera);
-document.getElementById('btnCapture').addEventListener('click', captureCamera);
-
-/* =========================================================
-   EMAIL SAVE (structure; backend later)
-========================================================= */
-document.getElementById('btnSaveEmail').addEventListener('click', ()=>{
-  unlockAudio();
-  const email = (document.getElementById('emailInput').value || "").trim();
-  if(!email || !email.includes("@")){
-    sfx('error');
+  if (!email.includes('@')) {
+    status.textContent = "Invalid email";
     return;
   }
-  // Placeholder: call backend later; for shell we simulate
-  if(!STATE.user.email){
-    STATE.user.email = email;
-    STATE.user.ap += 500;
-    sfx('coin');
-  }else{
-    STATE.user.email = email;
-    sfx('tap');
+
+  try {
+    await fetch('/profile/email', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email })
+    });
+    status.textContent = "+500 AP awarded";
+  } catch {
+    status.textContent = "Saved locally (sync later)";
   }
-  syncHUD();
-});
 
-/* =========================================================
-   SLIDERS (structure; full vessel asset later)
-========================================================= */
-function bindSlider(id, label, a, b){
-  const el = document.getElementById(id);
-  const out = document.getElementById(label);
-  const update = ()=> out.textContent = (parseInt(el.value,10)===0? a : b);
-  el.addEventListener('input', update);
-  update();
-}
-bindSlider('sWork','sWorkLabel','Lazy','Diligent');
-bindSlider('sPace','sPaceLabel','Slow','Fast');
-bindSlider('sMind','sMindLabel','Smart','Tough');
-bindSlider('sVibe','sVibeLabel','Nerd','Cool');
+  window.AzeuqerRouter.showScreen('screen-profile');
+};
+</script>
 
-/* =========================================================
-   SCAN / BOSS / INVENTORY / MARKET / HOF
-   (structure: placeholders; full functions later)
-========================================================= */
-function syncHUD(){
-  document.getElementById('hudAP').textContent = STATE.user.ap;
-  document.getElementById('hudAPCreate').textContent = STATE.user.ap;
+      <!-- Intro content will be injected in next steps -->
+    </section>
 
-  document.getElementById('hudEnergy').textContent = STATE.user.energy;
-  document.getElementById('scanEnergy').textContent = STATE.user.energy;
-  document.getElementById('bossEnergy').textContent = STATE.user.energy;
+    <!-- SCREEN 2: PROFILE -->
+    <section id="screen-profile" class="screen"> 
+<!-- ======================================================
+  SCREEN 2 — CHARACTER PROFILE (V23)
+====================================================== -->
+<div class="s2-wrap">
 
-  document.getElementById('scanAP').textContent = STATE.user.ap;
-  document.getElementById('bossAP').textContent = STATE.user.ap;
+  <!-- Sticky HUD (always visible while scrolling) -->
+  <div class="s2-hud">
+    <button class="s2-pill" onclick="window.AzeuqerRouter.showScreen('screen-intro')" data-sfx="tap">← Intro</button>
 
-  document.getElementById('profileFaction').textContent = STATE.user.faction;
-  document.getElementById('profileRank').textContent = STATE.user.rank;
-  document.getElementById('profileRefCount').textContent = STATE.user.referrals;
-  document.getElementById('profileBossKills').textContent = STATE.user.bossKills;
-  document.getElementById('profileStars').textContent = STATE.user.stars;
-  document.getElementById('profileEmail').textContent = STATE.user.email || "—";
+    <div class="s2-hud-right">
+      <button id="sfxToggle" class="s2-pill s2-pill-ghost" data-sfx="tap" aria-label="Toggle sound">🔊 SFX</button>
+      <button class="s2-pill s2-pill-cta" onclick="window.AzeuqerRouter.showScreen('screen-scan')" data-sfx="confirm">Start Scan</button>
+    </div>
+  </div>
 
-  document.getElementById('scanCount').textContent = STATE.scan.scansToday;
-}
-function setLoading(on,msg="LOADING..."){
-  const l = document.getElementById('loader');
-  l.classList.toggle('active',!!on);
-  document.getElementById('loaderMsg').textContent = msg;
-}
-
-/* Referral link */
-function buildRef(){
-  const code = STATE.user.id;
-  const link = `t.me/AzeuqerBot?start=ref_${code}`;
-  document.getElementById('refLink').textContent = link;
-}
-async function copyRef(){
-  unlockAudio();
-  try{
-    await navigator.clipboard.writeText(document.getElementById('refLink').textContent);
-    sfx('confirm');
-  }catch(e){
-    sfx('error');
-  }
-}
-function shareRef(){
-  unlockAudio();
-  sfx('tap');
-  const text = document.getElementById('refLink').textContent;
-  if(tg?.openTelegramLink){
-    tg.openTelegramLink("https://t.me/share/url?url="+encodeURIComponent("https://"+text));
-  }else{
-    window.open("https://t.me/share/url?url="+encodeURIComponent("https://"+text),"_blank","noopener,noreferrer");
-  }
-}
-
-/* Fake data placeholders for shell */
-function seedShellData(){
-  // faces
-  const names = [
-    "Nova","Kai","Mika","Zed","Luna","Ari","Kira","Juno","Rin","Sol",
-    "Vex","Echo","Nyx","Raya","Tao","Skye","Lex","Milo","Sage","Ivy"
-  ];
-  STATE.fake.faces = names.map((n,i)=>({
-    id: 9000+i,
-    name: n,
-    url: `https://picsum.photos/seed/azeuqer_${i}/700/900`
-  }));
-  // bosses
-  STATE.fake.bosses = Array.from({length:20},(_,i)=>({
-    id: 5000+i,
-    name: `Boss #${i+1}`,
-    sponsor: (i%2===0) ? "DGLITCH" : "PARTNER",
-    drop: (i%3===0) ? "MYTHIC CRATE" : "RARE CRATE"
-  }));
-
-  // inventory
-  STATE.inventory = [
-    {id:"HEAD_NEON", slot:"HEAD", name:"Neon Halo", dur:100, equipped:true, rarity:"EPIC"},
-    {id:"CHEST_DGL", slot:"CHEST", name:"DGLITCH Jacket", dur:100, equipped:false, rarity:"RARE"},
-    {id:"ACC_VOID", slot:"ACC", name:"Void Charm", dur:72, equipped:true, rarity:"MYTHIC"},
-    {id:"FOOT_RUN", slot:"FOOT", name:"Runner Steps", dur:95, equipped:false, rarity:"UNCOMMON"},
-    {id:"LOWER_CLOUD", slot:"LOWER", name:"Cloud Drift", dur:88, equipped:false, rarity:"RARE"},
-    {id:"ACC_SIGIL", slot:"ACC", name:"Sigil Ring", dur:51, equipped:false, rarity:"RARE"}
-  ];
-
-  // market
-  STATE.market.rentals = [
-    {name:"Mercenary: Nyx", price:"300 AP", sub:"+50% stats · expires 00:00 UTC"},
-    {name:"Mercenary: Zed", price:"1 ⭐", sub:"+50% stats · fatigue limit"}
-  ];
-  STATE.market.sales = [
-    {name:"Neon Halo (EPIC)", price:"2 ⭐ / 600 AP", sub:"Durability 100/100"},
-    {name:"Void Charm (MYTHIC)", price:"6 ⭐ / 1800 AP", sub:"Special FX glow"}
-  ];
-
-  // hall of fame placeholders
-  document.getElementById('hofEName1').textContent = "EUPHORIA · NOVA";
-  document.getElementById('hofDName1').textContent = "DISSONANCE · NYX";
-  document.getElementById('hofE2').textContent = "Kai";
-  document.getElementById('hofE3').textContent = "Luna";
-  document.getElementById('hofD2').textContent = "Vex";
-  document.getElementById('hofD3').textContent = "Echo";
-}
-
-/* render inventory shell */
-function renderInventory(){
-  const grid = document.getElementById('invGrid');
-  grid.innerHTML = "";
-  STATE.inventory.forEach(it=>{
-    const d = document.createElement('div');
-    d.className = "item" + (it.equipped ? " equipped" : "");
-    d.innerHTML = `
-      <div class="name">${it.name}</div>
-      <div class="meta">${it.slot} · ${it.rarity} · Dur ${it.dur}/100</div>
-    `;
-    d.onclick = ()=>equipItem(it.id);
-    grid.appendChild(d);
-  });
-}
-
-/* atomic equip (client shell) */
-function equipItem(id){
-  unlockAudio();
-  const it = STATE.inventory.find(x=>x.id===id);
-  if(!it){ sfx('error'); return; }
-  // atomic by slot
-  STATE.inventory.forEach(x=>{
-    if(x.slot===it.slot) x.equipped=false;
-  });
-  it.equipped=true;
-  renderInventory();
-  document.getElementById('invMsg').textContent = `Equipped: ${it.name}`;
-  sfx('confirm');
-}
-
-/* repair placeholder */
-function repairAll(){
-  unlockAudio();
-  STATE.inventory.forEach(x=>x.dur=100);
-  renderInventory();
-  document.getElementById('invMsg').textContent = "All items repaired (simulation).";
-  sfx('coin');
-}
-
-/* market shell render */
-function renderMarket(){
-  const r = document.getElementById('rentList');
-  const s = document.getElementById('saleList');
-  r.innerHTML = "";
-  s.innerHTML = "";
-  STATE.market.rentals.forEach(x=>{
-    const el = document.createElement('div');
-    el.className="rowItem";
-    el.innerHTML = `
-      <div>
-        <div class="title">${x.name}</div>
-        <div class="sub">${x.sub}</div>
+  <!-- Identity Card -->
+  <div class="card2">
+    <div class="id-row">
+      <div class="avatar2">
+        <img id="p_avatar" alt="avatar" />
+        <div id="p_factionDot" class="dot"></div>
       </div>
-      <div class="badge">${x.price}</div>
-    `;
-    r.appendChild(el);
-  });
-  STATE.market.sales.forEach(x=>{
-    const el = document.createElement('div');
-    el.className="rowItem";
-    el.innerHTML = `
-      <div>
-        <div class="title">${x.name}</div>
-        <div class="sub">${x.sub}</div>
+
+      <div class="id-meta">
+        <div class="id-top">
+          <div>
+            <div id="p_name" class="id-name">AGENT</div>
+            <div class="id-sub">
+              <span id="p_email" class="pill pill-muted">email: —</span>
+              <span id="p_role" class="pill pill-core">CITIZEN</span>
+            </div>
+          </div>
+          <div id="p_faction" class="pill pill-faction">UNSORTED</div>
+        </div>
+
+        <div class="id-note" id="p_note">
+          Your profile is the asset. Your visibility is the currency.
+        </div>
       </div>
-      <div class="badge">${x.price}</div>
-    `;
-    s.appendChild(el);
-  });
-}
+    </div>
+  </div>
 
-/* shop placeholder buys */
-const shopState = { hpBuys:0, energyBuys:0 };
-function buyPotion(type){
-  unlockAudio();
-  if(type==="HP"){
-    shopState.hpBuys++;
-    document.getElementById('shopMsg').textContent = `HP Potion purchased (x${shopState.hpBuys} today).`;
-  }else{
-    shopState.energyBuys++;
-    STATE.user.energy = Math.min(STATE.user.energyMax, STATE.user.energy + 5);
-    syncHUD();
-    document.getElementById('shopMsg').textContent = `Energy Potion purchased (x${shopState.energyBuys} today). +5 Energy.`;
+  <!-- Resource tiles -->
+  <div class="grid2">
+    <div class="tile2">
+      <div class="t-label">Energy</div>
+      <div class="t-value"><span id="p_energy">30</span><span class="t-max">/30</span></div>
+      <div class="t-sub" id="p_energyRegen">Regen: 1 / 5 min</div>
+    </div>
+
+    <div class="tile2">
+      <div class="t-label">AP</div>
+      <div class="t-value" id="p_ap">0</div>
+      <div class="t-sub">Earn from scans, loot, referrals</div>
+    </div>
+
+    <div class="tile2">
+      <div class="t-label">Stars</div>
+      <div class="t-value" id="p_stars">0</div>
+      <div class="t-sub">Premium currency</div>
+    </div>
+
+    <div class="tile2">
+      <div class="t-label">Boss Kills</div>
+      <div class="t-value" id="p_kills">0</div>
+      <div class="t-sub">Every 10th scan risks war</div>
+    </div>
+  </div>
+
+  <!-- Referral Panel -->
+  <div class="card2">
+    <div class="card2-head">
+      <div class="card2-title">Referral Engine</div>
+      <div class="pill pill-muted">Sybil-proof rewards</div>
+    </div>
+
+    <div class="ref-row">
+      <div class="ref-metric">
+        <div class="ref-num" id="p_refCount">0</div>
+        <div class="ref-label">Recruits</div>
+      </div>
+
+      <div class="ref-box">
+        <div class="ref-label2">Your link</div>
+        <div class="ref-linkRow">
+          <input id="p_refLink" class="ref-input" readonly />
+          <button class="s2-pill s2-pill-cta" id="copyRef" data-sfx="confirm">Copy</button>
+        </div>
+        <div class="ref-hint" id="p_copyStatus">Invite allies. Unlock AP on verification.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inventory -->
+  <div class="card2">
+    <div class="card2-head">
+      <div class="card2-title">Inventory</div>
+      <div class="pill pill-muted">Atomic equip states</div>
+    </div>
+
+    <div class="equip-strip" id="equipStrip">
+      <!-- 8 slots -->
+    </div>
+
+    <div class="inv-grid2" id="invGrid">
+      <!-- items render here -->
+    </div>
+
+    <div class="inv-foot">
+      <button class="s2-pill" onclick="window.AzeuqerRouter.showScreen('screen-scan')" data-sfx="tap">Go to Scan</button>
+      <a class="s2-link" href="https://www.dglitch.gg/" target="_blank">Official Site →</a>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  /* Screen 2 layout */
+  .s2-wrap { max-width: 980px; margin: 0 auto; padding-bottom: 20px; }
+
+  .s2-hud{
+    position: sticky;
+    top: calc(var(--contentTop) + 10px);
+    z-index: 20;
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    gap: 10px;
+    margin-bottom: 14px;
   }
-  sfx('coin');
-}
 
-/* Scan binding */
-document.getElementById('btnLight').addEventListener('click', ()=>scanVote("LIGHT"));
-document.getElementById('btnSpite').addEventListener('click', ()=>scanVote("SPITE"));
+  .s2-hud-right{ display:flex; gap:10px; align-items:center; }
 
-let faceIndex = 0;
-function renderFace(){
-  const f = STATE.fake.faces[faceIndex % STATE.fake.faces.length];
-  document.getElementById('faceImg').src = f.url;
-  document.getElementById('faceName').textContent = f.name;
-  document.getElementById('faceMeta').textContent = `Active · VERIFIED · ID ${f.id}`;
-}
-function rollBossSpawn(){
-  // boss randomly between scan 11 and 20 (inclusive)
-  const n = Math.floor(Math.random()*10) + 11;
-  STATE.scan.bossSpawnAt = n;
-}
-function scanVote(kind){
-  unlockAudio();
-  // placeholder: full rules later
-  STATE.scan.scansToday++;
-  if(kind==="LIGHT") STATE.scan.light++;
-  else STATE.scan.spite++;
+  .s2-pill{
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(10px);
+    padding: 10px 12px;
+    border-radius: 999px;
+    font-family: var(--font-head);
+    font-weight: 700;
+    color: var(--ink);
+    box-shadow: var(--shadow-1);
+    cursor: pointer;
+    transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+  }
+  .s2-pill:active{ transform: scale(0.98); }
 
-  // free vs energy cost
-  if(STATE.scan.scansToday > STATE.scan.freeScansLimit){
-    if(STATE.user.energy <= 0){
-      document.getElementById('scanInfo').textContent = "No energy. Buy or wait for regen.";
-      sfx('error');
+  .s2-pill-ghost{
+    background: rgba(255,255,255,0.55);
+    box-shadow: none;
+  }
+
+  .s2-pill-cta{
+    border-color: rgba(0,230,255,0.35);
+    box-shadow: 0 14px 30px rgba(0,230,255,0.12);
+  }
+
+  .card2{
+    background: rgba(255,255,255,0.90);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+
+  .id-row{ display:flex; gap:14px; align-items: center; }
+  .avatar2{
+    width: 88px; height: 88px;
+    border-radius: 22px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--line);
+    box-shadow: 0 14px 28px rgba(10,20,40,0.10);
+    background: linear-gradient(180deg, rgba(124,77,255,0.10), rgba(0,230,255,0.10));
+    flex: 0 0 auto;
+  }
+  .avatar2 img{ width:100%; height:100%; object-fit: cover; display:block; }
+
+  .dot{
+    position:absolute; bottom:8px; right:8px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--muted);
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.75);
+  }
+
+  .id-meta{ flex: 1; min-width: 0; }
+  .id-top{ display:flex; justify-content: space-between; gap: 10px; align-items: start; }
+  .id-name{
+    font-family: var(--font-head);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-size: 1.2rem;
+    line-height: 1.1;
+  }
+  .id-sub{ display:flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+
+  .pill{
+    display:inline-flex; align-items:center; gap:6px;
+    font-size: 0.78rem;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.65);
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-weight: 700;
+  }
+  .pill-core{ color: var(--ink); }
+  .pill-muted{ opacity: 0.9; }
+
+  .pill-faction{
+    font-family: var(--font-head);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: #000;
+    border-color: rgba(0,0,0,0.08);
+  }
+
+  .id-note{
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.35;
+  }
+
+  .grid2{
+    display:grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .tile2{
+    background: rgba(255,255,255,0.88);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 12px;
+    box-shadow: 0 10px 22px rgba(10,20,40,0.08);
+    min-height: 92px;
+  }
+
+  .t-label{
+    font-family: var(--font-mono);
+    font-weight: 800;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .t-value{
+    margin-top: 8px;
+    font-family: var(--font-head);
+    font-weight: 900;
+    font-size: 1.35rem;
+    color: var(--ink);
+  }
+  .t-max{ font-size: 0.95rem; color: var(--muted); margin-left: 4px; }
+
+  .t-sub{
+    margin-top: 6px;
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  .card2-head{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .card2-title{
+    font-family: var(--font-head);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+
+  .ref-row{
+    display:flex;
+    gap: 12px;
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .ref-metric{
+    width: 130px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: rgba(124,77,255,0.08);
+    padding: 12px;
+    text-align: center;
+  }
+  .ref-num{ font-family: var(--font-head); font-weight: 900; font-size: 1.8rem; }
+  .ref-label{ color: var(--muted); font-family: var(--font-mono); font-size: 0.78rem; }
+
+  .ref-box{ flex: 1; min-width: 260px; }
+  .ref-label2{ font-family: var(--font-mono); font-weight: 800; font-size: 0.78rem; color: var(--muted); margin-bottom: 6px; }
+  .ref-linkRow{ display:flex; gap: 10px; align-items:center; }
+  .ref-input{
+    flex: 1;
+    padding: 12px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.72);
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--ink);
+  }
+  .ref-hint{ margin-top: 8px; color: var(--muted); font-size: 0.85rem; }
+
+  .equip-strip{
+    display:grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    margin: 10px 0 14px;
+  }
+  .slot{
+    border: 1px dashed rgba(20,35,70,0.25);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.60);
+    padding: 10px;
+    min-height: 56px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-weight: 800;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+  }
+  .slot.equipped{
+    border-style: solid;
+    border-color: rgba(0,230,255,0.35);
+    box-shadow: 0 0 0 6px var(--equip-glow);
+    color: var(--ink);
+  }
+
+  .inv-grid2{
+    display:grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .inv-item2{
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 10px;
+    background: rgba(255,255,255,0.70);
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(10,20,40,0.06);
+    transition: transform var(--dur-fast) var(--ease-out);
+    min-height: 72px;
+  }
+  .inv-item2:active{ transform: scale(0.98); }
+
+  .inv-top{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    gap: 8px;
+  }
+  .inv-name{ font-family: var(--font-head); font-weight: 900; font-size: 0.95rem; }
+  .rar{ font-family: var(--font-mono); font-weight: 900; font-size: 0.72rem; color: var(--muted); }
+  .inv-sub{ margin-top: 6px; color: var(--muted); font-size: 0.82rem; line-height: 1.2; }
+
+  .inv-foot{
+    margin-top: 14px;
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .s2-link{
+    font-family: var(--font-mono);
+    font-weight: 900;
+    text-decoration: none;
+    color: var(--neon-violet);
+  }
+
+  @media (max-width: 860px){
+    .grid2{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+</style>
+
+<script>
+  (function Screen2ProfileModule(){
+    // ---- CONFIG ----
+    const API_URL = "https://azeuqer-backend.onrender.com";
+    const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+
+    // ---- SOUND TOGGLE (state only; sound engine comes later) ----
+    const sfxBtn = document.getElementById('sfxToggle');
+    function getSfxState(){ return (localStorage.getItem('AZ_SFX') || 'on'); }
+    function setSfxState(v){ localStorage.setItem('AZ_SFX', v); }
+    function renderSfx(){
+      const on = getSfxState() === 'on';
+      sfxBtn.textContent = on ? '🔊 SFX' : '🔇 SFX';
+      sfxBtn.style.opacity = on ? '1' : '0.65';
+    }
+    sfxBtn.addEventListener('click', () => {
+      setSfxState(getSfxState()==='on' ? 'off' : 'on');
+      renderSfx();
+    });
+    renderSfx();
+
+    // ---- COPY REF LINK ----
+    const copyBtn = document.getElementById('copyRef');
+    copyBtn.addEventListener('click', async () => {
+      const val = document.getElementById('p_refLink').value || '';
+      const status = document.getElementById('p_copyStatus');
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(val);
+        } else {
+          const tmp = document.createElement('textarea');
+          tmp.value = val;
+          document.body.appendChild(tmp);
+          tmp.select();
+          document.execCommand('copy');
+          tmp.remove();
+        }
+        status.textContent = "Copied. Drop it in the wild.";
+      } catch {
+        status.textContent = "Copy failed. Hold to select.";
+      }
+    });
+
+    // ---- HELPER: FACTION THEME ----
+    function applyFaction(faction){
+      const pill = document.getElementById('p_faction');
+      const dot = document.getElementById('p_factionDot');
+
+      if ((faction||'').toUpperCase().includes('EUPH')) {
+        pill.textContent = "EUPHORIA";
+        pill.style.background = "linear-gradient(135deg, var(--euph-1), var(--euph-2))";
+        dot.style.background = "var(--euph-2)";
+      } else if ((faction||'').toUpperCase().includes('DISS')) {
+        pill.textContent = "DISSONANCE";
+        pill.style.background = "linear-gradient(135deg, var(--diss-1), var(--diss-2))";
+        dot.style.background = "var(--diss-2)";
+      } else {
+        pill.textContent = "UNSORTED";
+        pill.style.background = "linear-gradient(135deg, rgba(10,20,40,0.12), rgba(10,20,40,0.06))";
+        dot.style.background = "var(--muted)";
+      }
+    }
+
+    // ---- EQUIP STRIP ----
+    const slotNames = ["Head","Chest","Legs","Feet","Acc A","Acc B","Acc C","Acc D"];
+    function renderEquipStrip(equippedMap){
+      const strip = document.getElementById('equipStrip');
+      strip.innerHTML = "";
+      slotNames.forEach((name) => {
+        const div = document.createElement('div');
+        div.className = 'slot' + (equippedMap && equippedMap[name] ? ' equipped' : '');
+        div.textContent = equippedMap && equippedMap[name] ? equippedMap[name] : name;
+        strip.appendChild(div);
+      });
+    }
+
+    // ---- INVENTORY GRID ----
+    function renderInventory(items){
+      const grid = document.getElementById('invGrid');
+      grid.innerHTML = "";
+      if (!items || items.length === 0) {
+        grid.innerHTML = `<div style="grid-column: span 3; color: var(--muted); font-family: var(--font-mono); font-weight:900; padding: 10px;">
+          NO LOOT YET — win boss fights to drop gear.
+        </div>`;
+        return;
+      }
+      items.forEach(it => {
+        const div = document.createElement('div');
+        div.className = 'inv-item2';
+        div.innerHTML = `
+          <div class="inv-top">
+            <div class="inv-name">${escapeHtml(it.name || it.item_id || "ITEM")}</div>
+            <div class="rar">${escapeHtml(it.rarity || "COMMON")}</div>
+          </div>
+          <div class="inv-sub">${escapeHtml(it.desc || "Tap to equip (atomic).")}</div>
+        `;
+        div.addEventListener('click', () => {
+          // Equip wiring comes in later sections
+          alert("Equip wiring comes next. This is the UI shell.");
+        });
+        grid.appendChild(div);
+      });
+    }
+
+    function escapeHtml(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    // ---- LOAD PROFILE (graceful) ----
+    async function loadProfile(){
+      const initData = (tg && tg.initData) ? tg.initData : "debug_mode";
+
+      // 1) Login → user object
+      let user = null;
+      try {
+        const res = await fetch(`${API_URL}/auth/login`, {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ initData })
+        });
+        const data = await res.json();
+        user = data.user || null;
+      } catch {}
+
+      // Fallback user (never blank UI)
+      if (!user) {
+        user = {
+          user_id: 12345,
+          username: "Architect",
+          email: null,
+          ap: 0,
+          stars: 0,
+          energy: 30,
+          faction: "UNSORTED",
+          boss_kills: 0,
+          bio_lock_url: "https://picsum.photos/400/400?random=23"
+        };
+      }
+
+      // 2) Referrals (optional)
+      let refCount = 0;
+      try{
+        const rr = await fetch(`${API_URL}/profile/referrals`, {
+          method:"POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ initData })
+        });
+        const rd = await rr.json();
+        refCount = rd.count || 0;
+      } catch {}
+
+      // 3) Inventory (optional)
+      let invItems = [];
+      try{
+        const ir = await fetch(`${API_URL}/game/inventory`, {
+          method:"POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({ initData })
+        });
+        const id = await ir.json();
+        invItems = id.items || [];
+      } catch {
+        // Tiny fake starter loot for vibe
+        invItems = [
+          { name:"Neon Hoodie", rarity:"RARE", desc:"+VIT (cosmetic). Sponsor-ready." },
+          { name:"Void Runner Glasses", rarity:"EPIC", desc:"+INT vibe. Particle-ready." },
+          { name:"Patch: DGLITCH", rarity:"MYTHIC", desc:"Founder flex placeholder." }
+        ];
+      }
+
+      // 4) Compute referral link (Telegram deep link)
+      const uid = user.user_id || user.tg_id || 0;
+      const refLink = `https://t.me/AzeuqerBot?start=ref_${uid}`;
+
+      // 5) Render
+      document.getElementById('p_avatar').src = user.bio_lock_url || "https://picsum.photos/400/400?random=1";
+      document.getElementById('p_name').textContent = user.username || "AGENT";
+
+      if (user.email) {
+        document.getElementById('p_email').textContent = `email: ${user.email}`;
+      } else {
+        document.getElementById('p_email').textContent = `email: not set`;
+      }
+
+      // Role (backend will later mark first 23 as FOUNDER)
+      document.getElementById('p_role').textContent = (user.role || user.rank || "CITIZEN").toUpperCase();
+
+      // Faction theme
+      applyFaction(user.faction || user.faction_name || "UNSORTED");
+
+      // Resources
+      document.getElementById('p_energy').textContent = (user.energy ?? 30);
+      document.getElementById('p_ap').textContent = (user.ap ?? 0);
+      document.getElementById('p_stars').textContent = (user.stars ?? 0);
+      document.getElementById('p_kills').textContent = (user.boss_kills ?? 0);
+
+      // Energy regen text (display only; real lazy calc comes from backend later)
+      document.getElementById('p_energyRegen').textContent = "Regen: 1 / 5 min • Max 30";
+
+      // Referrals
+      document.getElementById('p_refCount').textContent = refCount;
+      document.getElementById('p_refLink').value = refLink;
+
+      // Inventory UI (equip strip is UI-only for now)
+      renderEquipStrip(null);
+      renderInventory(invItems);
+    }
+
+    // Expose so other screens can refresh Profile
+    window.AzeuqerProfile = { loadProfile };
+
+    // Auto-load when Screen 2 exists (safe)
+    loadProfile();
+  })();
+</script>
+
+      <!-- Profile UI later -->
+    </section>
+
+    <!-- SCREEN 3: SCAN / SWIPE -->
+<!-- ======================================================
+  SCREEN 3 — SCAN / SWIPE CORE LOOP (V23)
+  Fake users + Energy rules + Boss spawn window (11–20)
+====================================================== -->
+<section id="screen-scan" class="screen hidden">
+
+  <div class="s3-wrap">
+
+    <!-- Sticky HUD -->
+    <div class="s3-hud">
+      <button class="s3-pill" onclick="window.AzeuqerRouter.showScreen('screen-profile')" data-sfx="tap">← Profile</button>
+
+      <div class="s3-hud-right">
+        <button id="s3SfxToggle" class="s3-pill s3-pill-ghost" data-sfx="tap" aria-label="Toggle sound">🔊 SFX</button>
+        <div class="s3-stat">
+          ⚡ <span id="s3Energy">30</span><span class="s3-muted">/30</span>
+        </div>
+        <div class="s3-stat">
+          Today: <span id="s3Count">0</span><span class="s3-muted">/20 free</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status strip -->
+    <div class="s3-strip" id="s3Strip">
+      <div class="s3-strip-left">
+        <div class="s3-title">SCAN PROTOCOL</div>
+        <div class="s3-sub" id="s3Sub">Complete 10 scans to unlock your faction.</div>
+      </div>
+      <div class="s3-strip-right">
+        <span class="s3-badge" id="s3FactionBadge">UNSORTED</span>
+      </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="s3-progress">
+      <div class="s3-progress-bar" id="s3ProgressBar"></div>
+    </div>
+
+    <!-- Card Stage -->
+    <div class="s3-stage" id="s3Stage">
+      <div class="s3-card" id="s3Card">
+        <div class="s3-card-top">
+          <div class="s3-online">
+            <span class="s3-pulse"></span>
+            <span>ONLINE</span>
+          </div>
+          <div class="s3-id" id="s3IdTag">#0000</div>
+        </div>
+
+        <img id="s3Img" class="s3-img" alt="target" />
+
+        <div class="s3-card-bottom">
+          <div class="s3-nameRow">
+            <div class="s3-name" id="s3Name">TARGET</div>
+            <div class="s3-mini" id="s3Meta">Ghost Protocol</div>
+          </div>
+
+          <div class="s3-actions">
+            <button class="s3-btn s3-btn-spite" id="btnSpite" data-sfx="spite">💀 SPITE</button>
+            <button class="s3-btn s3-btn-light" id="btnLight" data-sfx="light">⚡ LIGHT</button>
+          </div>
+
+          <div class="s3-hint" id="s3Hint">
+            Swipes 1–20 are free. After 20, scans cost Energy.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rules panel -->
+    <div class="s3-panel">
+      <div class="s3-panel-title">Rules</div>
+      <ul class="s3-list">
+        <li><b>10 scans</b> to complete Initiation (Faction assignment).</li>
+        <li>Boss can appear <b>randomly between scans 11–20</b>.</li>
+        <li>Scans 1–20 are <b>free</b>. Scans 21+ cost <b>1 Energy</b> each.</li>
+        <li>Energy regens <b>+1 every 5 minutes</b> (lazy calculation), max 30.</li>
+      </ul>
+    </div>
+
+    <!-- Boss modal fallback (only if boss screen not built yet) -->
+    <div id="s3BossModal" class="s3-modal hidden">
+      <div class="s3-modal-card">
+        <div class="s3-modal-title">AMBUSH INCOMING</div>
+        <div class="s3-modal-sub">Boss triggered, but the Boss screen isn’t installed yet.</div>
+        <button class="s3-pill s3-pill-cta" id="s3BossOk" data-sfx="confirm">OK</button>
+      </div>
+    </div>
+
+  </div>
+
+  <style>
+    /* ===== Screen 3 layout (bright, clean, Gen Z) ===== */
+    .s3-wrap{ max-width: 980px; margin: 0 auto; padding-bottom: 18px; }
+
+    .s3-hud{
+      position: sticky;
+      top: calc(var(--contentTop) + 10px);
+      z-index: 30;
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .s3-hud-right{ display:flex; gap:10px; align-items:center; flex-wrap: wrap; justify-content:flex-end; }
+
+    .s3-pill{
+      border: 1px solid var(--line, rgba(20,35,70,0.12));
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(10px);
+      padding: 10px 12px;
+      border-radius: 999px;
+      font-family: var(--font-head, system-ui);
+      font-weight: 800;
+      color: var(--ink, #0b1020);
+      box-shadow: 0 10px 22px rgba(10,20,40,0.08);
+      cursor: pointer;
+      transition: transform 120ms ease-out;
+      white-space: nowrap;
+    }
+    .s3-pill:active{ transform: scale(0.98); }
+    .s3-pill-ghost{ background: rgba(255,255,255,0.62); box-shadow:none; }
+    .s3-pill-cta{ border-color: rgba(0,230,255,0.35); box-shadow: 0 14px 30px rgba(0,230,255,0.12); }
+
+    .s3-stat{
+      border: 1px solid var(--line, rgba(20,35,70,0.12));
+      background: rgba(255,255,255,0.78);
+      border-radius: 999px;
+      padding: 10px 12px;
+      font-family: var(--font-mono, ui-monospace);
+      font-weight: 900;
+      color: var(--ink, #0b1020);
+      box-shadow: 0 10px 22px rgba(10,20,40,0.06);
+      white-space: nowrap;
+    }
+    .s3-muted{ color: rgba(10,20,40,0.55); font-weight: 900; }
+
+    .s3-strip{
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      gap: 12px;
+      padding: 14px;
+      border-radius: 22px;
+      border: 1px solid var(--line, rgba(20,35,70,0.12));
+      background: rgba(255,255,255,0.92);
+      box-shadow: 0 16px 34px rgba(10,20,40,0.10);
+      margin-bottom: 10px;
+    }
+    .s3-title{ font-family: var(--font-head, system-ui); font-weight: 950; letter-spacing: -0.03em; font-size: 1.05rem; color: var(--ink,#0b1020); }
+    .s3-sub{ margin-top: 4px; color: rgba(10,20,40,0.62); font-weight: 800; font-family: var(--font-mono, ui-monospace); font-size: 0.82rem; }
+    .s3-badge{
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-family: var(--font-head, system-ui);
+      font-weight: 950;
+      border: 1px solid rgba(20,35,70,0.10);
+      background: rgba(10,20,40,0.06);
+      color: var(--ink,#0b1020);
+      white-space: nowrap;
+    }
+
+    .s3-progress{
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(10,20,40,0.08);
+      overflow: hidden;
+      margin-bottom: 12px;
+      border: 1px solid rgba(20,35,70,0.10);
+    }
+    .s3-progress-bar{
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(124,77,255,0.9), rgba(0,230,255,0.9));
+      border-radius: 999px;
+      transition: width 220ms ease-out;
+    }
+
+    .s3-stage{ display:flex; justify-content:center; margin-bottom: 12px; }
+    .s3-card{
+      width: min(520px, 100%);
+      border-radius: 26px;
+      overflow: hidden;
+      border: 1px solid rgba(20,35,70,0.12);
+      background: rgba(255,255,255,0.92);
+      box-shadow: 0 22px 50px rgba(10,20,40,0.14);
+      transform: translateZ(0);
+    }
+    .s3-card-top{
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.65);
+      border-bottom: 1px solid rgba(20,35,70,0.10);
+    }
+    .s3-online{
+      display:flex; gap: 8px; align-items:center;
+      font-family: var(--font-mono, ui-monospace);
+      font-weight: 900;
+      font-size: 0.78rem;
+      color: rgba(10,20,40,0.60);
+      letter-spacing: 0.06em;
+    }
+    .s3-pulse{
+      width: 10px; height: 10px; border-radius: 50%;
+      background: rgba(0,230,255,0.95);
+      box-shadow: 0 0 0 6px rgba(0,230,255,0.16);
+      animation: s3pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes s3pulse{
+      0%,100%{ transform: scale(1); opacity: 1; }
+      50%{ transform: scale(1.25); opacity: 0.55; }
+    }
+    .s3-id{
+      font-family: var(--font-mono, ui-monospace);
+      font-weight: 950;
+      color: rgba(10,20,40,0.55);
+      font-size: 0.82rem;
+    }
+
+    .s3-img{ width: 100%; height: 420px; object-fit: cover; display:block; background: rgba(10,20,40,0.04); }
+    @media (max-width: 520px){ .s3-img{ height: 380px; } }
+
+    .s3-card-bottom{ padding: 14px; }
+    .s3-nameRow{ display:flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .s3-name{ font-family: var(--font-head, system-ui); font-weight: 980; letter-spacing: -0.03em; color: var(--ink,#0b1020); font-size: 1.25rem; }
+    .s3-mini{ font-family: var(--font-mono, ui-monospace); font-weight: 900; color: rgba(10,20,40,0.56); font-size: 0.78rem; }
+
+    .s3-actions{
+      display:flex; gap: 12px; margin-top: 12px;
+    }
+    .s3-btn{
+      flex: 1;
+      padding: 14px 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(20,35,70,0.12);
+      font-family: var(--font-head, system-ui);
+      font-weight: 950;
+      cursor: pointer;
+      box-shadow: 0 18px 36px rgba(10,20,40,0.10);
+      transition: transform 120ms ease-out, filter 120ms ease-out;
+    }
+    .s3-btn:active{ transform: scale(0.985); filter: brightness(0.98); }
+
+    .s3-btn-light{
+      background: linear-gradient(135deg, rgba(255,215,64,0.95), rgba(255,236,180,0.95));
+      color: #1a1400;
+    }
+    .s3-btn-spite{
+      background: linear-gradient(135deg, rgba(255,64,129,0.92), rgba(255,150,200,0.92));
+      color: #1a0010;
+    }
+
+    .s3-hint{
+      margin-top: 10px;
+      font-family: var(--font-mono, ui-monospace);
+      font-weight: 850;
+      color: rgba(10,20,40,0.56);
+      font-size: 0.80rem;
+      line-height: 1.2;
+    }
+
+    .s3-panel{
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(20,35,70,0.12);
+      border-radius: 22px;
+      box-shadow: 0 16px 34px rgba(10,20,40,0.10);
+      padding: 14px;
+    }
+    .s3-panel-title{
+      font-family: var(--font-head, system-ui);
+      font-weight: 980;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      color: var(--ink,#0b1020);
+    }
+    .s3-list{
+      margin: 0;
+      padding-left: 16px;
+      font-family: var(--font-mono, ui-monospace);
+      font-weight: 850;
+      color: rgba(10,20,40,0.60);
+      font-size: 0.86rem;
+      line-height: 1.35;
+    }
+    .s3-list b{ color: rgba(10,20,40,0.88); }
+
+    .s3-modal{
+      position: fixed;
+      inset: 0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: rgba(10,20,40,0.35);
+      backdrop-filter: blur(10px);
+      z-index: 999;
+      padding: 18px;
+    }
+    .s3-modal-card{
+      width: min(520px, 100%);
+      background: rgba(255,255,255,0.96);
+      border: 1px solid rgba(20,35,70,0.12);
+      border-radius: 26px;
+      box-shadow: 0 30px 70px rgba(10,20,40,0.20);
+      padding: 18px;
+      text-align: center;
+    }
+    .s3-modal-title{
+      font-family: var(--font-head, system-ui);
+      font-weight: 990;
+      letter-spacing: -0.03em;
+      font-size: 1.2rem;
+      color: var(--ink,#0b1020);
+      margin-bottom: 6px;
+    }
+    .s3-modal-sub{
+      font-family: var(--font-mono, ui-monospace);
+      font-weight: 850;
+      color: rgba(10,20,40,0.62);
+      font-size: 0.88rem;
+      margin-bottom: 12px;
+    }
+    .hidden{ display:none !important; }
+  </style>
+
+  <script>
+    (function Screen3ScanModule(){
+      // ---- Shared SFX state: reuses the same storage key as Screen 2 ----
+      const SFX_KEY = "AZ_SFX";
+      const sfxBtn = document.getElementById("s3SfxToggle");
+
+      function getSfx(){ return (localStorage.getItem(SFX_KEY) || "on"); }
+      function setSfx(v){ localStorage.setItem(SFX_KEY, v); }
+      function renderSfxBtn(){
+        const on = getSfx() === "on";
+        sfxBtn.textContent = on ? "🔊 SFX" : "🔇 SFX";
+        sfxBtn.style.opacity = on ? "1" : "0.65";
+      }
+      sfxBtn.addEventListener("click", () => {
+        setSfx(getSfx()==="on" ? "off" : "on");
+        renderSfxBtn();
+        AzeuqerSFX.play("tap");
+      });
+      renderSfxBtn();
+
+      // ---- Minimal “dopamine” SFX engine (Telegram-safe: plays only after a user gesture) ----
+      const AzeuqerSFX = window.AzeuqerSFX || (window.AzeuqerSFX = (function(){
+        let ctx = null;
+        function ensure(){
+          if (getSfx() !== "on") return null;
+          if (!ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return null;
+            ctx = new AudioCtx();
+          }
+          if (ctx.state === "suspended") ctx.resume().catch(()=>{});
+          return ctx;
+        }
+        function blip(freq, dur, type="sine", gain=0.06){
+          const c = ensure(); if (!c) return;
+          const o = c.createOscillator();
+          const g = c.createGain();
+          o.type = type;
+          o.frequency.value = freq;
+          g.gain.value = gain;
+          o.connect(g); g.connect(c.destination);
+          o.start();
+          setTimeout(()=>{ try{o.stop();}catch{} }, dur);
+        }
+        function play(name){
+          if (getSfx() !== "on") return;
+          if (name === "tap") { blip(420, 60, "sine", 0.045); }
+          if (name === "light") { blip(520, 60, "triangle", 0.055); setTimeout(()=>blip(780, 70, "triangle", 0.040), 60); }
+          if (name === "spite") { blip(180, 80, "sawtooth", 0.040); setTimeout(()=>blip(120, 80, "sawtooth", 0.035), 70); }
+          if (name === "confirm") { blip(600, 70, "square", 0.040); setTimeout(()=>blip(900, 90, "square", 0.030), 80); }
+          if (name === "boss") { blip(95, 120, "sawtooth", 0.050); setTimeout(()=>blip(140, 120, "sawtooth", 0.040), 120); }
+        }
+        return { play };
+      })());
+
+      // ---- State keys (daily) ----
+      function dayKey(){
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth()+1).padStart(2,"0");
+        const da = String(d.getDate()).padStart(2,"0");
+        return `${y}-${m}-${da}`;
+      }
+
+      const K = {
+        day: "AZ_DAY",
+        scans: "AZ_SCANS_TODAY",
+        light: "AZ_LIGHT_TODAY",
+        spite: "AZ_SPITE_TODAY",
+        boss: "AZ_BOSS_SPAWNED_TODAY",
+        faction: "AZ_FACTION",
+        ap: "AZ_AP",
+        energy: "AZ_ENERGY",
+        lastEnergy: "AZ_LAST_ENERGY_TS",
+      };
+
+      // ---- Lazy energy regen ----
+      const ENERGY_MAX = 30;
+      const ENERGY_REGEN_MS = 5 * 60 * 1000; // 5 minutes
+
+      function getInt(key, fallback=0){
+        const v = localStorage.getItem(key);
+        const n = parseInt(v, 10);
+        return Number.isFinite(n) ? n : fallback;
+      }
+      function setInt(key, val){ localStorage.setItem(key, String(Math.floor(val))); }
+
+      function ensureDayReset(){
+        const dk = dayKey();
+        const stored = localStorage.getItem(K.day);
+        if (stored !== dk) {
+          localStorage.setItem(K.day, dk);
+          setInt(K.scans, 0);
+          setInt(K.light, 0);
+          setInt(K.spite, 0);
+          localStorage.setItem(K.boss, "0");
+          // do NOT wipe faction/ap/energy; faction persists, energy regens lazily
+        }
+      }
+
+      function regenEnergy(){
+        const now = Date.now();
+        let energy = getInt(K.energy, ENERGY_MAX);
+        let last = getInt(K.lastEnergy, now);
+
+        if (!last) last = now;
+
+        const gained = Math.floor((now - last) / ENERGY_REGEN_MS);
+        if (gained > 0) {
+          energy = Math.min(ENERGY_MAX, energy + gained);
+          last = last + gained * ENERGY_REGEN_MS;
+          setInt(K.energy, energy);
+          setInt(K.lastEnergy, last);
+        } else {
+          // make sure keys exist
+          if (!localStorage.getItem(K.energy)) setInt(K.energy, energy);
+          if (!localStorage.getItem(K.lastEnergy)) setInt(K.lastEnergy, now);
+        }
+        return energy;
+      }
+
+      // ---- Fake user pool (25+) ----
+      function makeFakeUsers(){
+        const names = [
+          "KAI", "MIRA", "NOVA", "ZANE", "LUNA", "RYU", "ARIA", "JAX", "SAGE", "ROXI",
+          "VEGA", "NYX", "ELIO", "YARA", "KODA", "FAYE", "VIO", "LEIF", "MOSS", "SKYE",
+          "ZURI", "NOEL", "REMI", "IVY", "OMNI", "AZRA", "SOL", "ECHO"
+        ];
+        const list = [];
+        for (let i=0;i<28;i++){
+          const id = 7000 + i;
+          const nm = names[i % names.length] + " " + String.fromCharCode(65 + (i % 26)) + ".";
+          // stable seeded image (picsum)
+          const img = `https://picsum.photos/seed/azeuqer_${id}/800/900`;
+          list.push({ user_id: id, username: nm, bio_lock_url: img });
+        }
+        return list;
+      }
+
+      const pool = makeFakeUsers();
+      let idx = 0;
+
+      // ---- DOM ----
+      const elEnergy = document.getElementById("s3Energy");
+      const elCount = document.getElementById("s3Count");
+      const elBar = document.getElementById("s3ProgressBar");
+      const elName = document.getElementById("s3Name");
+      const elImg = document.getElementById("s3Img");
+      const elIdTag = document.getElementById("s3IdTag");
+      const elSub = document.getElementById("s3Sub");
+      const elHint = document.getElementById("s3Hint");
+      const elFaction = document.getElementById("s3FactionBadge");
+      const card = document.getElementById("s3Card");
+
+      const btnLight = document.getElementById("btnLight");
+      const btnSpite = document.getElementById("btnSpite");
+
+      const bossModal = document.getElementById("s3BossModal");
+      const bossOk = document.getElementById("s3BossOk");
+
+      bossOk.addEventListener("click", () => {
+        bossModal.classList.add("hidden");
+        AzeuqerSFX.play("tap");
+      });
+
+      // ---- UI helpers ----
+      function setFactionBadge(f){
+        const faction = (f || "UNSORTED").toUpperCase();
+        elFaction.textContent = faction;
+
+        // visually tint badge
+        if (faction.includes("EUPH")) {
+          elFaction.style.background = "linear-gradient(135deg, rgba(255,215,64,0.95), rgba(255,236,180,0.95))";
+          elFaction.style.color = "#1a1400";
+        } else if (faction.includes("DISS")) {
+          elFaction.style.background = "linear-gradient(135deg, rgba(255,64,129,0.92), rgba(255,150,200,0.92))";
+          elFaction.style.color = "#1a0010";
+        } else {
+          elFaction.style.background = "rgba(10,20,40,0.06)";
+          elFaction.style.color = "var(--ink,#0b1020)";
+        }
+      }
+
+      function renderHUD(){
+        ensureDayReset();
+        const energy = regenEnergy();
+        const scans = getInt(K.scans, 0);
+
+        elEnergy.textContent = energy;
+        elCount.textContent = scans;
+
+        const pct = Math.min(100, (scans / 20) * 100);
+        elBar.style.width = pct + "%";
+
+        const f = localStorage.getItem(K.faction) || "UNSORTED";
+        setFactionBadge(f);
+
+        // Guidance text
+        if (scans < 10) {
+          elSub.textContent = "Complete 10 scans to unlock your faction.";
+        } else if (scans >= 10 && scans < 20) {
+          elSub.textContent = "Initiation complete. Boss can appear any time between scans 11–20.";
+        } else {
+          elSub.textContent = "Free scans limit hit. Further scans consume Energy.";
+        }
+      }
+
+      function renderTarget(){
+        const t = pool[idx % pool.length];
+        elName.textContent = t.username;
+        elImg.src = t.bio_lock_url;
+        elIdTag.textContent = "#" + t.user_id;
+      }
+
+      function bumpCard(dir){
+        // micro dopamine animation (non-annoying)
+        const x = dir === "LIGHT" ? 22 : -22;
+        const r = dir === "LIGHT" ? 2.5 : -2.5;
+        card.style.transition = "transform 160ms ease-out, box-shadow 160ms ease-out";
+        card.style.transform = `translateX(${x}px) rotate(${r}deg)`;
+        card.style.boxShadow = dir === "LIGHT"
+          ? "0 26px 60px rgba(255,215,64,0.22)"
+          : "0 26px 60px rgba(255,64,129,0.18)";
+        setTimeout(() => {
+          card.style.transform = "translateX(0) rotate(0)";
+          card.style.boxShadow = "0 22px 50px rgba(10,20,40,0.14)";
+        }, 170);
+      }
+
+      // ---- Initiation / faction logic at scan #10 ----
+      function maybeAssignFactionAt10(){
+        const scans = getInt(K.scans, 0);
+        if (scans !== 10) return;
+
+        const light = getInt(K.light, 0);
+        const spite = getInt(K.spite, 0);
+
+        let faction = "EUPHORIA";
+        if (spite > light) faction = "DISSONANCE";
+        if (spite === light) faction = (Math.random() < 0.5) ? "EUPHORIA" : "DISSONANCE";
+
+        localStorage.setItem(K.faction, faction);
+        setFactionBadge(faction);
+
+        AzeuqerSFX.play("confirm");
+        elHint.textContent = `Faction locked: ${faction}. Now the real loop begins.`;
+      }
+
+      // ---- Boss trigger logic (11–20) ----
+      function shouldTriggerBoss(){
+        const scans = getInt(K.scans, 0);
+        const spawned = localStorage.getItem(K.boss) === "1";
+        if (spawned) return false;
+
+        if (scans < 11 || scans > 20) return false;
+
+        // Chance each swipe in window
+        const chance = 0.22; // tuned
+        const roll = Math.random() < chance;
+
+        // Force by scan #20 if not spawned yet (guaranteed experience)
+        const force = (scans === 20);
+
+        return roll || force;
+      }
+
+      function triggerBoss(){
+        localStorage.setItem(K.boss, "1");
+        AzeuqerSFX.play("boss");
+
+        // Route if boss screen exists
+        const bossScreen = document.getElementById("screen-boss");
+        if (bossScreen && window.AzeuqerRouter && window.AzeuqerRouter.showScreen) {
+          window.AzeuqerRouter.showScreen("screen-boss");
+        } else {
+          bossModal.classList.remove("hidden");
+        }
+      }
+
+      // ---- Swipe transaction ----
+      function canSwipe(){
+        ensureDayReset();
+        regenEnergy();
+
+        const scans = getInt(K.scans, 0);
+        if (scans < 20) return true; // free scans
+
+        // after 20 → consume energy
+        const energy = getInt(K.energy, ENERGY_MAX);
+        return energy > 0;
+      }
+
+      function consumeEnergyIfNeeded(){
+        const scans = getInt(K.scans, 0);
+        if (scans < 20) return; // free
+        let energy = getInt(K.energy, ENERGY_MAX);
+        energy = Math.max(0, energy - 1);
+        setInt(K.energy, energy);
+      }
+
+      function awardAP(){
+        const ap = getInt(K.ap, 0) + 1;
+        setInt(K.ap, ap);
+      }
+
+      function doSwipe(dir){
+        if (!canSwipe()){
+          AzeuqerSFX.play("tap");
+          elHint.textContent = "Not enough Energy. Come back later (lazy regen).";
+          renderHUD();
+          return;
+        }
+
+        // First touch ensures audio context unlock
+        AzeuqerSFX.play(dir === "LIGHT" ? "light" : "spite");
+
+        // Consume energy if needed
+        consumeEnergyIfNeeded();
+
+        // Update counts
+        const scans = getInt(K.scans, 0) + 1;
+        setInt(K.scans, scans);
+
+        if (dir === "LIGHT") setInt(K.light, getInt(K.light, 0) + 1);
+        if (dir === "SPITE") setInt(K.spite, getInt(K.spite, 0) + 1);
+
+        // Rewards (even for fake)
+        awardAP();
+
+        bumpCard(dir);
+        idx = (idx + 1) % pool.length;
+        renderTarget();
+
+        // Initiation check
+        maybeAssignFactionAt10();
+
+        // Boss check
+        if (shouldTriggerBoss()){
+          triggerBoss();
+        }
+
+        // Update HUD
+        renderHUD();
+      }
+
+      btnLight.addEventListener("click", () => doSwipe("LIGHT"));
+      btnSpite.addEventListener("click", () => doSwipe("SPITE"));
+
+      // ---- Public API so router hooks can call it ----
+      window.AzeuqerScan = {
+        initScan(){
+          ensureDayReset();
+          regenEnergy();
+          renderTarget();
+          renderHUD();
+          // Always show a clean hint
+          const scans = getInt(K.scans, 0);
+          if (scans < 10) elHint.textContent = "You are being judged by what you choose.";
+          else if (scans >= 10 && scans < 20) elHint.textContent = "Boss can appear any swipe now. Stay sharp.";
+          else elHint.textContent = "Free scans exhausted. Energy will be consumed per scan.";
+        }
+      };
+
+      // Self-init (safe) – screen will refresh again via router onShow hook too
+      window.AzeuqerScan.initScan();
+
+      // Keep Screen 2 and Screen 3 toggles in sync
+      renderSfxBtn();
+
+    })();
+  </script>
+
+</section>
+
+   <!-- SCREEN 4: BOSS -->
+<section id="screen-boss" class="screen hidden">
+  <!-- ======================================================
+    SCREEN 4 — BOSS FIGHT (V23) — MATCHES SCREEN 3 STORAGE
+  ====================================================== -->
+  <div class="s4-wrap">
+
+    <!-- Sticky HUD -->
+    <div class="s4-hud">
+      <button class="s4-pill" onclick="window.AzeuqerRouter.showScreen('screen-scan')" data-sfx="tap">← Scan</button>
+
+      <div class="s4-mid">
+        <div class="s4-stat">
+          <div class="k">Energy</div>
+          <div class="v"><span id="s4_energy">30</span><span class="m">/30</span></div>
+        </div>
+        <div class="s4-stat">
+          <div class="k">AP</div>
+          <div class="v" id="s4_ap">0</div>
+        </div>
+        <div class="s4-stat">
+          <div class="k">HP</div>
+          <div class="v"><span id="s4_hp">40</span><span class="m">/</span><span id="s4_hpMax">40</span></div>
+        </div>
+      </div>
+
+      <button class="s4-pill s4-pill-ghost" id="s4_sfx" data-sfx="tap">🔊</button>
+    </div>
+
+    <!-- Arena -->
+    <div class="arena">
+      <div class="arenaTop">
+        <div>
+          <div class="bossTitle" id="boss_name">SIGNAL FLARE: ANOMALY</div>
+          <div class="bossSub" id="boss_sub">A sponsor-grade entity has breached the feed.</div>
+        </div>
+        <div class="logoStrip" id="boss_sponsor">
+          <span class="logoChip">PARTNERS</span>
+          <span class="logoChip">DGLITCH</span>
+          <span class="logoChip">SPONSOR SLOT</span>
+        </div>
+      </div>
+
+      <!-- Boss HP -->
+      <div class="hpWrap">
+        <div class="hpLabel">
+          <span>Boss HP</span>
+          <span id="boss_hp_text">60 / 60</span>
+        </div>
+        <div class="hpBar">
+          <div id="boss_hp_fill" class="hpFill"></div>
+        </div>
+      </div>
+
+      <!-- Boss visual -->
+      <div class="bossStage" id="boss_stage">
+        <div class="particles"></div>
+        <div class="bossGlow"></div>
+
+        <div class="bossCore" id="boss_core" aria-label="boss">
+          <div class="bossEye e1"></div>
+          <div class="bossEye e2"></div>
+          <div class="bossMouth"></div>
+        </div>
+
+        <div class="dmgFloat" id="boss_dmgFloat"></div>
+      </div>
+
+      <!-- Player stats -->
+      <div class="statsRow">
+        <div class="statPill"><span>STR</span><b id="stat_str">0</b></div>
+        <div class="statPill"><span>AGI</span><b id="stat_agi">0</b></div>
+        <div class="statPill"><span>INT</span><b id="stat_int">0</b></div>
+        <div class="statPill"><span>VIT</span><b id="stat_vit">0</b></div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls">
+        <button class="cbtn cbtn-attack" id="btn_attack" data-sfx="hit">⚔ ATTACK</button>
+        <button class="cbtn cbtn-heal" id="btn_heal" data-sfx="confirm">💉 HEAL</button>
+      </div>
+
+      <div class="combatNote" id="boss_note">
+        Tip: Dissonance hits harder. Euphoria earns AP faster. (Coming online soon.)
+      </div>
+    </div>
+
+    <!-- Loot modal -->
+    <div id="boss_lootModal" class="lootModal hidden">
+      <div class="lootCard">
+        <div class="lootTitle">VICTORY</div>
+        <div class="lootSub">A crate fell from the sky.</div>
+
+        <div class="crateWrap">
+          <div id="boss_crate" class="crate"></div>
+        </div>
+
+        <div id="boss_lootText" class="lootText">LOOT: —</div>
+        <button class="s4-pill s4-pill-cta" id="btn_claim" data-sfx="confirm">Claim</button>
+      </div>
+    </div>
+
+    <!-- Defeat modal -->
+    <div id="boss_defeatModal" class="lootModal hidden">
+      <div class="lootCard">
+        <div class="lootTitle" style="color: var(--diss-2);">SYSTEM FAILURE</div>
+        <div class="lootSub">Your signal collapsed.</div>
+        <div class="lootText">Revive wiring comes next. For now: retreat and scan again.</div>
+        <button class="s4-pill" onclick="window.AzeuqerRouter.showScreen('screen-scan')" data-sfx="tap">Retreat</button>
+      </div>
+    </div>
+
+  </div>
+
+  <style>
+    .s4-wrap { max-width: 980px; margin: 0 auto; padding-bottom: 22px; }
+
+    .s4-hud{
+      position: sticky;
+      top: calc(var(--contentTop) + 10px);
+      z-index: 40;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .s4-pill{
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(10px);
+      padding: 10px 12px;
+      border-radius: 999px;
+      font-family: var(--font-head);
+      font-weight: 900;
+      color: var(--ink);
+      box-shadow: var(--shadow-1);
+      cursor: pointer;
+    }
+    .s4-pill:active{ transform: scale(0.98); }
+    .s4-pill-ghost{ background: rgba(255,255,255,0.55); box-shadow:none; }
+    .s4-pill-cta{
+      border-color: rgba(0,230,255,0.35);
+      box-shadow: 0 14px 30px rgba(0,230,255,0.12);
+    }
+
+    .s4-mid{
+      flex: 1;
+      display:flex;
+      justify-content:center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .s4-stat{
+      min-width: 92px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.70);
+      border-radius: 16px;
+      padding: 8px 10px;
+      text-align:center;
+      box-shadow: 0 10px 22px rgba(10,20,40,0.06);
+    }
+    .s4-stat .k{
+      font-family: var(--font-mono);
+      font-weight: 900;
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .s4-stat .v{
+      margin-top: 4px;
+      font-family: var(--font-head);
+      font-weight: 950;
+      font-size: 1.05rem;
+    }
+    .s4-stat .m{ color: var(--muted); margin-left: 4px; font-size: 0.9rem; }
+
+    .arena{
+      background: rgba(255,255,255,0.92);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-2);
+      overflow:hidden;
+      padding: 14px;
+    }
+
+    .arenaTop{
+      display:flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items:flex-start;
+      flex-wrap: wrap;
+    }
+
+    .bossTitle{
+      font-family: var(--font-head);
+      font-weight: 950;
+      letter-spacing: -0.02em;
+      font-size: 1.15rem;
+    }
+    .bossSub{ color: var(--muted); margin-top: 6px; }
+
+    .logoStrip{
+      display:flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content:flex-end;
+    }
+    .logoChip{
+      font-family: var(--font-mono);
+      font-weight: 900;
+      font-size: 0.72rem;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(10,20,40,0.10);
+      background: rgba(255,255,255,0.70);
+      color: var(--muted);
+    }
+
+    .hpWrap{ margin-top: 12px; }
+    .hpLabel{
+      display:flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-weight: 900;
+      font-size: 0.78rem;
+    }
+    .hpBar{
+      margin-top: 8px;
+      height: 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(10,20,40,0.12);
+      background: rgba(10,20,40,0.06);
+      overflow:hidden;
+    }
+    .hpFill{
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--diss-2), var(--euph-2));
+      border-radius: 999px;
+      transition: width 220ms var(--ease-out);
+    }
+
+    .bossStage{
+      margin-top: 14px;
+      height: min(44vh, 420px);
+      border-radius: 24px;
+      border: 1px solid rgba(10,20,40,0.10);
+      background:
+        radial-gradient(700px 320px at 50% 90%, rgba(0,230,255,0.18), transparent 70%),
+        radial-gradient(520px 260px at 10% 10%, rgba(124,77,255,0.16), transparent 60%),
+        linear-gradient(180deg, rgba(255,255,255,0.60), rgba(255,255,255,0.10));
+      position: relative;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .particles{
+      position:absolute; inset:0;
+      background:
+        radial-gradient(2px 2px at 20% 20%, rgba(255,255,255,0.8), transparent 60%),
+        radial-gradient(2px 2px at 60% 40%, rgba(255,255,255,0.6), transparent 60%),
+        radial-gradient(2px 2px at 80% 70%, rgba(255,255,255,0.7), transparent 60%),
+        radial-gradient(2px 2px at 35% 75%, rgba(255,255,255,0.5), transparent 60%);
+      opacity: 0.8;
+      animation: drift 4.5s ease-in-out infinite;
+    }
+    @keyframes drift{
+      0%{ transform: translateY(0px); opacity: 0.75; }
+      50%{ transform: translateY(8px); opacity: 1; }
+      100%{ transform: translateY(0px); opacity: 0.75; }
+    }
+
+    .bossGlow{
+      position:absolute;
+      width: 520px; height: 520px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.65), rgba(255,0,106,0.16), transparent 60%);
+      filter: blur(10px);
+      opacity: 0.9;
+      animation: glowPulse 2.2s ease-in-out infinite;
+    }
+    @keyframes glowPulse{
+      0%{ transform: scale(0.98); opacity: 0.8; }
+      50%{ transform: scale(1.04); opacity: 1; }
+      100%{ transform: scale(0.98); opacity: 0.8; }
+    }
+
+    .bossCore{
+      width: 180px; height: 180px;
+      border-radius: 46px;
+      background: linear-gradient(135deg, rgba(255,0,106,0.40), rgba(124,77,255,0.26));
+      border: 1px solid rgba(0,0,0,0.10);
+      box-shadow: 0 30px 70px rgba(255,0,106,0.18);
+      position: relative;
+      transform: translateY(-6px);
+      animation: bossFloat 1.9s ease-in-out infinite;
+    }
+    @keyframes bossFloat{
+      0%{ transform: translateY(-6px); }
+      50%{ transform: translateY(6px); }
+      100%{ transform: translateY(-6px); }
+    }
+
+    .bossEye{
+      position:absolute;
+      top: 52px;
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #fff, rgba(0,0,0,0.75));
+      box-shadow: 0 0 0 6px rgba(255,255,255,0.12);
+      animation: blink 3.6s infinite;
+    }
+    .bossEye.e1{ left: 52px; }
+    .bossEye.e2{ right: 52px; }
+    @keyframes blink{
+      0%, 92%, 100%{ transform: scaleY(1); }
+      95%{ transform: scaleY(0.2); }
+    }
+
+    .bossMouth{
+      position:absolute;
+      left: 50%;
+      top: 110px;
+      transform: translateX(-50%);
+      width: 70px;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.55);
+      box-shadow: 0 0 0 6px rgba(0,0,0,0.08);
+    }
+
+    .hitFlash{ animation: hitFlash 220ms ease-out; }
+    @keyframes hitFlash{
+      0%{ filter: brightness(1); }
+      50%{ filter: brightness(1.35) saturate(1.25); }
+      100%{ filter: brightness(1); }
+    }
+
+    .shake{ animation: shake 220ms ease-out; }
+    @keyframes shake{
+      0%{ transform: translate(0,0); }
+      30%{ transform: translate(6px,-4px); }
+      60%{ transform: translate(-5px,3px); }
+      100%{ transform: translate(0,0); }
+    }
+
+    .dmgFloat{
+      position:absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-head);
+      font-weight: 950;
+      font-size: 2.2rem;
+      color: #000;
+      text-shadow: 0 10px 30px rgba(255,0,106,0.18);
+      opacity: 0;
+      pointer-events:none;
+    }
+    .dmgShow{ animation: dmg 820ms ease-out; }
+    @keyframes dmg{
+      0%{ opacity: 0; transform: translateX(-50%) translateY(12px) scale(0.98); }
+      20%{ opacity: 1; transform: translateX(-50%) translateY(0px) scale(1.02); }
+      100%{ opacity: 0; transform: translateX(-50%) translateY(-18px) scale(1.0); }
+    }
+
+    .statsRow{
+      display:flex;
+      gap: 10px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+      justify-content:center;
+    }
+    .statPill{
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.70);
+      border-radius: 999px;
+      padding: 8px 10px;
+      min-width: 84px;
+      display:flex;
+      gap: 8px;
+      align-items:center;
+      justify-content:center;
+      font-family: var(--font-mono);
+      font-weight: 900;
+      color: var(--muted);
+    }
+    .statPill b{ color: var(--ink); font-family: var(--font-head); }
+
+    .controls{
+      margin-top: 12px;
+      display:flex;
+      gap: 12px;
+    }
+    .cbtn{
+      flex: 1;
+      padding: 14px 14px;
+      border-radius: 22px;
+      font-family: var(--font-head);
+      font-weight: 950;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.92);
+      box-shadow: 0 18px 38px rgba(10,20,40,0.10);
+      cursor: pointer;
+    }
+    .cbtn:active{ transform: scale(0.985); }
+
+    .cbtn-attack{
+      background: linear-gradient(135deg, rgba(255,0,106,0.18), rgba(255,255,255,0.92));
+      border-color: rgba(255,0,106,0.18);
+    }
+    .cbtn-heal{
+      background: linear-gradient(135deg, rgba(0,230,255,0.18), rgba(255,255,255,0.92));
+      border-color: rgba(0,230,255,0.22);
+    }
+
+    .combatNote{
+      margin-top: 10px;
+      color: var(--muted);
+      text-align:center;
+    }
+
+    .lootModal{
+      position: fixed;
+      inset: 0;
+      z-index: 9998;
+      background: rgba(10,16,32,0.55);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 16px;
+    }
+    .lootCard{
+      width: min(520px, 92vw);
+      border-radius: 26px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.92);
+      box-shadow: 0 40px 90px rgba(10,20,40,0.35);
+      padding: 18px;
+      text-align:center;
+    }
+    .lootTitle{
+      font-family: var(--font-head);
+      font-weight: 950;
+      font-size: 1.6rem;
+      letter-spacing: -0.02em;
+    }
+    .lootSub{ margin-top: 6px; color: var(--muted); }
+
+    .crateWrap{ margin: 16px 0 10px; display:flex; justify-content:center; }
+    .crate{
+      width: 120px; height: 120px;
+      border-radius: 28px;
+      border: 1px solid rgba(0,0,0,0.10);
+      background: linear-gradient(135deg, rgba(255,210,74,0.55), rgba(255,255,255,0.90));
+      box-shadow: 0 30px 80px rgba(255,210,74,0.22);
+      position: relative;
+      animation: cratePulse 1.1s ease-in-out infinite;
+    }
+    .crate::after{
+      content:"";
+      position:absolute; inset:-18px;
+      border-radius: 40px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.85), rgba(0,230,255,0.16), transparent 65%);
+      filter: blur(14px);
+      opacity: 0.9;
+    }
+    @keyframes cratePulse{
+      0%{ transform: translateY(0px) scale(1); }
+      50%{ transform: translateY(-6px) scale(1.02); }
+      100%{ transform: translateY(0px) scale(1); }
+    }
+
+    .lootText{ margin-top: 10px; font-family: var(--font-mono); font-weight: 900; color: var(--ink); }
+
+    .hidden{ display:none !important; }
+  </style>
+
+  <script>
+  (function Screen4BossModule(){
+    // ✅ MATCH Screen 3 storage (NO dated keys)
+    const K = {
+      day: "AZ_DAY",
+      scans: "AZ_SCANS_TODAY",
+      ap: "AZ_AP",
+      energy: "AZ_ENERGY",
+      lastEnergy: "AZ_LAST_ENERGY_TS",
+      inv: "AZ_INV",
+      kills: "AZ_KILLS",
+
+      bossPhp: "AZ_BOSS_PHP",
+      bossBhp: "AZ_BOSS_BHP",
+      bossKilled: "AZ_BOSS_KILLED"
+    };
+
+    const ENERGY_MAX = 30;
+    const ENERGY_REGEN_MS = 5 * 60 * 1000; // 5 minutes
+
+    // --- Tiny SFX (Telegram-safe, only after user tap) ---
+    let audioCtx = null;
+    function sfxEnabled(){ return (localStorage.getItem('AZ_SFX') || 'on') === 'on'; }
+    function getCtx(){
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      return audioCtx;
+    }
+    function beep(type){
+      if (!sfxEnabled()) return;
+      try{
+        const ctx = getCtx();
+        const t0 = ctx.currentTime;
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = "sine";
+        const base = type === "hit" ? 160 : type === "heal" ? 220 : 200;
+        o.frequency.setValueAtTime(base, t0);
+        o.frequency.exponentialRampToValueAtTime(base * 1.6, t0 + 0.06);
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(0.12, t0 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.10);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(t0);
+        o.stop(t0 + 0.11);
+      }catch{}
+    }
+    function thump(){
+      if (!sfxEnabled()) return;
+      try{
+        const ctx = getCtx();
+        const t0 = ctx.currentTime;
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.type = "triangle";
+        o.frequency.setValueAtTime(70, t0);
+        o.frequency.exponentialRampToValueAtTime(42, t0 + 0.10);
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(0.14, t0 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.16);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(t0);
+        o.stop(t0 + 0.17);
+      }catch{}
+    }
+
+    // --- helpers ---
+    function dayKey(){
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,"0");
+      const da = String(d.getDate()).padStart(2,"0");
+      return `${y}-${m}-${da}`;
+    }
+
+    function getInt(k, d=0){ const v = parseInt(localStorage.getItem(k) || "", 10); return Number.isFinite(v) ? v : d; }
+    function setInt(k, v){ localStorage.setItem(k, String(Math.floor(v))); }
+    function getJSON(k, d){ try{ return JSON.parse(localStorage.getItem(k) || ""); }catch{ return d; } }
+    function setJSON(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
+    function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+    function rand(a,b){ return a + Math.floor(Math.random() * (b-a+1)); }
+
+    function ensureDayReset(){
+      const dk = dayKey();
+      const stored = localStorage.getItem(K.day);
+      if (stored !== dk) {
+        localStorage.setItem(K.day, dk);
+        setInt(K.scans, 0);
+        localStorage.setItem("AZ_LIGHT_TODAY", "0");
+        localStorage.setItem("AZ_SPITE_TODAY", "0");
+        localStorage.setItem("AZ_BOSS_SPAWNED_TODAY", "0");
+        // keep faction/ap/energy persistent; energy is regen-based
+      }
+    }
+
+    function regenEnergy(){
+      const now = Date.now();
+      let energy = getInt(K.energy, ENERGY_MAX);
+      let last = getInt(K.lastEnergy, now);
+
+      if (!localStorage.getItem(K.energy)) setInt(K.energy, energy);
+      if (!localStorage.getItem(K.lastEnergy)) setInt(K.lastEnergy, now);
+
+      const gained = Math.floor((now - last) / ENERGY_REGEN_MS);
+      if (gained > 0) {
+        energy = Math.min(ENERGY_MAX, energy + gained);
+        last = last + gained * ENERGY_REGEN_MS;
+        setInt(K.energy, energy);
+        setInt(K.lastEnergy, last);
+      }
+      return energy;
+    }
+
+    // --- UI refs ---
+    const sfxBtn = document.getElementById('s4_sfx');
+    const elEnergy = document.getElementById('s4_energy');
+    const elAp = document.getElementById('s4_ap');
+    const elHp = document.getElementById('s4_hp');
+    const elHpMax = document.getElementById('s4_hpMax');
+
+    const bossHpText = document.getElementById('boss_hp_text');
+    const bossHpFill = document.getElementById('boss_hp_fill');
+    const bossCore = document.getElementById('boss_core');
+    const bossStage = document.getElementById('boss_stage');
+    const dmgFloat = document.getElementById('boss_dmgFloat');
+
+    const statSTR = document.getElementById('stat_str');
+    const statAGI = document.getElementById('stat_agi');
+    const statINT = document.getElementById('stat_int');
+    const statVIT = document.getElementById('stat_vit');
+
+    const btnAttack = document.getElementById('btn_attack');
+    const btnHeal = document.getElementById('btn_heal');
+
+    const lootModal = document.getElementById('boss_lootModal');
+    const defeatModal = document.getElementById('boss_defeatModal');
+    const lootText = document.getElementById('boss_lootText');
+    const btnClaim = document.getElementById('btn_claim');
+
+    function renderSfx(){
+      sfxBtn.textContent = sfxEnabled() ? "🔊" : "🔇";
+      sfxBtn.style.opacity = sfxEnabled()? "1":"0.65";
+    }
+    sfxBtn.addEventListener('click', ()=>{ localStorage.setItem('AZ_SFX', sfxEnabled() ? 'off':'on'); renderSfx(); });
+    renderSfx();
+
+    // --- Combat state ---
+    let scans = 0, ap = 0, energy = ENERGY_MAX;
+    let player = { STR:0, AGI:0, INT:0, VIT:0, hp:40, hpMax:40 };
+    let boss = { hp:60, hpMax:60, level:1 };
+
+    function deriveStats(){
+      ensureDayReset();
+      energy = regenEnergy();
+
+      scans = getInt(K.scans, 0);
+      ap = getInt(K.ap, 0);
+
+      const seed = clamp(scans, 0, 40);
+      player.STR = Math.floor(seed / 6);
+      player.AGI = Math.floor(seed / 7);
+      player.INT = Math.floor(seed / 6);
+      player.VIT = Math.floor(seed / 5);
+
+      player.hpMax = 30 + player.VIT * 6;
+      player.hp = clamp(getInt(K.bossPhp, player.hpMax), Math.floor(player.hpMax * 0.65), player.hpMax);
+
+      boss.level = Math.max(1, Math.floor((scans || 10) / 10));
+      boss.hpMax = 55 + scans * 2;
+      boss.hp = clamp(getInt(K.bossBhp, boss.hpMax), 1, boss.hpMax);
+
+      const killed = getInt(K.bossKilled, 0);
+      if (killed) {
+        boss.hpMax = Math.max(40, Math.floor(boss.hpMax * 0.75));
+        boss.hp = boss.hpMax;
+        setInt(K.bossKilled, 0);
+      }
+    }
+
+    function persist(){
+      setInt(K.ap, ap);
+      setInt(K.energy, energy);
+      setInt(K.bossPhp, player.hp);
+      setInt(K.bossBhp, boss.hp);
+    }
+
+    function render(){
+      elEnergy.textContent = energy;
+      elAp.textContent = ap;
+      elHp.textContent = player.hp;
+      elHpMax.textContent = player.hpMax;
+
+      bossHpText.textContent = `${boss.hp} / ${boss.hpMax}`;
+      bossHpFill.style.width = `${Math.max(0, (boss.hp / boss.hpMax) * 100)}%`;
+
+      statSTR.textContent = player.STR;
+      statAGI.textContent = player.AGI;
+      statINT.textContent = player.INT;
+      statVIT.textContent = player.VIT;
+
+      // mirror into Profile tiles if present
+      const pAp = document.getElementById('p_ap');
+      const pEnergy = document.getElementById('p_energy');
+      if (pAp) pAp.textContent = ap;
+      if (pEnergy) pEnergy.textContent = energy;
+    }
+
+    function floatDmg(text){
+      dmgFloat.textContent = text;
+      dmgFloat.classList.remove('dmgShow');
+      void dmgFloat.offsetWidth;
+      dmgFloat.classList.add('dmgShow');
+    }
+
+    function bossHitFX(){
+      bossCore.classList.remove('hitFlash');
+      bossStage.classList.remove('shake');
+      void bossCore.offsetWidth;
+      bossCore.classList.add('hitFlash');
+      bossStage.classList.add('shake');
+    }
+
+    function calcPlayerDmg(){
+      const base = Math.floor(player.STR * 0.6 + player.INT * 0.4);
+      return Math.max(1, base + rand(0,3));
+    }
+
+    function calcBossDmg(){
+      const base = 2 + Math.floor(scans / 6) + boss.level;
+      return Math.max(1, base + rand(0,2));
+    }
+
+    function addLoot(){
+      const rarities = ["COMMON","RARE","EPIC","MYTHIC"];
+      const r = rarities[rand(0, rarities.length-1)];
+      const items = {
+        COMMON: ["Sticker Pack","Faction Patch","Chrome Badge"],
+        RARE: ["Neon Hoodie","Signal Visor","Holo Tag"],
+        EPIC: ["Void Runner Jacket","Sponsor Emblem","Prism Boots"],
+        MYTHIC: ["MYTHIC CRATE: DGLITCH","Sponsor Voucher (Stub)","Sky Monument Shard"]
+      };
+      const name = items[r][rand(0, items[r].length-1)];
+      const it = { name, rarity: r, desc: "Loot drop (client-sim). Backend soon." };
+
+      const inv = getJSON(K.inv, []);
+      inv.unshift(it);
+      setJSON(K.inv, inv);
+      return it;
+    }
+
+    function victory(){
+      ap += 10;
+      const kills = getInt(K.kills, 0) + 1;
+      setInt(K.kills, kills);
+      setInt(K.bossKilled, 1);
+
+      const it = addLoot();
+      lootText.textContent = `LOOT: ${it.rarity} • ${it.name}`;
+      lootModal.classList.remove('hidden');
+
+      const pKills = document.getElementById('p_kills');
+      if (pKills) pKills.textContent = kills;
+
+      persist();
+    }
+
+    function defeat(){
+      defeatModal.classList.remove('hidden');
+      persist();
+    }
+
+    function maybeDisable(){
+      const dead = player.hp <= 0;
+      btnAttack.disabled = dead;
+      btnHeal.disabled = dead;
+      btnAttack.style.opacity = dead ? "0.5":"1";
+      btnHeal.style.opacity = dead ? "0.5":"1";
+    }
+
+    function resetModals(){
+      lootModal.classList.add('hidden');
+      defeatModal.classList.add('hidden');
+    }
+
+    btnAttack.addEventListener('click', ()=>{
+      if (sfxEnabled()) getCtx();
+
+      const dmg = calcPlayerDmg();
+      boss.hp = clamp(boss.hp - dmg, 0, boss.hpMax);
+      floatDmg(`-${dmg}`);
+      bossHitFX();
+      beep("hit");
+
+      if (boss.hp <= 0) {
+        thump();
+        render();
+        victory();
+        return;
+      }
+
+      const bd = calcBossDmg();
+      player.hp = clamp(player.hp - bd, 0, player.hpMax);
+      floatDmg(`-${dmg} • ⟲ ${bd}`);
+
+      persist();
+      render();
+
+      if (player.hp <= 0) defeat();
+      maybeDisable();
+    });
+
+    btnHeal.addEventListener('click', ()=>{
+      if (sfxEnabled()) getCtx();
+      const heal = Math.max(10, Math.floor(player.hpMax * 0.45));
+      player.hp = clamp(player.hp + heal, 0, player.hpMax);
+      floatDmg(`+${heal}`);
+      beep("heal");
+      persist();
+      render();
+    });
+
+    btnClaim.addEventListener('click', ()=>{
+      lootModal.classList.add('hidden');
+      if (window.AzeuqerProfile && typeof window.AzeuqerProfile.loadProfile === 'function') {
+        window.AzeuqerProfile.loadProfile();
+      }
+      window.AzeuqerRouter.showScreen('screen-profile');
+    });
+
+    // ✅ Router calls this onShow
+    function initBoss(){
+      resetModals();
+      deriveStats();
+      render();
+      maybeDisable();
+    }
+
+    window.AzeuqerBoss = { initBoss };
+  })();
+  </script>
+</section>
+
+
+
+<!-- SCREEN 5: HALL OF FAME -->
+<section id="screen-hall" class="screen hidden">
+  <!-- ======================================================
+    SCREEN 5 — HALL OF FAME (V23)
+    Beauties vs Opposites • Leaderboards • Faction Wars UI
+  ====================================================== -->
+
+  <div class="s5-wrap">
+
+    <!-- Sticky HUD -->
+    <div class="s5-hud">
+      <button class="s5-pill" onclick="window.AzeuqerRouter.showScreen('screen-profile')" data-sfx="tap">← Profile</button>
+
+      <div class="s5-titleWrap">
+        <div class="s5-title">HALL OF FAME</div>
+        <div class="s5-sub" id="s5_userFactionSub">Prestige layer online.</div>
+      </div>
+
+      <button class="s5-pill s5-pill-ghost" id="s5_sfx" data-sfx="tap" aria-label="Toggle sound">🔊</button>
+    </div>
+
+    <!-- Faction Wars (Monthly) panel -->
+    <div class="s5-factions">
+      <div class="s5-fcard s5-euph">
+        <div class="s5-fTop">
+          <div class="s5-fName">EUPHORIA</div>
+          <div class="s5-fTag">Top 23</div>
+        </div>
+        <div class="s5-fBody">
+          <div class="s5-fLine">Bonus (PvE): <b>+%</b> (stub)</div>
+          <div class="s5-fLine">Kills ladder: <b>Ranked</b> (stub)</div>
+        </div>
+        <div class="s5-fFoot">Gold/Cyan — “beauty” dominance</div>
+      </div>
+
+      <div class="s5-fcard s5-diss">
+        <div class="s5-fTop">
+          <div class="s5-fName">DISSONANCE</div>
+          <div class="s5-fTag">Top 23</div>
+        </div>
+        <div class="s5-fBody">
+          <div class="s5-fLine">Bonus (PvE): <b>+%</b> (stub)</div>
+          <div class="s5-fLine">Kills ladder: <b>Ranked</b> (stub)</div>
+        </div>
+        <div class="s5-fFoot">Pink/Violet — “opposite” dominance</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="s5-tabs" role="tablist" aria-label="Hall categories">
+      <button class="s5-tab active" data-tab="popularity" id="tab_popularity">Popularity</button>
+      <button class="s5-tab" data-tab="wins" id="tab_wins">Battle Wins</button>
+      <button class="s5-tab" data-tab="rare" id="tab_rare">Rare Items</button>
+    </div>
+
+    <!-- Tab: Popularity -->
+    <div class="s5-panel" data-panel="popularity">
+      <div class="s5-panelHead">
+        <div class="s5-panelTitle">Beauties vs Opposites</div>
+        <div class="s5-panelNote" id="s5_popNote">Based on scan outcomes (client-sim).</div>
+      </div>
+
+      <div class="s5-twoCol">
+        <div class="s5-col">
+          <div class="s5-colTitle">
+            <span class="s5-dot s5-dot-euph"></span> Beauties
+          </div>
+          <div id="s5_beauties" class="s5-list"></div>
+        </div>
+
+        <div class="s5-col">
+          <div class="s5-colTitle">
+            <span class="s5-dot s5-dot-diss"></span> Opposites
+          </div>
+          <div id="s5_opposites" class="s5-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Wins -->
+    <div class="s5-panel hidden" data-panel="wins">
+      <div class="s5-panelHead">
+        <div class="s5-panelTitle">Kills Ranking</div>
+        <div class="s5-panelNote">Top 3 earn epic loots (stub visuals).</div>
+      </div>
+      <div id="s5_wins" class="s5-list"></div>
+    </div>
+
+    <!-- Tab: Rare -->
+    <div class="s5-panel hidden" data-panel="rare">
+      <div class="s5-panelHead">
+        <div class="s5-panelTitle">Rare Sponsor Loot</div>
+        <div class="s5-panelNote">Shows items you own (from inventory).</div>
+      </div>
+      <div id="s5_rare" class="s5-rareGrid"></div>
+    </div>
+
+  </div>
+
+  <style>
+    .s5-wrap{ max-width: 980px; margin: 0 auto; padding-bottom: 18px; }
+
+    .s5-hud{
+      position: sticky;
+      top: calc(var(--contentTop) + 10px);
+      z-index: 50;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .s5-pill{
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(10px);
+      padding: 10px 12px;
+      border-radius: 999px;
+      font-family: var(--font-head);
+      font-weight: 900;
+      color: var(--ink);
+      box-shadow: var(--shadow-1);
+      cursor:pointer;
+      white-space: nowrap;
+    }
+    .s5-pill:active{ transform: scale(0.98); }
+    .s5-pill-ghost{ background: rgba(255,255,255,0.60); box-shadow:none; }
+
+    .s5-titleWrap{ text-align:center; min-width: 180px; flex: 1; }
+    .s5-title{
+      font-family: var(--font-head);
+      font-weight: 980;
+      letter-spacing: -0.03em;
+      font-size: 1.05rem;
+    }
+    .s5-sub{
+      margin-top: 4px;
+      font-family: var(--font-mono);
+      font-weight: 900;
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    /* Faction cards */
+    .s5-factions{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .s5-fcard{
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.92);
+      box-shadow: var(--shadow-2);
+      overflow:hidden;
+      position: relative;
+    }
+
+    .s5-fTop{
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      padding: 14px;
+      border-bottom: 1px solid rgba(10,20,40,0.08);
+    }
+    .s5-fName{
+      font-family: var(--font-head);
+      font-weight: 990;
+      letter-spacing: -0.03em;
+    }
+    .s5-fTag{
+      font-family: var(--font-mono);
+      font-weight: 950;
+      font-size: 0.72rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,0.10);
+      background: rgba(255,255,255,0.60);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .s5-fBody{ padding: 14px; }
+    .s5-fLine{
+      font-family: var(--font-mono);
+      font-weight: 900;
+      color: rgba(10,20,40,0.62);
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+    }
+    .s5-fLine b{ color: rgba(10,20,40,0.90); }
+    .s5-fFoot{
+      padding: 12px 14px;
+      font-family: var(--font-mono);
+      font-weight: 900;
+      color: rgba(10,20,40,0.55);
+      border-top: 1px solid rgba(10,20,40,0.08);
+      background: rgba(10,20,40,0.02);
+    }
+
+    .s5-euph::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(600px 240px at 20% 0%, rgba(255,210,74,0.30), transparent 55%),
+                  radial-gradient(600px 240px at 90% 90%, rgba(0,230,255,0.18), transparent 60%);
+      pointer-events:none;
+    }
+
+    .s5-diss::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(600px 240px at 20% 0%, rgba(255,0,106,0.22), transparent 55%),
+                  radial-gradient(600px 240px at 90% 90%, rgba(124,77,255,0.18), transparent 60%);
+      pointer-events:none;
+    }
+
+    /* Tabs */
+    .s5-tabs{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .s5-tab{
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.78);
+      box-shadow: 0 10px 22px rgba(10,20,40,0.06);
+      font-family: var(--font-head);
+      font-weight: 950;
+      cursor: pointer;
+    }
+    .s5-tab.active{
+      box-shadow: 0 18px 40px rgba(10,20,40,0.10);
+      border-color: rgba(0,230,255,0.35);
+    }
+    .s5-panel{
+      border-radius: 22px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.92);
+      box-shadow: var(--shadow-2);
+      padding: 14px;
+    }
+
+    .s5-panelHead{
+      display:flex;
+      justify-content: space-between;
+      align-items:flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .s5-panelTitle{
+      font-family: var(--font-head);
+      font-weight: 980;
+      letter-spacing: -0.02em;
+    }
+    .s5-panelNote{
+      font-family: var(--font-mono);
+      font-weight: 900;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .s5-twoCol{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .s5-colTitle{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      font-family: var(--font-head);
+      font-weight: 980;
+      margin-bottom: 10px;
+    }
+    .s5-dot{ width: 10px; height: 10px; border-radius: 50%; }
+    .s5-dot-euph{ background: radial-gradient(circle at 30% 30%, #fff, rgba(255,210,74,0.95)); box-shadow: 0 0 0 6px rgba(255,210,74,0.12); }
+    .s5-dot-diss{ background: radial-gradient(circle at 30% 30%, #fff, rgba(255,0,106,0.85)); box-shadow: 0 0 0 6px rgba(255,0,106,0.12); }
+
+    /* List entries */
+    .s5-list{ display:flex; flex-direction: column; gap: 10px; }
+
+    .s5-entry{
+      display:flex;
+      gap: 12px;
+      align-items:center;
+      border-radius: 18px;
+      border: 1px solid rgba(20,35,70,0.12);
+      background: rgba(255,255,255,0.80);
+      padding: 10px;
+      box-shadow: 0 10px 22px rgba(10,20,40,0.06);
+      position: relative;
+      overflow:hidden;
+    }
+
+    .s5-rank{
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,0.10);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family: var(--font-head);
+      font-weight: 990;
+      background: rgba(10,20,40,0.06);
+    }
+
+    .s5-ava{
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      overflow:hidden;
+      border: 1px solid rgba(0,0,0,0.10);
+      background: rgba(10,20,40,0.06);
+      flex: 0 0 auto;
+      position: relative;
+    }
+    .s5-ava img{ width:100%; height:100%; object-fit: cover; display:block; }
+
+    .s5-fdot{
+      position:absolute;
+      bottom: 6px;
+      right: 6px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.75);
+      background: rgba(10,20,40,0.35);
+    }
+
+    .s5-meta{ flex: 1; min-width: 0; }
+    .s5-name{
+      font-family: var(--font-head);
+      font-weight: 980;
+      letter-spacing: -0.02em;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+    .s5-mini{
+      margin-top: 3px;
+      font-family: var(--font-mono);
+      font-weight: 900;
+      font-size: 0.78rem;
+      color: rgba(10,20,40,0.58);
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+
+    .s5-score{
+      font-family: var(--font-mono);
+      font-weight: 950;
+      font-size: 0.78rem;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,0.10);
+      background: rgba(255,255,255,0.65);
+      color: rgba(10,20,40,0.70);
+      white-space: nowrap;
+    }
+
+    /* Dopamine glow top-3 */
+    .s5-entry.top3::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(500px 160px at 20% 0%, rgba(255,255,255,0.55), transparent 55%),
+                  radial-gradient(500px 160px at 90% 100%, rgba(0,230,255,0.18), transparent 60%),
+                  radial-gradient(500px 160px at 30% 100%, rgba(255,210,74,0.22), transparent 60%);
+      filter: blur(10px);
+      opacity: 0.85;
+      pointer-events:none;
+    }
+
+    /* Rare grid */
+    .s5-rareGrid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .s5-rare{
+      border-radius: 18px;
+      border: 1px solid rgba(20,35,70,0.12);
+      background: rgba(255,255,255,0.82);
+      padding: 12px;
+      box-shadow: 0 10px 22px rgba(10,20,40,0.06);
+      position: relative;
+      overflow:hidden;
+      min-height: 72px;
+    }
+    .s5-rareName{ font-family: var(--font-head); font-weight: 980; }
+    .s5-rareMeta{ margin-top: 6px; font-family: var(--font-mono); font-weight: 900; color: rgba(10,20,40,0.62); font-size: 0.78rem; }
+
+    .s5-glow-RARE::before,
+    .s5-glow-EPIC::before,
+    .s5-glow-MYTHIC::before{
+      content:"";
+      position:absolute; inset:-2px;
+      pointer-events:none;
+      filter: blur(12px);
+      opacity: 0.85;
+    }
+    .s5-glow-RARE::before{
+      background: radial-gradient(420px 160px at 30% 20%, rgba(0,230,255,0.18), transparent 60%),
+                  radial-gradient(420px 160px at 80% 90%, rgba(124,77,255,0.14), transparent 60%);
+    }
+    .s5-glow-EPIC::before{
+      background: radial-gradient(420px 160px at 30% 20%, rgba(124,77,255,0.22), transparent 60%),
+                  radial-gradient(420px 160px at 80% 90%, rgba(255,0,106,0.14), transparent 60%);
+    }
+    .s5-glow-MYTHIC::before{
+      background: radial-gradient(420px 160px at 30% 20%, rgba(255,210,74,0.28), transparent 60%),
+                  radial-gradient(420px 160px at 80% 90%, rgba(0,230,255,0.18), transparent 60%);
+    }
+
+    @media (max-width: 760px){
+      .s5-twoCol{ grid-template-columns: 1fr; }
+      .s5-factions{ grid-template-columns: 1fr; }
+      .s5-rareGrid{ grid-template-columns: 1fr; }
+      .s5-titleWrap{ text-align:left; }
+    }
+
+    .hidden{ display:none !important; }
+  </style>
+
+  <script>
+  (function Screen5HallModule(){
+    const SFX_KEY = "AZ_SFX";
+    function sfxOn(){ return (localStorage.getItem(SFX_KEY) || "on") === "on"; }
+
+    // Shared keys (match Screen 3 + Screen 4 updated boss script)
+    const K = {
+      scans: "AZ_SCANS_TODAY",
+      light: "AZ_LIGHT_TODAY",
+      spite: "AZ_SPITE_TODAY",
+      faction: "AZ_FACTION",
+      ap: "AZ_AP",
+      kills: "AZ_KILLS_TOTAL",
+      inv: "AZ_INVENTORY"
+    };
+
+    // DOM
+    const sfxBtn = document.getElementById("s5_sfx");
+    const sub = document.getElementById("s5_userFactionSub");
+
+    const tabBtns = Array.from(document.querySelectorAll("#screen-hall .s5-tab"));
+    const panels = Array.from(document.querySelectorAll("#screen-hall .s5-panel"));
+
+    const elBeauties = document.getElementById("s5_beauties");
+    const elOpposites = document.getElementById("s5_opposites");
+    const elWins = document.getElementById("s5_wins");
+    const elRare = document.getElementById("s5_rare");
+    const popNote = document.getElementById("s5_popNote");
+
+    // SFX toggle icon
+    function renderSfx(){
+      if (!sfxBtn) return;
+      sfxBtn.textContent = sfxOn() ? "🔊" : "🔇";
+      sfxBtn.style.opacity = sfxOn() ? "1" : "0.65";
+    }
+    if (sfxBtn){
+      sfxBtn.addEventListener("click", ()=>{
+        localStorage.setItem(SFX_KEY, sfxOn() ? "off" : "on");
+        renderSfx();
+      });
+      renderSfx();
+    }
+
+    function escapeHtml(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    // Deterministic seed (so list doesn’t reshuffle every open)
+    function seededRand(seed){
+      let t = seed >>> 0;
+      return function(){
+        t += 0x6D2B79F5;
+        let x = t;
+        x = Math.imul(x ^ (x >>> 15), x | 1);
+        x ^= x + Math.imul(x ^ (x >>> 7), x | 61);
+        return ((x ^ (x >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+
+    function getInt(k, d=0){
+      const v = parseInt(localStorage.getItem(k) || "", 10);
+      return Number.isFinite(v) ? v : d;
+    }
+
+    function getJSON(k, d){
+      try { return JSON.parse(localStorage.getItem(k) || ""); }
+      catch { return d; }
+    }
+
+    function factionDotColor(f){
+      const F = (f || "UNSORTED").toUpperCase();
+      if (F.includes("EUPH")) return "rgba(255,210,74,0.95)";
+      if (F.includes("DISS")) return "rgba(255,0,106,0.85)";
+      return "rgba(10,20,40,0.35)";
+    }
+
+    function makePopulation(){
+      const scans = getInt(K.scans, 0);
+      const light = getInt(K.light, 0);
+      const spite = getInt(K.spite, 0);
+      const ap = getInt(K.ap, 0);
+      const kills = getInt(K.kills, 0);
+      const myFaction = (localStorage.getItem(K.faction) || "UNSORTED").toUpperCase();
+
+      // seed uses scan + ap so it shifts as you progress but stays stable per state
+      const seed = (scans + 1) * 1337 + (ap + 3) * 17 + (kills + 5) * 19;
+      const rnd = seededRand(seed);
+
+      const names = ["NOVA","KAI","LUNA","MILO","ZARA","JUNO","NYX","RIVEN","SAGE","ARIA","VEGA","AXEL","IRIS","CORA","ELIO","KODA","SKYE","ORION","MAY","NIKO","SERA","RAYA","ZEN","VIO","REMI","IVY","ECHO","SOL"];
+      const factions = ["EUPHORIA","DISSONANCE","UNSORTED"];
+
+      const list = [];
+      for (let i=0;i<18;i++){
+        const nm = names[i % names.length] + " " + String.fromCharCode(65 + (i % 26)) + ".";
+        const f = factions[Math.floor(rnd() * factions.length)];
+        const likes = Math.floor(rnd() * 60);
+        const dislikes = Math.floor(rnd() * 60);
+        const score = likes - dislikes;
+        const id = 9000 + i;
+
+        list.push({
+          id,
+          name: nm,
+          faction: f,
+          likes,
+          dislikes,
+          score,
+          img: `https://picsum.photos/seed/hof_${id}/200/200`,
+          kills: Math.floor(rnd()*6)
+        });
+      }
+
+      // Inject YOU (so user always sees themselves)
+      list.unshift({
+        id: 1,
+        name: "YOU",
+        faction: myFaction,
+        likes: light,
+        dislikes: spite,
+        score: (light - spite),
+        img: `https://picsum.photos/seed/you_${seed}/200/200`,
+        kills
+      });
+
+      return list;
+    }
+
+    function renderEntry(parent, row, rank, mode){
+      // mode: "beauty" uses likes, "opposite" uses dislikes, "wins" uses kills
+      const top3 = rank <= 3;
+
+      const scoreText =
+        mode === "wins" ? `KILLS: ${row.kills}` :
+        mode === "opposite" ? `DISLIKES: ${row.dislikes}` :
+        `LIKES: ${row.likes}`;
+
+      const el = document.createElement("div");
+      el.className = "s5-entry" + (top3 ? " top3" : "");
+      el.innerHTML = `
+        <div class="s5-rank">${rank}</div>
+        <div class="s5-ava">
+          <img alt="avatar" src="${escapeHtml(row.img)}">
+          <div class="s5-fdot" style="background:${escapeHtml(factionDotColor(row.faction))}"></div>
+        </div>
+        <div class="s5-meta">
+          <div class="s5-name">${escapeHtml(row.name)}</div>
+          <div class="s5-mini">Faction: ${escapeHtml((row.faction||"UNSORTED").toUpperCase())}</div>
+        </div>
+        <div class="s5-score">${escapeHtml(scoreText)}</div>
+      `;
+      parent.appendChild(el);
+    }
+
+    function renderPopularity(pop){
+      elBeauties.innerHTML = "";
+      elOpposites.innerHTML = "";
+
+      // Beauties: sort by likes desc
+      const beauties = [...pop].sort((a,b)=> (b.likes - a.likes)).slice(0,10);
+      // Opposites: sort by dislikes desc
+      const opposites = [...pop].sort((a,b)=> (b.dislikes - a.dislikes)).slice(0,10);
+
+      beauties.forEach((r, i)=> renderEntry(elBeauties, r, i+1, "beauty"));
+      opposites.forEach((r, i)=> renderEntry(elOpposites, r, i+1, "opposite"));
+
+      const scans = getInt(K.scans, 0);
+      const light = getInt(K.light, 0);
+      const spite = getInt(K.spite, 0);
+      popNote.textContent = `Today: ${scans} scans • LIGHT ${light} vs SPITE ${spite} (client-sim).`;
+    }
+
+    function renderWins(pop){
+      elWins.innerHTML = "";
+      const ranked = [...pop].sort((a,b)=> (b.kills - a.kills)).slice(0,12);
+      ranked.forEach((r,i)=> renderEntry(elWins, r, i+1, "wins"));
+    }
+
+    function renderRare(){
+      elRare.innerHTML = "";
+
+      const inv = getJSON(K.inv, []);
+      const rarePlus = (inv || []).filter(it => {
+        const r = String(it?.rarity || "").toUpperCase();
+        return (r === "RARE" || r === "EPIC" || r === "MYTHIC");
+      });
+
+      if (!rarePlus.length){
+        elRare.innerHTML = `
+          <div class="s5-rare" style="grid-column: 1 / -1;">
+            <div class="s5-rareName">No rare loot yet.</div>
+            <div class="s5-rareMeta">Defeat bosses to drop sponsor crates.</div>
+          </div>
+        `;
+        return;
+      }
+
+      rarePlus.slice(0,12).forEach(it=>{
+        const r = String(it.rarity || "RARE").toUpperCase();
+        const card = document.createElement("div");
+        card.className = `s5-rare s5-glow-${r}`;
+        card.innerHTML = `
+          <div class="s5-rareName">${escapeHtml(it.name || "ITEM")}</div>
+          <div class="s5-rareMeta">${escapeHtml(r)} • ${escapeHtml(it.desc || "Sponsor-ready effect.")}</div>
+        `;
+        elRare.appendChild(card);
+      });
+    }
+
+    function activateTab(name){
+      tabBtns.forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+      panels.forEach(p => p.classList.toggle("hidden", p.dataset.panel !== name));
+
+      // render for active panel
+      const pop = makePopulation();
+      if (name === "popularity") renderPopularity(pop);
+      if (name === "wins") renderWins(pop);
+      if (name === "rare") renderRare();
+    }
+
+    tabBtns.forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        activateTab(btn.dataset.tab);
+      });
+    });
+
+    function loadHall(){
+      const f = (localStorage.getItem(K.faction) || "UNSORTED").toUpperCase();
+      sub.textContent = `Your faction: ${f} • Prestige layer active.`;
+
+      // Default tab
+      const active = tabBtns.find(b=>b.classList.contains("active"))?.dataset?.tab || "popularity";
+      activateTab(active);
+    }
+
+    // Expose for router onShow
+    window.AzeuqerHall = { loadHall };
+
+    // Safe auto-load once (router will refresh again on open if you hook it)
+    loadHall();
+  })();
+  </script>
+</section>
+
+
+<!-- SCREEN 6: MARKET -->
+<section id="screen-market" class="screen hidden">
+  <!-- ======================================================
+    SCREEN 6 — MARKET (V23)
+    2 listings per member • price doubling • potions • AP/Stars
+  ====================================================== -->
+
+  <div class="s6-wrap">
+
+    <!-- Sticky HUD -->
+    <div class="s6-hud">
+      <button class="s6-pill" onclick="window.AzeuqerRouter.showScreen('screen-profile')" data-sfx="tap">← Profile</button>
+
+      <div class="s6-mid">
+        <div class="s6-stat">
+          <div class="k">Energy</div>
+          <div class="v"><span id="s6_energy">30</span><span class="m">/30</span></div>
+        </div>
+        <div class="s6-stat">
+          <div class="k">AP</div>
+          <div class="v" id="s6_ap">0</div>
+        </div>
+        <div class="s6-stat">
+          <div class="k">Stars</div>
+          <div class="v" id="s6_stars">0</div>
+        </div>
+      </div>
+
+      <button class="s6-pill s6-pill-ghost" id="s6_sfx" data-sfx="tap" aria-label="Toggle sound">🔊</button>
+    </div>
+
+    <!-- Wallet / Exchange -->
+    <div class="s6-wallet">
+      <div class="s6-walletTop">
+        <div>
+          <div class="s6-title">MARKET</div>
+          <div class="s6-sub" id="s6_sub">Buy upgrades. Flip loot. Keep it simple.</div>
+        </div>
+        <div class="s6-badge" id="s6_factionBadge">UNSORTED</div>
+      </div>
+
+      <div class="s6-actions">
+        <button class="s6-btn s6-btn-energy" id="s6_buyEnergy" data-sfx="confirm">⚡ Buy +5 Energy (10 AP)</button>
+        <button class="s6-btn" id="s6_convertApToStars" data-sfx="tap">✨ Convert 20 AP → 1 ⭐</button>
+        <button class="s6-btn" id="s6_convertStarsToAp" data-sfx="tap">⚡ Convert 1 ⭐ → 15 AP</button>
+      </div>
+
+      <div class="s6-note">
+        Rules: <b>2 listings per member</b>. If you re-list the same item, price <b>doubles</b>.
+        Potions are <b>consumables</b>.
+      </div>
+    </div>
+
+    <!-- Shop -->
+    <div class="s6-grid">
+      <div class="s6-card">
+        <div class="s6-cardHead">
+          <div class="s6-cardTitle">SHOP (System)</div>
+          <div class="s6-chip">Fixed</div>
+        </div>
+
+        <div class="s6-shopList">
+          <div class="s6-item">
+            <div class="s6-itemMeta">
+              <div class="s6-itemName">💉 Heal Injector</div>
+              <div class="s6-itemSub">Boss fight: heal 45% HP (adds 1 charge)</div>
+            </div>
+            <div class="s6-itemBuy">
+              <div class="s6-price">15 AP</div>
+              <button class="s6-pill s6-pill-cta" data-buy="potion_heal">Buy</button>
+            </div>
+          </div>
+
+          <div class="s6-item">
+            <div class="s6-itemMeta">
+              <div class="s6-itemName">🛡 Shield Patch</div>
+              <div class="s6-itemSub">Boss fight: reduce next hit by 50% (adds 1 charge)</div>
+            </div>
+            <div class="s6-itemBuy">
+              <div class="s6-price">18 AP</div>
+              <button class="s6-pill s6-pill-cta" data-buy="potion_shield">Buy</button>
+            </div>
+          </div>
+
+          <div class="s6-item">
+            <div class="s6-itemMeta">
+              <div class="s6-itemName">🔥 Rage Amp</div>
+              <div class="s6-itemSub">Boss fight: +2 damage for 3 attacks (adds 1 charge)</div>
+            </div>
+            <div class="s6-itemBuy">
+              <div class="s6-price">20 AP</div>
+              <button class="s6-pill s6-pill-cta" data-buy="potion_rage">Buy</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Your Inventory -->
+      <div class="s6-card">
+        <div class="s6-cardHead">
+          <div class="s6-cardTitle">YOUR INVENTORY</div>
+          <div class="s6-chip" id="s6_invCount">0 items</div>
+        </div>
+
+        <div class="s6-invTop">
+          <button class="s6-pill" id="s6_refreshInv" data-sfx="tap">↻ Refresh</button>
+          <button class="s6-pill s6-pill-ghost" id="s6_openListings" data-sfx="tap">My Listings</button>
+        </div>
+
+        <div id="s6_inventory" class="s6-invList"></div>
+      </div>
+    </div>
+
+    <!-- Global Listings -->
+    <div class="s6-card s6-wide">
+      <div class="s6-cardHead">
+        <div class="s6-cardTitle">GLOBAL LISTINGS</div>
+        <div class="s6-chip" id="s6_globalCount">0</div>
+      </div>
+      <div id="s6_market" class="s6-marketList"></div>
+    </div>
+
+  </div>
+
+  <!-- Toast -->
+  <div id="s6_toast" class="s6-toast hidden"></div>
+
+  <!-- Listings Modal -->
+  <div id="s6_listingsModal" class="s6-modal hidden">
+    <div class="s6-modalCard">
+      <div class="s6-modalTitle">MY LISTINGS</div>
+      <div class="s6-modalSub">Max 2 active listings. Relist doubles price.</div>
+      <div id="s6_myListings" class="s6-marketList"></div>
+      <button class="s6-pill s6-pill-cta" id="s6_closeListings" data-sfx="tap">Close</button>
+    </div>
+  </div>
+
+  <style>
+    .s6-wrap{ max-width: 980px; margin: 0 auto; padding-bottom: 22px; }
+
+    .s6-hud{
+      position: sticky;
+      top: calc(var(--contentTop) + 10px);
+      z-index: 60;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .s6-pill{
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(10px);
+      padding: 10px 12px;
+      border-radius: 999px;
+      font-family: var(--font-head);
+      font-weight: 900;
+      color: var(--ink);
+      box-shadow: var(--shadow-1);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .s6-pill:active{ transform: scale(0.98); }
+    .s6-pill-ghost{ background: rgba(255,255,255,0.55); box-shadow:none; }
+    .s6-pill-cta{
+      border-color: rgba(0,230,255,0.35);
+      box-shadow: 0 14px 30px rgba(0,230,255,0.12);
+    }
+
+    .s6-mid{
+      flex: 1;
+      display:flex;
+      justify-content:center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .s6-stat{
+      min-width: 92px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.70);
+      border-radius: 16px;
+      padding: 8px 10px;
+      text-align:center;
+      box-shadow: 0 10px 22px rgba(10,20,40,0.06);
+    }
+    .s6-stat .k{
+      font-family: var(--font-mono);
+      font-weight: 900;
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .s6-stat .v{
+      margin-top: 4px;
+      font-family: var(--font-head);
+      font-weight: 950;
+      font-size: 1.05rem;
+    }
+    .s6-stat .m{ color: var(--muted); margin-left: 4px; font-size: 0.9rem; }
+
+    .s6-wallet{
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.92);
+      box-shadow: var(--shadow-2);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .s6-walletTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .s6-title{
+      font-family: var(--font-head);
+      font-weight: 980;
+      letter-spacing: -0.03em;
+      font-size: 1.05rem;
+    }
+    .s6-sub{
+      margin-top: 5px;
+      font-family: var(--font-mono);
+      font-weight: 900;
+      color: var(--muted);
+      font-size: 0.80rem;
+    }
+    .s6-badge{
+      font-family: var(--font-mono);
+      font-weight: 950;
+      font-size: 0.78rem;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(10,20,40,0.10);
+      background: rgba(10,20,40,0.06);
+      color: var(--ink);
+    }
+
+    .s6-actions{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .s6-btn{
+      flex: 1;
+      min-width: 220px;
+      padding: 12px 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(20,35,70,0.12);
+      background: rgba(255,255,255,0.88);
+      font-family: var(--font-head);
+      font-weight: 950;
+      cursor: pointer;
+      box-shadow: 0 18px 36px rgba(10,20,40,0.08);
+    }
+    .s6-btn:active{ transform: scale(0.99); }
+    .s6-btn-energy{
+      border-color: rgba(255,215,64,0.25);
+      background: linear-gradient(135deg, rgba(255,210,74,0.40), rgba(255,255,255,0.92));
+    }
+
+    .s6-note{
+      margin-top: 10px;
+      font-family: var(--font-mono);
+      font-weight: 900;
+      color: rgba(10,20,40,0.58);
+      font-size: 0.82rem;
+      line-height: 1.25;
+    }
+
+    .s6-grid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .s6-wide{ margin-top: 12px; }
+
+    .s6-card{
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.92);
+      box-shadow: var(--shadow-2);
+      padding: 14px;
+      overflow:hidden;
+    }
+
+    .s6-cardHead{
+      display:flex;
+      justify-content: space-between;
+      align-items:center;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .s6-cardTitle{
+      font-family: var(--font-head);
+      font-weight: 980;
+      letter-spacing: -0.02em;
+    }
+    .s6-chip{
+      font-family: var(--font-mono);
+      font-weight: 950;
+      font-size: 0.72rem;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(10,20,40,0.10);
+      background: rgba(255,255,255,0.70);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .s6-shopList{ display:flex; flex-direction: column; gap: 10px; }
+    .s6-item{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 18px;
+      border: 1px solid rgba(20,35,70,0.12);
+      background: rgba(255,255,255,0.78);
+      box-shadow: 0 10px 22px rgba(10,20,40,0.06);
+    }
+    .s6-itemName{ font-family: var(--font-head); font-weight: 980; }
+    .s6-itemSub{
+      margin-top: 4px;
+      font-family: var(--font-mono);
+      font-weight: 900;
+      color: rgba(10,20,40,0.58);
+      font-size: 0.78rem;
+    }
+    .s6-itemBuy{ display:flex; align-items:center; gap: 10px; }
+    .s6-price{
+      font-family: var(--font-mono);
+      font-weight: 950;
+      color: rgba(10,20,40,0.72);
+      white-space: nowrap;
+    }
+
+    .s6-invTop{ display:flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+    .s6-invList{ display:flex; flex-direction: column; gap: 10px; }
+
+    .s6-row{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 18px;
+      border: 1px solid rgba(20,35,70,0.12);
+      background: rgba(255,255,255,0.78);
+      box-shadow: 0 10px 22px rgba(10,20,40,0.06);
+    }
+    .s6-rowMain{ min-width: 0; }
+    .s6-rowName{
+      font-family: var(--font-head);
+      font-weight: 980;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+    .s6-rowMeta{
+      margin-top: 4px;
+      font-family: var(--font-mono);
+      font-weight: 900;
+      color: rgba(10,20,40,0.58);
+      font-size: 0.78rem;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+    .s6-rowBtns{ display:flex; gap: 8px; flex-wrap: wrap; justify-content:flex-end; }
+
+    .s6-marketList{ display:flex; flex-direction: column; gap: 10px; }
+
+    .s6-toast{
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: calc(var(--contentBottom) + 18px);
+      z-index: 9999;
+      background: rgba(10,16,32,0.92);
+      color: #fff;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 22px 50px rgba(10,20,40,0.28);
+      font-family: var(--font-body);
+      max-width: min(520px, 92vw);
+      text-align: center;
+    }
+
+    .s6-modal{
+      position: fixed;
+      inset: 0;
+      z-index: 9998;
+      background: rgba(10,16,32,0.55);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 16px;
+      backdrop-filter: blur(10px);
+    }
+    .s6-modalCard{
+      width: min(720px, 92vw);
+      border-radius: 26px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.92);
+      box-shadow: 0 40px 90px rgba(10,20,40,0.35);
+      padding: 18px;
+    }
+    .s6-modalTitle{
+      font-family: var(--font-head);
+      font-weight: 980;
+      letter-spacing: -0.03em;
+      font-size: 1.2rem;
+    }
+    .s6-modalSub{
+      margin-top: 6px;
+      font-family: var(--font-mono);
+      font-weight: 900;
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 12px;
+    }
+
+    .hidden{ display:none !important; }
+
+    @media (max-width: 860px){
+      .s6-grid{ grid-template-columns: 1fr; }
+      .s6-btn{ min-width: 160px; }
+    }
+  </style>
+
+  <script>
+  (function Screen6MarketModule(){
+    const SFX_KEY = "AZ_SFX";
+    function sfxEnabled(){ return (localStorage.getItem(SFX_KEY) || "on") === "on"; }
+
+    const K = {
+      scans: "AZ_SCANS_TODAY",
+      light: "AZ_LIGHT_TODAY",
+      spite: "AZ_SPITE_TODAY",
+      faction: "AZ_FACTION",
+      ap: "AZ_AP",
+      stars: "AZ_STARS",
+      energy: "AZ_ENERGY",
+      inv: "AZ_INVENTORY",
+      listings: "AZ_LISTINGS",
+      listingCount: "AZ_LISTING_COUNT" // per itemId counts relists
+    };
+
+    const ENERGY_MAX = 30;
+
+    // DOM
+    const sfxBtn = document.getElementById("s6_sfx");
+    const elEnergy = document.getElementById("s6_energy");
+    const elAp = document.getElementById("s6_ap");
+    const elStars = document.getElementById("s6_stars");
+    const elFaction = document.getElementById("s6_factionBadge");
+
+    const invCount = document.getElementById("s6_invCount");
+    const globalCount = document.getElementById("s6_globalCount");
+    const invWrap = document.getElementById("s6_inventory");
+    const marketWrap = document.getElementById("s6_market");
+
+    const btnBuyEnergy = document.getElementById("s6_buyEnergy");
+    const btnApToStars = document.getElementById("s6_convertApToStars");
+    const btnStarsToAp = document.getElementById("s6_convertStarsToAp");
+
+    const btnRefreshInv = document.getElementById("s6_refreshInv");
+    const btnOpenListings = document.getElementById("s6_openListings");
+    const modal = document.getElementById("s6_listingsModal");
+    const myListingsWrap = document.getElementById("s6_myListings");
+    const btnCloseListings = document.getElementById("s6_closeListings");
+
+    const toast = document.getElementById("s6_toast");
+    let toastTimer = null;
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.remove("hidden");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(()=>toast.classList.add("hidden"), 1600);
+    }
+
+    // SFX toggle
+    function renderSfx(){
+      sfxBtn.textContent = sfxEnabled() ? "🔊" : "🔇";
+      sfxBtn.style.opacity = sfxEnabled() ? "1" : "0.65";
+    }
+    sfxBtn.addEventListener("click", ()=>{
+      localStorage.setItem(SFX_KEY, sfxEnabled() ? "off" : "on");
+      renderSfx();
+    });
+    renderSfx();
+
+    // Helpers
+    function getInt(k, d=0){
+      const v = parseInt(localStorage.getItem(k) || "", 10);
+      return Number.isFinite(v) ? v : d;
+    }
+    function setInt(k, v){ localStorage.setItem(k, String(Math.floor(v))); }
+    function getJSON(k, d){ try{ return JSON.parse(localStorage.getItem(k) || ""); }catch{ return d; } }
+    function setJSON(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
+    function clamp(n,a,b){ return Math.max(a, Math.min(b, n)); }
+    function uid(){ return "L" + Math.random().toString(16).slice(2) + Date.now().toString(16); }
+    function esc(s){
+      return String(s ?? "")
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    function ensureWallet(){
+      if (!localStorage.getItem(K.ap)) setInt(K.ap, 0);
+      if (!localStorage.getItem(K.stars)) setInt(K.stars, 0);
+      if (!localStorage.getItem(K.energy)) setInt(K.energy, ENERGY_MAX);
+      if (!localStorage.getItem(K.inv)) setJSON(K.inv, []);
+      if (!localStorage.getItem(K.listings)) setJSON(K.listings, []);
+      if (!localStorage.getItem(K.listingCount)) setJSON(K.listingCount, {});
+    }
+
+    // Inventory normalization:
+    // - Boss adds items like {name, rarity, desc}
+    // - We add id + type (loot/potion) + charges
+    function normalizeInventory(){
+      const inv = getJSON(K.inv, []);
+      const out = inv.map((it, idx) => {
+        const id = it.id || ("I" + idx + "_" + (it.name || "item").replace(/\s+/g,"_"));
+        const rarity = String(it.rarity || "COMMON").toUpperCase();
+        const type = it.type || (it.name && String(it.name).toLowerCase().includes("potion") ? "potion" : "loot");
+        const charges = Number.isFinite(it.charges) ? it.charges : (type === "potion" ? 1 : 0);
+        return { ...it, id, rarity, type, charges };
+      });
+      setJSON(K.inv, out);
+      return out;
+    }
+
+    function renderHUD(){
+      const energy = getInt(K.energy, ENERGY_MAX);
+      const ap = getInt(K.ap, 0);
+      const stars = getInt(K.stars, 0);
+      const faction = (localStorage.getItem(K.faction) || "UNSORTED").toUpperCase();
+
+      elEnergy.textContent = energy;
+      elAp.textContent = ap;
+      elStars.textContent = stars;
+      elFaction.textContent = faction;
+
+      if (faction.includes("EUPH")) {
+        elFaction.style.background = "linear-gradient(135deg, var(--euph-1), var(--euph-2))";
+        elFaction.style.color = "#000";
+      } else if (faction.includes("DISS")) {
+        elFaction.style.background = "linear-gradient(135deg, var(--diss-1), var(--diss-2))";
+        elFaction.style.color = "#fff";
+      } else {
+        elFaction.style.background = "rgba(10,20,40,0.06)";
+        elFaction.style.color = "var(--ink)";
+      }
+
+      // Mirror into Profile if present
+      const pAp = document.getElementById("p_ap");
+      const pEnergy = document.getElementById("p_energy");
+      if (pAp) pAp.textContent = ap;
+      if (pEnergy) pEnergy.textContent = energy;
+    }
+
+    // Listings rules:
+    // - 2 active listings max for YOU
+    // - relist same item doubles price (tracked per itemId)
+    // - buying removes listing, adds item to buyer inventory
+    function getListings(){ return getJSON(K.listings, []); }
+    function setListings(v){ setJSON(K.listings, v); }
+
+    function getRelistCounts(){ return getJSON(K.listingCount, {}); }
+    function setRelistCounts(v){ setJSON(K.listingCount, v); }
+
+    function myActiveListingCount(listings){
+      return listings.filter(x => x.seller === "YOU").length;
+    }
+
+    function priceForItem(item){
+      // base price by rarity (loot), or fixed by potion
+      const rarity = String(item.rarity || "COMMON").toUpperCase();
+      const baseMap = { COMMON: 10, RARE: 25, EPIC: 45, MYTHIC: 80 };
+      const base = baseMap[rarity] || 10;
+
+      // relist doubling
+      const counts = getRelistCounts();
+      const relists = counts[item.id] || 0;
+      return base * Math.pow(2, relists);
+    }
+
+    function incRelist(itemId){
+      const counts = getRelistCounts();
+      counts[itemId] = (counts[itemId] || 0) + 1;
+      setRelistCounts(counts);
+    }
+
+    function renderInventory(){
+      const inv = normalizeInventory();
+      invCount.textContent = `${inv.length} item${inv.length===1?"":"s"}`;
+
+      if (!inv.length){
+        invWrap.innerHTML = `
+          <div class="s6-row">
+            <div class="s6-rowMain">
+              <div class="s6-rowName">Empty.</div>
+              <div class="s6-rowMeta">Beat bosses for loot, or buy potions.</div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      invWrap.innerHTML = "";
+      const listings = getListings();
+      const activeListings = myActiveListingCount(listings);
+
+      inv.forEach(item=>{
+        const canListMore = activeListings < 2;
+        const isPotion = item.type === "potion";
+        const price = priceForItem(item);
+
+        const row = document.createElement("div");
+        row.className = "s6-row";
+
+        row.innerHTML = `
+          <div class="s6-rowMain">
+            <div class="s6-rowName">${esc(item.name || "ITEM")} <span style="opacity:.55;font-family:var(--font-mono);font-weight:900;">(${esc(item.rarity || "COMMON")})</span></div>
+            <div class="s6-rowMeta">${esc(item.desc || (isPotion ? "Consumable" : "Loot"))}${isPotion ? ` • Charges: ${item.charges}` : ""}</div>
+          </div>
+          <div class="s6-rowBtns">
+            ${isPotion ? `<button class="s6-pill s6-pill-ghost" data-use="${esc(item.id)}" data-sfx="tap">Use</button>` : ""}
+            <button class="s6-pill s6-pill-cta" data-list="${esc(item.id)}" ${canListMore ? "" : "disabled"} data-sfx="confirm">
+              List (${price} AP)
+            </button>
+          </div>
+        `;
+        invWrap.appendChild(row);
+      });
+
+      // wire buttons
+      invWrap.querySelectorAll("[data-list]").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          const itemId = btn.getAttribute("data-list");
+          listItem(itemId);
+        });
+      });
+
+      invWrap.querySelectorAll("[data-use]").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          const itemId = btn.getAttribute("data-use");
+          usePotion(itemId);
+        });
+      });
+    }
+
+    function renderGlobalMarket(){
+      // Ensure global listings exist (seed with a few NPC listings once)
+      seedNpcListingsIfNeeded();
+
+      const listings = getListings();
+      globalCount.textContent = `${listings.length}`;
+
+      if (!listings.length){
+        marketWrap.innerHTML = `
+          <div class="s6-row">
+            <div class="s6-rowMain">
+              <div class="s6-rowName">No listings.</div>
+              <div class="s6-rowMeta">List your loot to start the economy.</div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      marketWrap.innerHTML = "";
+
+      listings
+        .slice()
+        .sort((a,b)=> (b.price - a.price))
+        .forEach(li=>{
+          const row = document.createElement("div");
+          row.className = "s6-row";
+          row.innerHTML = `
+            <div class="s6-rowMain">
+              <div class="s6-rowName">${esc(li.item.name)} <span style="opacity:.55;font-family:var(--font-mono);font-weight:900;">(${esc(li.item.rarity)})</span></div>
+              <div class="s6-rowMeta">Seller: ${esc(li.seller)} • ${esc(li.item.desc || "Listing")}</div>
+            </div>
+            <div class="s6-rowBtns">
+              <div class="s6-price">${li.price} AP</div>
+              ${
+                li.seller === "YOU"
+                  ? `<button class="s6-pill s6-pill-ghost" data-cancel="${esc(li.id)}" data-sfx="tap">Cancel</button>`
+                  : `<button class="s6-pill s6-pill-cta" data-buy="${esc(li.id)}" data-sfx="confirm">Buy</button>`
+              }
+            </div>
+          `;
+          marketWrap.appendChild(row);
+        });
+
+      marketWrap.querySelectorAll("[data-buy]").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          const id = btn.getAttribute("data-buy");
+          buyListing(id);
+        });
+      });
+
+      marketWrap.querySelectorAll("[data-cancel]").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          const id = btn.getAttribute("data-cancel");
+          cancelListing(id);
+        });
+      });
+    }
+
+    function renderMyListings(){
+      const listings = getListings().filter(x=>x.seller==="YOU");
+      myListingsWrap.innerHTML = "";
+
+      if (!listings.length){
+        myListingsWrap.innerHTML = `
+          <div class="s6-row">
+            <div class="s6-rowMain">
+              <div class="s6-rowName">No active listings.</div>
+              <div class="s6-rowMeta">List up to 2 items from your inventory.</div>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      listings.forEach(li=>{
+        const row = document.createElement("div");
+        row.className = "s6-row";
+        row.innerHTML = `
+          <div class="s6-rowMain">
+            <div class="s6-rowName">${esc(li.item.name)} <span style="opacity:.55;font-family:var(--font-mono);font-weight:900;">(${esc(li.item.rarity)})</span></div>
+            <div class="s6-rowMeta">Price: ${li.price} AP • Relist doubles</div>
+          </div>
+          <div class="s6-rowBtns">
+            <button class="s6-pill s6-pill-ghost" data-cancel="${esc(li.id)}" data-sfx="tap">Cancel</button>
+          </div>
+        `;
+        myListingsWrap.appendChild(row);
+      });
+
+      myListingsWrap.querySelectorAll("[data-cancel]").forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          const id = btn.getAttribute("data-cancel");
+          cancelListing(id);
+          renderMyListings();
+        });
+      });
+    }
+
+    function listItem(itemId){
+      const listings = getListings();
+      if (myActiveListingCount(listings) >= 2){
+        showToast("Max 2 listings.");
+        return;
+      }
+
+      const inv = normalizeInventory();
+      const idx = inv.findIndex(x=>x.id===itemId);
+      if (idx < 0) return showToast("Item not found.");
+
+      const item = inv[idx];
+
+      // remove from inventory (escrow)
+      inv.splice(idx, 1);
+      setJSON(K.inv, inv);
+
+      // relist tracking increments when you list (counts how many times you’ve listed)
+      incRelist(itemId);
+
+      // price uses *current* relist count AFTER increment
+      const counts = getRelistCounts();
+      const relists = counts[itemId] || 0;
+      const baseMap = { COMMON: 10, RARE: 25, EPIC: 45, MYTHIC: 80 };
+      const base = baseMap[String(item.rarity||"COMMON").toUpperCase()] || 10;
+      const price = base * Math.pow(2, relists);
+
+      listings.push({
+        id: uid(),
+        seller: "YOU",
+        price,
+        item
+      });
+
+      setListings(listings);
+      showToast(`Listed for ${price} AP.`);
+      renderInventory();
+      renderGlobalMarket();
+    }
+
+    function cancelListing(listingId){
+      const listings = getListings();
+      const i = listings.findIndex(x=>x.id===listingId);
+      if (i < 0) return;
+
+      const li = listings[i];
+      if (li.seller !== "YOU") return;
+
+      listings.splice(i, 1);
+      setListings(listings);
+
+      // return item to inventory
+      const inv = normalizeInventory();
+      inv.unshift(li.item);
+      setJSON(K.inv, inv);
+
+      showToast("Listing cancelled.");
+      renderInventory();
+      renderGlobalMarket();
+    }
+
+    function buyListing(listingId){
+      const listings = getListings();
+      const i = listings.findIndex(x=>x.id===listingId);
+      if (i < 0) return;
+
+      const li = listings[i];
+      if (li.seller === "YOU") return;
+
+      let ap = getInt(K.ap, 0);
+      if (ap < li.price){
+        showToast("Not enough AP.");
+        return;
+      }
+
+      ap -= li.price;
+      setInt(K.ap, ap);
+
+      // remove listing
+      listings.splice(i, 1);
+      setListings(listings);
+
+      // add item to your inventory
+      const inv = normalizeInventory();
+      inv.unshift(li.item);
+      setJSON(K.inv, inv);
+
+      showToast(`Bought: ${li.item.name}`);
+      renderHUD();
+      renderInventory();
+      renderGlobalMarket();
+    }
+
+    function usePotion(itemId){
+      const inv = normalizeInventory();
+      const it = inv.find(x=>x.id===itemId);
+      if (!it) return showToast("Potion not found.");
+      if (it.type !== "potion") return showToast("Not a potion.");
+      if ((it.charges||0) <= 0) return showToast("No charges.");
+
+      it.charges -= 1;
+
+      // store potion effects for boss (stub — you can wire into boss later)
+      // These are simple flags/charges boss module can read later.
+      const effects = getJSON("AZ_POTION_EFFECTS", { heal:0, shield:0, rage:0 });
+      if (String(it.name).toLowerCase().includes("heal")) effects.heal += 1;
+      if (String(it.name).toLowerCase().includes("shield")) effects.shield += 1;
+      if (String(it.name).toLowerCase().includes("rage")) effects.rage += 1;
+      setJSON("AZ_POTION_EFFECTS", effects);
+
+      setJSON(K.inv, inv);
+      showToast("Potion primed for Boss.");
+      renderInventory();
+    }
+
+    // System shop buys (adds potion items to inventory)
+    function buyShop(kind){
+      let ap = getInt(K.ap, 0);
+      const costs = { potion_heal: 15, potion_shield: 18, potion_rage: 20 };
+      const cost = costs[kind] || 0;
+      if (ap < cost) return showToast("Not enough AP.");
+
+      ap -= cost;
+      setInt(K.ap, ap);
+
+      const inv = normalizeInventory();
+      const map = {
+        potion_heal: { name: "Heal Injector", rarity: "COMMON", desc: "Boss: heal 45% HP", type:"potion", charges: 1 },
+        potion_shield: { name: "Shield Patch", rarity: "RARE", desc: "Boss: halve next hit", type:"potion", charges: 1 },
+        potion_rage: { name: "Rage Amp", rarity: "EPIC", desc: "+2 dmg for 3 attacks", type:"potion", charges: 1 },
+      };
+      const it = map[kind];
+      it.id = "P_" + kind + "_" + Date.now().toString(16);
+
+      inv.unshift(it);
+      setJSON(K.inv, inv);
+
+      showToast("Purchased.");
+      renderHUD();
+      renderInventory();
+    }
+
+    // Energy buy
+    btnBuyEnergy.addEventListener("click", ()=>{
+      let ap = getInt(K.ap, 0);
+      if (ap < 10) return showToast("Need 10 AP.");
+
+      ap -= 10;
+      setInt(K.ap, ap);
+
+      let energy = getInt(K.energy, ENERGY_MAX);
+      energy = clamp(energy + 5, 0, ENERGY_MAX);
+      setInt(K.energy, energy);
+
+      showToast("Energy +5.");
+      renderHUD();
+    });
+
+    // Exchange
+    btnApToStars.addEventListener("click", ()=>{
+      let ap = getInt(K.ap, 0);
+      if (ap < 20) return showToast("Need 20 AP.");
+      ap -= 20;
+      setInt(K.ap, ap);
+
+      const stars = getInt(K.stars, 0) + 1;
+      setInt(K.stars, stars);
+
+      showToast("+1 ⭐");
+      renderHUD();
+    });
+
+    btnStarsToAp.addEventListener("click", ()=>{
+      let stars = getInt(K.stars, 0);
+      if (stars < 1) return showToast("Need 1 ⭐.");
+      stars -= 1;
+      setInt(K.stars, stars);
+
+      const ap = getInt(K.ap, 0) + 15;
+      setInt(K.ap, ap);
+
+      showToast("+15 AP");
+      renderHUD();
+    });
+
+    // Shop buttons
+    document.querySelectorAll("#screen-market [data-buy]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const kind = btn.getAttribute("data-buy");
+        buyShop(kind);
+      });
+    });
+
+    // Modal open/close
+    btnOpenListings.addEventListener("click", ()=>{
+      modal.classList.remove("hidden");
+      renderMyListings();
+    });
+    btnCloseListings.addEventListener("click", ()=>{
+      modal.classList.add("hidden");
+    });
+
+    // Refresh inventory
+    btnRefreshInv.addEventListener("click", ()=>{
+      renderHUD();
+      renderInventory();
+      renderGlobalMarket();
+      showToast("Refreshed.");
+    });
+
+    // NPC listings seed (one-time)
+    function seedNpcListingsIfNeeded(){
+      const seeded = localStorage.getItem("AZ_NPC_LISTINGS_SEEDED") === "1";
+      if (seeded) return;
+
+      const listings = getListings();
+      const npc = [
+        { name:"Neon Hoodie", rarity:"RARE", desc:"Street flex (cosmetic)" },
+        { name:"Signal Visor", rarity:"EPIC", desc:"Sponsor-grade optics" },
+        { name:"Chrome Badge", rarity:"COMMON", desc:"Faction drip" },
+        { name:"MYTHIC CRATE: DGLITCH", rarity:"MYTHIC", desc:"Do not open in public." }
+      ];
+
+      npc.forEach((it, idx)=>{
+        const baseMap = { COMMON: 10, RARE: 25, EPIC: 45, MYTHIC: 80 };
+        const base = baseMap[it.rarity] || 10;
+        listings.push({
+          id: uid(),
+          seller: ["NOVA","KAI","LUNA","NYX"][idx % 4],
+          price: base + (idx * 7),
+          item: { ...it, id: "NPC_" + idx + "_" + Date.now().toString(16), type:"loot", charges: 0 }
+        });
+      });
+
+      setListings(listings);
+      localStorage.setItem("AZ_NPC_LISTINGS_SEEDED", "1");
+    }
+
+    // Entry point for router
+    function loadMarket(){
+      ensureWallet();
+      renderHUD();
+      renderInventory();
+      renderGlobalMarket();
+    }
+
+    window.AzeuqerMarket = { loadMarket };
+
+    // safe auto init once
+    loadMarket();
+  })();
+  </script>
+</section>
+
+
+  </div>
+</div>
+ 
+<!-- ======================================================
+  ROUTER + TELEGRAM SAFE LAYOUT (V23 CORE)
+  Paste once. This enables onShow hooks for each screen.
+====================================================== -->
+<script>
+(function RouterCore(){
+  const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+
+  const state = {
+    current: null,
+    screens: [],
+    onShow: Object.create(null),
+    onHide: Object.create(null),
+    inited: false,
+    resizeRAF: null
+  };
+
+  // ---- Telegram-safe viewport vars ----
+  function px(n){ return `${Math.max(0, Math.floor(n || 0))}px`; }
+
+  function readSafeInsets(){
+    // Telegram WebApp: safeAreaInset can exist on newer clients
+    // Fallback to 0 for older clients.
+    let top = 0, bottom = 0;
+    try {
+      if (tg && tg.safeAreaInset) {
+        top = tg.safeAreaInset.top || 0;
+        bottom = tg.safeAreaInset.bottom || 0;
+      }
+    } catch {}
+    return { top, bottom };
+  }
+
+  function setViewportVars(){
+    const root = document.documentElement;
+
+    const insets = readSafeInsets();
+
+    // visualViewport handles keyboard & notch changes better on mobile
+    const vv = window.visualViewport;
+    const vvH = vv ? vv.height : window.innerHeight;
+
+    // For Telegram, content should avoid top ticker and bottom bars
+    root.style.setProperty('--tgTop', px(insets.top));
+    root.style.setProperty('--tgBottom', px(insets.bottom));
+
+    // You also have your own sticky sponsor ticker height (var(--tickerH)).
+    // contentTop = safe inset top + ticker height + tiny padding
+    const tickerH = parseInt(getComputedStyle(root).getPropertyValue('--tickerH') || '44', 10) || 44;
+    root.style.setProperty('--contentTop', px(insets.top + tickerH + 10));
+    root.style.setProperty('--contentBottom', px(insets.bottom + 10));
+
+    // Make app height stable
+    root.style.setProperty('--vh', px(vvH));
+  }
+
+  function scheduleViewportUpdate(){
+    if (state.resizeRAF) cancelAnimationFrame(state.resizeRAF);
+    state.resizeRAF = requestAnimationFrame(setViewportVars);
+  }
+
+  // ---- Core router ----
+  function collectScreens(){
+    state.screens = Array.from(document.querySelectorAll('.screen'));
+  }
+
+  function hideAll(){
+    state.screens.forEach(s => s.classList.add('hidden'));
+  }
+
+  function getScreen(id){
+    return document.getElementById(id);
+  }
+
+  function scrollScreenToTop(el){
+    if (!el) return;
+    // internal scroll container
+    el.scrollTop = 0;
+    // if there are nested scrollers, try best-effort
+    const scrollers = el.querySelectorAll('[data-scroll], .scrollArea');
+    scrollers.forEach(x => { try { x.scrollTop = 0; } catch {} });
+  }
+
+  function callHook(map, id){
+    const fn = map[id];
+    if (typeof fn === 'function') {
+      try { fn(); } catch (e) { console.warn('Hook error for', id, e); }
+    }
+  }
+
+  function showScreen(id){
+    if (!state.inited) init();
+
+    const next = getScreen(id);
+    if (!next) {
+      console.warn('Unknown screen:', id);
       return;
     }
-    STATE.user.energy -= 1;
+
+    const prevId = state.current;
+
+    // onHide previous
+    if (prevId) callHook(state.onHide, prevId);
+
+    hideAll();
+    next.classList.remove('hidden');
+    state.current = id;
+
+    // telegram-safe scroll
+    scrollScreenToTop(next);
+
+    // update layout (ensures sticky positions correct)
+    scheduleViewportUpdate();
+
+    // onShow next
+    callHook(state.onShow, id);
   }
 
-  // reward
-  STATE.user.ap += 1;
+  function registerOnShow(id, fn){ state.onShow[id] = fn; }
+  function registerOnHide(id, fn){ state.onHide[id] = fn; }
 
-  // sort at 10
-  if(STATE.scan.scansToday === STATE.scan.requiredToSort){
-    if(STATE.scan.light > STATE.scan.spite) STATE.user.faction = "EUPHORIA";
-    else if(STATE.scan.spite > STATE.scan.light) STATE.user.faction = "DISSONANCE";
-    else STATE.user.faction = (Math.random()<0.5) ? "EUPHORIA" : "DISSONANCE";
+  function init(){
+    if (state.inited) return;
+    state.inited = true;
+
+    // Telegram expansion (safe try)
+    try { if (tg) { tg.ready(); tg.expand(); } } catch {}
+
+    collectScreens();
+    setViewportVars();
+
+    window.addEventListener('resize', scheduleViewportUpdate, { passive: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', scheduleViewportUpdate, { passive: true });
+      window.visualViewport.addEventListener('scroll', scheduleViewportUpdate, { passive: true });
+    }
+
+    // If nothing set, default to first visible screen or intro
+    const firstVisible = state.screens.find(s => !s.classList.contains('hidden'));
+    state.current = firstVisible ? firstVisible.id : null;
+
+    // Prevent body scrolling (Telegram scroll bugs)
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
   }
 
-  // boss spawn between 11-20
-  if(STATE.scan.bossSpawnAt && STATE.scan.scansToday === STATE.scan.bossSpawnAt){
-    sfx('confirm');
-    enterBoss();
-  }else{
-    sfx('tap');
+  // Expose globally
+  window.AzeuqerRouter = {
+    init,
+    showScreen,
+    registerOnShow,
+    registerOnHide,
+    get current(){ return state.current; }
+  };
+
+  // Auto init when DOM ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
+})();
+</script>
+
+<style>
+  /* ======================================================
+     TELEGRAM-SAFE SCROLLING / LAYOUT CORE (V23)
+     Paste once. Works with ticker + sticky HUD.
+  ====================================================== */
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+    height: var(--vh, 100vh);
   }
 
-  // advance
-  faceIndex++;
-  renderFace();
-  // UI
-  document.getElementById('lightCount').textContent = STATE.scan.light;
-  document.getElementById('spiteCount').textContent = STATE.scan.spite;
-  syncHUD();
+  /* Screen containers are the scrollers, not body */
+  .screen {
+    position: fixed;
+    inset: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-top: var(--contentTop, 64px);
+    padding-bottom: var(--contentBottom, 16px);
+    padding-left: 16px;
+    padding-right: 16px;
+    box-sizing: border-box;
+  }
 
-  const msg = `Scan ${STATE.scan.scansToday}/${STATE.scan.freeScansLimit} free. Boss can spawn at ${STATE.scan.bossSpawnAt}.`;
-  document.getElementById('scanInfo').textContent = msg;
-}
+  /* Ensure sticky things use contentTop */
+  .stickyTop {
+    position: sticky;
+    top: var(--contentTop, 64px);
+    z-index: 50;
+  }
 
-/* Boss (shell) */
-let boss = null;
-let bossHP = 100;
-function enterBoss(){
-  // pick boss
-  boss = STATE.fake.bosses[Math.floor(Math.random()*STATE.fake.bosses.length)];
-  bossHP = 100;
-
-  document.getElementById('bossSponsor').textContent = boss.sponsor;
-  document.getElementById('bossDrop').textContent = boss.drop;
-
-  updateBossUI();
-  document.getElementById('bossLog').textContent = `Ambush: ${boss.name}`;
-  route('screen_boss');
-}
-function updateBossUI(){
-  document.getElementById('bossHPFill').style.width = bossHP + "%";
-  document.getElementById('bossHPText').textContent = `${Math.max(0,Math.round(bossHP))} / 100`;
-
-  // stats placeholders
-  document.getElementById('stSTR').textContent = 0;
-  document.getElementById('stAGI').textContent = 0;
-  document.getElementById('stINT').textContent = 0;
-  document.getElementById('stVIT').textContent = 0;
-}
-function exitBoss(){
-  sfx('tap');
-  route('screen_scan');
-}
-
-document.getElementById('btnAttack').addEventListener('click', ()=>{
-  unlockAudio();
-  // placeholder: full combat later
-  const dmg = Math.floor(Math.random()*18) + 6;
-  bossHP -= dmg;
-  document.getElementById('bossLog').textContent = `You dealt ${dmg} damage.`;
-
-  // item durability degrade placeholder
-  STATE.inventory.forEach(x=>{
-    if(x.equipped) x.dur = Math.max(0, x.dur - 2);
+  /* Optional: smooth fade between screens */
+  .screen { opacity: 1; transition: opacity 180ms var(--ease-out, ease-out); }
+  .screen.hidden { opacity: 0; pointer-events: none; }
+</style>
+<script>
+  // Boss: refresh state every time screen opens
+  window.AzeuqerRouter.registerOnShow('screen-boss', () => {
+    if (window.AzeuqerBoss && window.AzeuqerBoss.initBoss) window.AzeuqerBoss.initBoss();
   });
 
-  if(bossHP <= 0){
-    STATE.user.ap += 10;
-    STATE.user.bossKills += 1;
-    // add loot placeholder
-    STATE.inventory.push({
-      id:`LOOT_${Date.now()}`, slot:"ACC", name:`${boss.drop}`, dur:100, equipped:false, rarity:(boss.drop.includes("MYTHIC")?"MYTHIC":"RARE")
-    });
-    renderInventory();
-    syncHUD();
-    document.getElementById('bossLog').textContent = `VICTORY! Loot: ${boss.drop} (+10 AP)`;
-    sfx('coin');
-    setTimeout(()=>route('screen_profile'), 700);
-    return;
-  }
+  // Profile: reload every time screen opens
+  window.AzeuqerRouter.registerOnShow('screen-profile', () => {
+    if (window.AzeuqerProfile && window.AzeuqerProfile.loadProfile) window.AzeuqerProfile.loadProfile();
+  });
 
-  updateBossUI();
-  sfx('tap');
+  // Scan: refresh every time screen opens (supports either initScan OR refreshHUD)
+  window.AzeuqerRouter.registerOnShow('screen-scan', () => {
+    if (window.AzeuqerScan && window.AzeuqerScan.initScan) return window.AzeuqerScan.initScan();
+    if (window.AzeuqerScan && window.AzeuqerScan.refreshHUD) return window.AzeuqerScan.refreshHUD();
+  });
+// Hall of Fame: reload every time screen opens
+window.AzeuqerRouter.registerOnShow('screen-hall', () => {
+  if (window.AzeuqerHall && window.AzeuqerHall.loadHall) window.AzeuqerHall.loadHall();
+});
+// Market: reload every time screen opens
+window.AzeuqerRouter.registerOnShow('screen-market', () => {
+  if (window.AzeuqerMarket && window.AzeuqerMarket.loadMarket) window.AzeuqerMarket.loadMarket();
 });
 
-document.getElementById('btnHeal').addEventListener('click', ()=>{
-  unlockAudio();
-  document.getElementById('bossLog').textContent = "HP Potion used (simulation).";
-  sfx('confirm');
-});
-
-/* Settings marquee edit */
-function applyMarquee(){
-  unlockAudio();
-  const txt = (document.getElementById('marqueeEdit').value || "").trim();
-  if(!txt){ sfx('error'); return; }
-  const track = document.getElementById('marqueeTrack');
-  track.innerHTML = `
-    <span class="pill"><span class="dot"></span>${escapeHtml(txt)}</span>
-    <span class="pill"><span class="dot"></span>${escapeHtml(txt)}</span>
-    <span class="pill"><span class="dot"></span>${escapeHtml(txt)}</span>
-    <span class="pill"><span class="dot"></span>${escapeHtml(txt)}</span>
-  `;
-  sfx('confirm');
-}
-
-/* helpers */
-function escapeHtml(s){
-  return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
-}
-
-/* =========================================================
-   INTEGRITY CHECK (router + required elements)
-   - No summarizing; this is runtime protection
-========================================================= */
-function integrityCheck(){
-  const requiredScreens = [
-    "screen_intro","screen_create","screen_profile","screen_scan",
-    "screen_boss","screen_inventory","screen_hof","screen_market",
-    "screen_shop","screen_settings"
-  ];
-  for(const id of requiredScreens){
-    if(!document.getElementById(id)){
-      console.error("Missing screen:", id);
-    }
-  }
-  // ensure marquee/nav safe padding (auto adjust if needed)
-  try{
-    const mh = document.getElementById('marquee').getBoundingClientRect().height || 56;
-    document.documentElement.style.setProperty('--marqueeH', mh + "px");
-  }catch(e){}
-}
-
-/* boot */
-function boot(){
-  integrityCheck();
-  seedShellData();
-  buildRef();
-  renderIntro();
-  renderFace();
-  renderInventory();
-  renderMarket();
-  rollBossSpawn();
-  syncHUD();
-
-  // set marquee editor default
-  document.getElementById('marqueeEdit').value = "SPONSORS · PARTNERS · DGLITCH.GG";
-}
-boot();
-
-/* periodic safe checks (not heavy) */
-setInterval(integrityCheck, 5000);
-window.addEventListener('resize', integrityCheck);
 </script>
+
 
 </body>
 </html>
