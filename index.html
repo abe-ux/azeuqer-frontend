@@ -390,7 +390,7 @@ document.getElementById('email-btn').onclick = async () => {
     await fetch('/profile/email', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email, initData: (window.Telegram && window.Telegram.WebApp) ? (window.Telegram.WebApp.initData || '') : '' })
     });
     status.textContent = "+500 AP awarded";
   } catch {
@@ -447,6 +447,24 @@ document.getElementById('email-btn').onclick = async () => {
       </div>
     </div>
   </div>
+
+  
+      <!-- Bio-Lock Camera -->
+      <div class="p-card" id="bioLockCard">
+        <div class="p-card-title">BIO-LOCK CAMERA</div>
+        <div class="p-card-sub">Capture your signal. Stored locally now; upload to backend later.</div>
+
+        <div class="bioLockRow">
+          <img id="bioLockThumb" class="bioLockThumb" alt="bio-lock" />
+          <div class="bioLockBtns">
+            <button class="p-btn" id="btnBioLockOpen" data-sfx="tap">📷 Open Camera</button>
+            <button class="p-btn p-btn-ghost" id="btnBioLockClear" data-sfx="tap">🗑 Clear</button>
+            <div class="bioLockNote">Tip: works on HTTPS + Telegram WebApp. If camera fails, use Upload.</div>
+            <input id="bioLockUpload" type="file" accept="image/*" class="bioLockUpload" />
+          </div>
+        </div>
+      </div>
+
 
   <!-- Resource tiles -->
   <div class="grid2">
@@ -4487,6 +4505,183 @@ window.AzeuqerRouter.registerOnShow('screen-market', () => {
 
 </script>
 
+
+
+<!-- ======================================================
+  BIO-LOCK CAMERA MODAL (V23)
+====================================================== -->
+<div id="bioLockModal" class="bioLockModal hidden">
+  <div class="bioLockModalCard">
+    <div class="bioLockModalTop">
+      <div class="bioLockModalTitle">BIO-LOCK CAPTURE</div>
+      <button class="bioLockX" id="bioLockClose" aria-label="Close">✕</button>
+    </div>
+
+    <video id="bioLockVideo" class="bioLockVideo" autoplay playsinline></video>
+    <canvas id="bioLockCanvas" class="bioLockCanvas"></canvas>
+
+    <div class="bioLockModalBtns">
+      <button class="p-btn" id="bioLockSnap" data-sfx="confirm">📸 Capture</button>
+      <button class="p-btn p-btn-ghost" id="bioLockStop" data-sfx="tap">⏹ Stop</button>
+    </div>
+
+    <div class="bioLockSmall">We store your snapshot in <b>localStorage</b> as <code>AZ_BIOLOCK_IMG</code> for now.</div>
+  </div>
+</div>
+
+<style>
+  .bioLockRow{ display:flex; gap:12px; align-items:flex-start; flex-wrap:wrap; margin-top: 10px; }
+  .bioLockThumb{
+    width: 120px; height: 120px;
+    border-radius: 22px;
+    border: 1px solid var(--line);
+    object-fit: cover;
+    background: rgba(10,20,40,0.06);
+    flex: 0 0 auto;
+  }
+  .bioLockBtns{ display:flex; flex-direction:column; gap:10px; min-width: min(420px, 100%); flex: 1; }
+  .bioLockNote{ color: var(--muted); font-size: 0.88rem; }
+  .bioLockUpload{ width: 100%; }
+
+  .bioLockModal{
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(10,16,32,0.55);
+    backdrop-filter: blur(10px);
+    display:flex; align-items:center; justify-content:center;
+    padding: 16px;
+  }
+  .bioLockModalCard{
+    width: min(680px, 96vw);
+    border-radius: 26px;
+    border: 1px solid rgba(255,255,255,0.16);
+    background: rgba(255,255,255,0.94);
+    box-shadow: 0 40px 90px rgba(10,20,40,0.35);
+    padding: 16px;
+  }
+  .bioLockModalTop{ display:flex; align-items:center; justify-content:space-between; gap: 10px; }
+  .bioLockModalTitle{ font-family: var(--font-head); font-weight: 950; letter-spacing: -0.02em; }
+  .bioLockX{ border: 1px solid rgba(10,20,40,0.12); border-radius: 999px; background: rgba(255,255,255,0.75); padding: 8px 10px; cursor:pointer; font-weight:900; }
+  .bioLockVideo{
+    width: 100%;
+    height: min(46vh, 420px);
+    border-radius: 22px;
+    border: 1px solid rgba(10,20,40,0.12);
+    background: rgba(10,20,40,0.06);
+    margin-top: 12px;
+    object-fit: cover;
+  }
+  .bioLockCanvas{ display:none; }
+  .bioLockModalBtns{ display:flex; gap: 10px; margin-top: 12px; }
+  .bioLockSmall{ margin-top: 10px; color: var(--muted); font-size: 0.9rem; }
+  .hidden{ display:none !important; }
+</style>
+
+<script>
+(function BioLockCameraModule(){
+  const KEY = "AZ_BIOLOCK_IMG";
+  const modal = document.getElementById('bioLockModal');
+  const btnOpen = document.getElementById('btnBioLockOpen');
+  const btnClear = document.getElementById('btnBioLockClear');
+  const btnClose = document.getElementById('bioLockClose');
+  const btnSnap = document.getElementById('bioLockSnap');
+  const btnStop = document.getElementById('bioLockStop');
+  const video = document.getElementById('bioLockVideo');
+  const canvas = document.getElementById('bioLockCanvas');
+  const thumb = document.getElementById('bioLockThumb');
+  const upload = document.getElementById('bioLockUpload');
+
+  let stream = null;
+
+  function loadThumb(){
+    const img = localStorage.getItem(KEY);
+    if (img) {
+      thumb.src = img;
+      // also mirror into profile avatar if present
+      const av = document.getElementById('p_avatar');
+      if (av) av.src = img;
+    } else {
+      thumb.removeAttribute('src');
+      const av = document.getElementById('p_avatar');
+      if (av && !av.dataset.keep) av.src = av.src; // noop
+    }
+  }
+
+  async function openCamera(){
+    try{
+      // Telegram iOS likes facingMode:user for selfies
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user", width: { ideal: 720 }, height: { ideal: 720 } },
+        audio: false
+      });
+      video.srcObject = stream;
+      modal.classList.remove('hidden');
+    }catch(e){
+      alert("Camera blocked or unavailable. Use Upload instead.");
+      try{ console.warn(e); }catch{}
+    }
+  }
+
+  function stopCamera(){
+    if (stream) {
+      stream.getTracks().forEach(t => { try{ t.stop(); }catch{} });
+      stream = null;
+    }
+    if (video) video.srcObject = null;
+  }
+
+  function close(){
+    stopCamera();
+    modal.classList.add('hidden');
+  }
+
+  function snap(){
+    if (!video || video.readyState < 2) return;
+    const w = video.videoWidth || 720;
+    const h = video.videoHeight || 720;
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, w, h);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.86);
+    localStorage.setItem(KEY, dataUrl);
+    loadThumb();
+    close();
+  }
+
+  function clear(){
+    localStorage.removeItem(KEY);
+    loadThumb();
+  }
+
+  function handleUpload(file){
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = String(reader.result || "");
+      if (dataUrl.startsWith("data:image/")) {
+        localStorage.setItem(KEY, dataUrl);
+        loadThumb();
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Wire if elements exist (screen-profile might not be in DOM on partial builds)
+  if (btnOpen) btnOpen.addEventListener('click', openCamera);
+  if (btnClear) btnClear.addEventListener('click', clear);
+  if (btnClose) btnClose.addEventListener('click', close);
+  if (btnStop) btnStop.addEventListener('click', close);
+  if (btnSnap) btnSnap.addEventListener('click', snap);
+  if (upload) upload.addEventListener('change', (e)=> handleUpload(e.target.files && e.target.files[0]));
+  if (modal) modal.addEventListener('click', (e)=>{ if (e.target === modal) close(); });
+
+  // Load thumb on boot and whenever profile opens
+  loadThumb();
+  if (window.AzeuqerRouter && window.AzeuqerRouter.registerOnShow) {
+    window.AzeuqerRouter.registerOnShow('screen-profile', loadThumb);
+  }
+})();
+</script>
 
 </body>
 </html>
