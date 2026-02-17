@@ -25,10 +25,11 @@
 
       /* Fixed UI heights (can be measured & overwritten by JS later) */
       --marqueeH: 56px;   /* sponsors ticker */
+      --tickerH: var(--marqueeH); /* alias used by router */
       --navH: 74px;       /* bottom nav */
 
       /* Content padding so ticker/nav never cover screens */
-      --contentTop: calc(var(--safeTop) + var(--marqueeH));
+      --contentTop: calc(var(--safeTop) + var(--tickerH));
       --contentBottom: calc(var(--safeBottom) + var(--navH));
 
       /* ---------- Typography ---------- */
@@ -151,8 +152,7 @@
     white-space: nowrap;
     will-change: transform;
     animation: marqueeMove 18s linear infinite;
-    padding-left: 100%;
-    font-family: var(--font-mono);
+        font-family: var(--font-mono);
     font-weight: 900;
     font-size: 0.84rem;
     color: var(--muted);
@@ -160,7 +160,7 @@
 
   @keyframes marqueeMove{
     0%{ transform: translateX(0); }
-    100%{ transform: translateX(-100%); }
+    100%{ transform: translateX(-50%); }
   }
 
   /* Respect reduced motion */
@@ -188,6 +188,18 @@
       <span>◆ AZEUQER PARTNERS ◆</span>
       <span>★ SPONSOR SLOT AVAILABLE ★</span>
     </div>
+
+  <script>
+    // Seamless partner ticker: duplicate content for continuous scroll
+    (function(){
+      const t = document.querySelector('#sponsor-marquee .marquee-track');
+      if (!t) return;
+      if (t.dataset.duped) return;
+      t.dataset.duped = "1";
+      t.innerHTML = t.innerHTML + t.innerHTML;
+    })();
+  </script>
+
   </div>
 
   <!-- ======================================================
