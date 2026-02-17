@@ -114,7 +114,60 @@
 
     /* Disable tap highlight on mobile for “game feel” */
     button, a, input { -webkit-tap-highlight-color: transparent; }
-  </style>
+  
+
+  /* ======================================================
+     GLOBAL RESET + MARQUEE (V23 FIX)
+     - Fixes overlapping/stacking issues
+     - Ensures sponsor ticker scrolls correctly
+  ====================================================== */
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { width: 100%; }
+  img, svg, video, canvas { max-width: 100%; height: auto; display: block; }
+  button, input, textarea { font: inherit; }
+  /* Prevent accidental horizontal overflow from transforms */
+  body { overflow-x: hidden; }
+
+  /* ---------- MARQUEE / SPONSOR TICKER ---------- */
+  #sponsor-marquee{
+    position: fixed;
+    top: var(--safeTop, 0px);
+    left: 0;
+    right: 0;
+    height: var(--tickerH, 44px);
+    display:flex;
+    align-items:center;
+    overflow:hidden;
+    z-index: 1000;
+    background: var(--ticker-bg, rgba(255,255,255,0.86));
+    backdrop-filter: blur(var(--ticker-blur, 10px));
+    border-bottom: 1px solid var(--line, rgba(10,20,40,0.10));
+  }
+
+  .marquee-track{
+    display:inline-flex;
+    align-items:center;
+    gap: 48px;
+    white-space: nowrap;
+    will-change: transform;
+    animation: marqueeMove 18s linear infinite;
+    padding-left: 100%;
+    font-family: var(--font-mono);
+    font-weight: 900;
+    font-size: 0.84rem;
+    color: var(--muted);
+  }
+
+  @keyframes marqueeMove{
+    0%{ transform: translateX(0); }
+    100%{ transform: translateX(-100%); }
+  }
+
+  /* Respect reduced motion */
+  @media (prefers-reduced-motion: reduce){
+    .marquee-track{ animation: none; padding-left: 0; }
+  }
+</style>
 </head>
 <body>
 
@@ -143,7 +196,7 @@
   <div id="screen-stack">
 
     <!-- SCREEN 1: INTRO (placeholder, content later) -->
-    <section id="screen-intro" class="screen active"> <!-- ======================================================
+    <section id="screen-intro" class="screen"> <!-- ======================================================
   SCREEN 1 — THE WAKE-UP CALL
 ====================================================== -->
 <div id="intro-container">
@@ -340,7 +393,7 @@ document.getElementById('email-btn').onclick = async () => {
     </section>
 
     <!-- SCREEN 2: PROFILE -->
-    <section id="screen-profile" class="screen"> 
+    <section id="screen-profile" class="screen hidden"> 
 <!-- ======================================================
   SCREEN 2 — CHARACTER PROFILE (V23)
 ====================================================== -->
@@ -4393,7 +4446,7 @@ document.getElementById('email-btn').onclick = async () => {
 
   /* Optional: smooth fade between screens */
   .screen { opacity: 1; transition: opacity 180ms var(--ease-out, ease-out); }
-  .screen.hidden { opacity: 0; pointer-events: none; }
+  .screen.hidden { display: none !important; opacity: 0; pointer-events: none; }
 </style>
 <script>
   // Boss: refresh state every time screen opens
