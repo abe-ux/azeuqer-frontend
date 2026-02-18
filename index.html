@@ -680,8 +680,59 @@
     // -----------------------------------------------------------------------
     // Backend base URL (fixes "API_BASE not set")
     // -----------------------------------------------------------------------
-    window.AZ_API_BASE = window.AZ_API_BASE || (location.origin || "");
-    const API = (path) => (window.AZ_API_BASE.replace(/\/$/,'') + path);
+    // -----------------------------------------------------------------------
+// Backend base URL (robust)
+// - If you host UI + backend together (recommended), location.origin works.
+// - If UI is hosted separately, the user can set a backend URL ONCE via the
+//   in-app prompt (stored in localStorage), or by setting window.AZ_API_BASE.
+// -----------------------------------------------------------------------
+(function initApiBase(){
+  const KEY = "AZ_API_BASE_OVERRIDE";
+  const fromStorage = (localStorage.getItem(KEY) || "").trim();
+  const fromWindow = (window.AZ_API_BASE || "").trim();
+
+  // Prefer explicit window var, then stored override, then same-origin.
+  window.AZ_API_BASE = (fromWindow || fromStorage || (location.origin || "")).replace(/\/$/, "");
+  function setBase(next){
+    const v = (next || "").trim().replace(/\/$/, "");
+    if (!v) return;
+    window.AZ_API_BASE = v;
+    localStorage.setItem(KEY, v);
+  }
+
+  // quick probe: if /api/health 404s, prompt once
+  async function probe(){
+    try{
+      const r = await fetch(window.AZ_API_BASE + "/api/health", { method:"GET" });
+      if (r.ok) return true;
+    }catch{}
+    return false;
+  }
+
+  // Expose helper so you can change it without editing code
+  window.AZ_setApiBase = setBase;
+
+  // If not same-origin backend, ask for it (once per session)
+  const probedKey = "AZ_API_BASE_PROBED";
+  if (!sessionStorage.getItem(probedKey)) {
+    sessionStorage.setItem(probedKey, "1");
+    probe().then(ok=>{
+      if (ok) return;
+      // Minimal prompt (no external dependencies)
+      const guess = (fromStorage || fromWindow || "").trim();
+      const input = prompt(
+        "Backend not detected on this domain.\n\nPaste your backend URL (Render) then press OK.\nExample: https://your-service.onrender.com",
+        guess
+      );
+      if (input) {
+        setBase(input);
+        location.reload();
+      }
+    });
+  }
+})();
+
+const API = (path) => (window.AZ_API_BASE.replace(/\/$/, '') + path);
 
     // -----------------------------------------------------------------------
     // Telegram initData helper (fixes "Missing initData" for Telegram users)
